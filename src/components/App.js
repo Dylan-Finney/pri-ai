@@ -402,71 +402,16 @@ function App() {
   }
   const initalMessage = async () => {
      await sleep(2000)
-     console.log("Test")
      setLoginTime(timeToString(Date.now()))
      setShowWelcomeMessage(true)
      await sleep(2000)
      setShowWelcomeOneMoreMessage(true)
   }
-  console.log(loginTime)
   return (
       <>
       <div style={{margin: "",minHeight: "100%"}}>
         
-      {setupScreen ? (
-        <>
-        <div style={{display:"flex",flexDirection:"column"}}>
-          <Text as='b'>Name</Text>
-          <Input isInvalid={isError.name} placeholder='Sarah' type="text" value={details.name} onChange={(e)=>{if(e.target.value.length<=30){setIsError({...isError, name:false});}else {setIsError({...isError, name:true})}setDetails({...details, name:e.target.value})}}/>
-          {!isError.name ? (
-            <Text>
-              Enter your name
-            </Text>
-          ) : (
-            <Text color="red">Name can only be 30 characters in length. Current: {details.name.length}</Text>
-          )}
-          <Text as='b'>Age</Text>
-          <Input isInvalid={isError.age} placeholder='28' type="text" value={details.age} onChange={(e)=>{if(e.target.value.length<=3){setIsError({...isError, age:false});}else {setIsError({...isError, age:true})}setDetails({...details, age:e.target.value})}}/>
-          {!isError.age ? (
-            <Text>
-              Enter your age
-            </Text>
-          ) : (
-            <Text color="red">Age can only be 3 digits in length. Current: {details.age.length}</Text>
-          )}
-          <Text as='b'>Location</Text>
-          <Input isInvalid={isError.location} placeholder='city in Silicon Valley' type="text" value={details.location} onChange={(e)=>{if(e.target.value.length<=50){setIsError({...isError, location:false});}else {setIsError({...isError, location:true})}setDetails({...details, location:e.target.value})}}/>
-          {!isError.location ? (
-            <Text>
-              Enter your location details
-            </Text>
-          ) : (
-            <Text color="red">Location details can only be 50 characters in length. Current: {details.location.length}</Text>
-          )}
-          <Text as='b'>Occupation</Text>
-          <Input isInvalid={isError.job} placeholder='UX and front-end developer in a growing startup' type="text" value={details.job} onChange={(e)=>{if(e.target.value.length<=50){setIsError({...isError, job:false});}else {setIsError({...isError, job:true})}setDetails({...details, job:e.target.value})}}/>
-          {!isError.job ? (
-            <Text>
-              Enter your job details
-            </Text>
-          ) : (
-            <Text color="red">Job details can only be 50 characters in length. Current: {details.job.length}</Text>
-          )}
-          <Text as='b'>Marital Status</Text>
-          <Input isInvalid={isError.marital} placeholder='single with a dog' type="text" value={details.marital} onChange={(e)=>{if(e.target.value.length<=50){setIsError({...isError, marital:false});}else {setIsError({...isError, marital:true})}setDetails({...details, marital:e.target.value})}}/>
-          {!isError.marital ? (
-            <Text>
-              Enter your marital status
-            </Text>
-          ) : (
-            <Text color="red">Marital status can only be 50 characters in length. Current: {details.marital.length}</Text>
-          )}
-        </div>
-        <Button isDisabled={isError.name||isError.age||isError.job||isError.location||isError.marital} onClick={()=>{setSetupScreen(!setupScreen);onOpen()}} style={{"marginLeft": "auto", "display": "block", "marginRight": "auto"}}>Submit Details</Button>
-        <Button onClick={async()=>{await fetch("/api/").then((response)=>{return response.json()}).then((data)=>{console.log(data)})}}>a</Button>
-        </>
-      ) : (
-        <>
+      <>
           {/* <Modal closeOnOverlayClick={false} isOpen={isOpen} onClose={onClose}>
             <ModalOverlay />
             <ModalContent>
@@ -999,7 +944,6 @@ function App() {
                             )
                           }
                         </div>
-                        {console.log(chosenApps)}
                         <SimpleGrid columns={7} minChildWidth='84px'  spacing='10px' marginTop={"10px"} marginRight={"10px"}>
                         {
                           apps.filter(app=>app.tags.includes(chosenTrainTab)).map((app)=>{
@@ -1669,7 +1613,6 @@ function App() {
                               }
                               break
                             case 1:
-                              console.log(details)
                               if ( details.name === "" || details.name === null || 
                               details.job === "" || details.job === null || 
                               details.monthDOB === "" || details.monthDOB === null || details.monthDOB.match(/[^$,.\d]/) || parseInt(details.monthDOB) > 31 || parseInt(details.monthDOB) < 1 ||
@@ -2236,7 +2179,7 @@ function App() {
                   }
                   <hr/>
                   <Flex minWidth='max-content' alignItems='center' height={"14%"}>
-                      <Textarea marginLeft={"3%"} width={"85%"} rows={1} resize={"none"} value={prompt} onChange={(e)=>{setPrompt(e.target.value)}} placeholder='Here is a sample placeholder' onKeyDown={(event)=>{if(event.key==="Shift"&&!shiftDown){setShiftDown(true)}}} onKeyUp={async (event)=>{console.log(prompt);console.log(chatlog);if(event.key==="Enter"&&!shiftDown){console.log(await getResponse())}else if(event.key==="Shift"){setShiftDown(false)}}} isDisabled={loading||onboardingStep<4||questionsUsed>=10} autoFocus={true} />
+                      <Textarea marginLeft={"3%"} width={"85%"} rows={1} resize={"none"} value={prompt} onChange={(e)=>{setPrompt(e.target.value)}} placeholder='Here is a sample placeholder' onKeyDown={(event)=>{if(event.key==="Shift"&&!shiftDown){setShiftDown(true)}}} onKeyUp={async (event)=>{if(event.key==="Enter"&&!shiftDown){console.log(await getResponse())}else if(event.key==="Shift"){setShiftDown(false)}}} isDisabled={loading||onboardingStep<4||questionsUsed>=10} autoFocus={true} />
                       <Button marginLeft={"1%"} marginRight={"auto"} backgroundColor={"#0e9384"} paddingLeft={"auto"} paddingRight={"auto"} type={'submit'} onClick={async ()=>{console.log(await getResponse())}} isDisabled={loading||onboardingStep<4||questionsUsed>=10}><TbSend size={"1.3em"} color={"#FFFFFF"}/></Button>
                   </Flex>
                 </>
@@ -2254,7 +2197,6 @@ function App() {
             </div>
           </div>
         </>
-      )}
       </div>
       </>
   );
