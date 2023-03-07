@@ -9,7 +9,7 @@ export default function Home() {
     <>
       <Head>
         <title>Pri-AI</title>
-        <meta name="description" content="Now it can! Meet Pri-AI, your natural language AI assistant, built into your personal data." />
+        <meta name="description" content="Meet Pri-AI, your natural language AI assistant, built into your personal data." />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         {/* <link rel="icon" href="/favicon.ico" /> */}
       </Head>

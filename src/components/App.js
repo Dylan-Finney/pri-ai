@@ -186,6 +186,7 @@ function App() {
   const [failedSubmit, setFailedSubmit] = useState(false)
   const [chosenTrainTab, setChosenTrainTab] = useState("Social")
   const [chosenApps, setChosenApps] = useState([])
+  const [questionsUsed, setQuestionsUsed] = useState(0)
   const [loginTime, setLoginTime] = useState(timeToString(Date.now()))
   const [isLargerThanSM] = useMediaQuery("(min-width: 30em)");
   
@@ -237,6 +238,7 @@ function App() {
       if (responseAPI.data.response){
         setChatlog([].concat(chatlog,{prompt:{text: prompt, time: promptSent}, response: {text: responseAPI.data.response.text, time: Date.now()}}))
       } 
+      setQuestionsUsed(questionsUsed+1)
       setPrompt("")
       setLoading(false)
       var element = document.getElementById('chatlog');
@@ -1760,22 +1762,22 @@ function App() {
               )}
               <div style={{display: "flex", flexDirection: "row", alignItems: "center", paddingLeft: "10px", paddingTop: "3px", paddingBottom: "3px", borderRadius:"25px", cursor: "pointer"}}>
                 <CgSlack color='#475467' size={"22px"}/>
-                <Text marginTop={"auto"} marginBottom={"auto"} marginLeft={"22px"} fontWeight={"600"} position="absolute" left={"2rem"} fontSize={"16px"}> LED Slack</Text>
+                <Text marginTop={"auto"} marginBottom={"auto"} marginLeft={"22px"} fontWeight={"600"} position="absolute" left={"2rem"} fontSize={"16px"} onClick={()=>{window.open("https://join.slack.com/t/libertyequalitydata/shared_invite/zt-ddr4t974-MCzsch4FSeux8DrFQ2atbQ", '_blank').focus();}}> LED Slack</Text>
                 <img src={external} style={{ display: 'inline-block', marginTop: "auto", marginLeft: "auto"}}/>
               </div>
               
               <Box gap={"20px"} display={"flex"} flexDirection={"column"} marginBottom={"auto"}>
                 <Button size='sm' backgroundColor={"#f0fdf9"} color={"#107569"} marginTop={"1vh"} onClick={()=>{setChatlog([]);setPrompt("");setShowWelcomeMessage(false);}}>Clear chat <RiDeleteBin6Line/></Button>
-                <Button size='sm' backgroundColor={"#0e9384"} color={"#FFFFFF"}>Join the community<CgSlack/></Button>
+                <Button size='sm' backgroundColor={"#0e9384"} color={"#FFFFFF"} onClick={()=>{window.open("https://join.slack.com/t/libertyequalitydata/shared_invite/zt-ddr4t974-MCzsch4FSeux8DrFQ2atbQ", '_blank').focus();}}>Join the community<CgSlack/></Button>
                 <Button size='sm'  color={"#107569"} variant={'ghost'} >Share<img src={share} /></Button>
               </Box>
 
               
               
               <div style={{padding: "20px 16px", backgroundColor: "#F0FDF9", border: "1px solid #99F6E0", borderRadius: "8px", marginLeft: "10px",marginBottom: "2vh"  }}>
-                <Text fontWeight={"600"} color={"#107569"} as="b">{chatlog.length}/10 Questions used </Text>
+                <Text fontWeight={"600"} color={"#107569"} as="b">{questionsUsed}/10 Questions used </Text>
                 <Text fontWeight={"400"} color={"#134E48"} marginTop={"4px"} fontSize={"12px"}>For this demo session you are limited to 10 questions. </Text>
-                <Progress value={10*chatlog.length} height={"8px"} marginTop={"16px"} borderRadius={"4px"} variant={"prifina"}/>
+                <Progress value={10*questionsUsed} height={"8px"} marginTop={"16px"} borderRadius={"4px"} variant={"prifina"}/>
               </div>
               <div style={{display: "flex", flexDirection: "row", alignItems: "center", marginBottom: "10px", marginLeft: "10px", paddingTop: "10px", borderTop: "1px solid #eaecf0" }}>
               <img src={`/assets/avatar/Unknown.svg`} ALT="Profile Pic" style={{ display: 'inline-block', marginTop: "auto", marginBottom: "auto"}}/>
@@ -1804,7 +1806,7 @@ function App() {
                 </div>
               )}
 
-              <div style={{display: "flex", flexDirection: "row", alignItems: "center", paddingLeft: "10px", paddingTop: "3px", paddingBottom: "3px", borderRadius:"25px", cursor: "pointer"}}>
+              <div style={{display: "flex", flexDirection: "row", alignItems: "center", paddingLeft: "10px", paddingTop: "3px", paddingBottom: "3px", borderRadius:"25px", cursor: "pointer"}} onClick={()=>{window.open("https://beta.prifina.com/priai.html", '_blank').focus();}}>
                 <img src={FAQ} style={{ display: 'inline-block', marginTop: "auto", marginBottom: "auto"}}/>
                 <Text marginTop={"auto"} marginBottom={"auto"} marginLeft={"3px"} fontWeight={"600"} position="absolute" left={"2rem"}> FAQ</Text>
                 <img src={external} style={{ display: 'inline-block', marginTop: "auto", marginBottom: "auto", marginLeft: "auto"}}/>
@@ -1825,13 +1827,13 @@ function App() {
               
               <div style={{display: "flex", flexDirection: "row", alignItems: "center", paddingLeft: "10px", paddingTop: "3px", paddingBottom: "3px", borderRadius:"25px", cursor: "pointer", marginBottom: "auto"}}>
                 <CgSlack color='#475467' size={"22px"}/>
-                <Text marginTop={"auto"} marginBottom={"auto"} marginLeft={"3px"} fontWeight={"600"} position="absolute" left={"2rem"}> LED Slack</Text>
+                <Text marginTop={"auto"} marginBottom={"auto"} marginLeft={"3px"} fontWeight={"600"} position="absolute" left={"2rem"} onClick={()=>{window.open("https://join.slack.com/t/libertyequalitydata/shared_invite/zt-ddr4t974-MCzsch4FSeux8DrFQ2atbQ", '_blank').focus();}}> LED Slack</Text>
                 <img src={external} style={{ display: 'inline-block', marginTop: "auto", marginBottom: "auto", marginLeft: "auto"}}/>
               </div>
               <div style={{padding: "20px 16px", backgroundColor: "#F0FDF9", border: "1px solid #99F6E0", borderRadius: "8px", marginLeft: "10px",marginBottom: "2vh"  }}>
-                <Text fontWeight={"600"} color={"#107569"} as="b">{chatlog.length}/10 Questions used </Text>
+                <Text fontWeight={"600"} color={"#107569"} as="b">{questionsUsed}/10 Questions used </Text>
                 <Text fontWeight={"400"} color={"#134E48"} marginTop={"4px"} fontSize={"12px"}>For this demo session you are limited to 10 questions. </Text>
-                <Progress value={10*chatlog.length} height={"8px"} marginTop={"16px"} borderRadius={"4px"} variant={"prifina"}/>
+                <Progress value={10*questionsUsed} height={"8px"} marginTop={"16px"} borderRadius={"4px"} variant={"prifina"}/>
               </div>
               <div style={{display: "flex", flexDirection: "row", alignItems: "center", marginBottom: "10px", marginLeft: "10px", paddingTop: "10px", borderTop: "1px solid #eaecf0" }}>
               <img src={`/assets/avatar/Unknown.svg`} style={{ display: 'inline-block', marginTop: "auto", marginBottom: "auto"}}/>
@@ -1885,7 +1887,7 @@ function App() {
               
               <Spacer/>
               <Button marginRight={"1rem"} size='sm' backgroundColor={"#f0fdf9"} color={"#107569"} onClick={()=>{setChatlog([]);setPrompt("");setShowWelcomeMessage(false);}}>Clear chat <RiDeleteBin6Line/></Button>
-              <Button marginRight={"1rem"} size='sm' backgroundColor={"#0e9384"} color={"#FFFFFF"}>Join the community<CgSlack/></Button>
+              <Button marginRight={"1rem"} size='sm' backgroundColor={"#0e9384"} color={"#FFFFFF"} onClick={()=>{window.open("https://join.slack.com/t/libertyequalitydata/shared_invite/zt-ddr4t974-MCzsch4FSeux8DrFQ2atbQ", '_blank').focus();}}>Join the community<CgSlack/></Button>
               <Button marginRight={"1rem"} size='sm'  color={"#107569"} variant={'ghost'}>Share<img src={share} /></Button>
               </Box>
               <Box display={{base: "flex", sm:"none"}} flexDirection={"row"} width={"100%"} alignItems={"center"}>
@@ -2186,14 +2188,14 @@ function App() {
                             </>
                           )}
                           {
-                            chatlog.length >= 10 ? (
+                            questionsUsed >= 10 ? (
                               <>
                                 <div className='response' style={{backgroundColor: "#FFFFFF", paddingLeft: "3vw",paddingRight: "10vw", paddingBottom: "2vh", paddingTop: "1vh"}}>
                                 <Box display={"flex"} flexDirection={"row"} marginBottom={{base: "2vh", sm: "0vh"}}>
                                 <Image src={`/assets/avatar/${selectedAvatar}`} alt="Avatar" width={{base: "30px", sm: "40px"}} marginRight={{base: "2.5vw", sm: "0.5vw"}} marginBottom={{base: "-2vh", sm: "-1vh"}} position={"relative"} bottom={{base: "6px", sm: "-7px"}}/>
                                 <div style={{display:"flex", flexDirection: "row", "border-bottom": "1px solid #f0f1f4", width: "100%", alignItems: "center"}}>
                                 <Text as={"b"} fontSize={"sm"} color={"#107569"} display={"inline-block"} marginRight={"auto"}>{aIName}</Text>
-                                <Text fontSize={"xs"} color={"#215852"} marginTop={"auto"} marginBottom={"auto"}>{timeToString(chatlog[chatlog.length-1].response.time)}</Text>
+                                <Text fontSize={"xs"} color={"#215852"} marginTop={"auto"} marginBottom={"auto"}>{timeToString(chatlog[questionsUsed-1].response.time)}</Text>
                                 </div>
                                 </Box>
                                 
@@ -2207,7 +2209,7 @@ function App() {
                                 </Text>
                                 <Box paddingLeft={{base: "9.5vw", sm: "3.5vw"}} gap={"10px"} display={"flex"} flexDirection={{base: "column",sm: "row"}}>
                                   <Button borderRadius={"8px"} backgroundColor={"#F0FDF9"}><Text fontWeight={"600"} color={"#107569"} marginRight={"5px"}>Start a new chat</Text><ChatJS color='#107569' boxSize={6} /></Button>
-                                  <Button borderRadius={"8px"} backgroundColor={"#0E9384"}><Text fontWeight={"600"} color={"#FFFFFF"} marginRight={"5px"}>Join the community</Text> <CgSlack color={"#FFFFFF"} size={"22px"}/></Button>
+                                  <Button borderRadius={"8px"} backgroundColor={"#0E9384"}><Text fontWeight={"600"} color={"#FFFFFF"} marginRight={"5px"} onClick={()=>{window.open("https://join.slack.com/t/libertyequalitydata/shared_invite/zt-ddr4t974-MCzsch4FSeux8DrFQ2atbQ", '_blank').focus();}}>Join the community</Text> <CgSlack color={"#FFFFFF"} size={"22px"}/></Button>
                                 </Box>
                                 </div>
                               </>
@@ -2234,8 +2236,8 @@ function App() {
                   }
                   <hr/>
                   <Flex minWidth='max-content' alignItems='center' height={"14%"}>
-                      <Textarea marginLeft={"3%"} width={"85%"} rows={1} resize={"none"} value={prompt} onChange={(e)=>{setPrompt(e.target.value)}} placeholder='Here is a sample placeholder' onKeyDown={(event)=>{if(event.key==="Shift"&&!shiftDown){setShiftDown(true)}}} onKeyUp={async (event)=>{console.log(prompt);console.log(chatlog);if(event.key==="Enter"&&!shiftDown){console.log(await getResponse())}else if(event.key==="Shift"){setShiftDown(false)}}} isDisabled={loading||onboardingStep<4||chatlog.length>=10} autoFocus={true} />
-                      <Button marginLeft={"1%"} marginRight={"auto"} backgroundColor={"#0e9384"} paddingLeft={"auto"} paddingRight={"auto"} type={'submit'} onClick={async ()=>{console.log(await getResponse())}} isDisabled={loading||onboardingStep<4||chatlog.length>=10}><TbSend size={"1.3em"} color={"#FFFFFF"}/></Button>
+                      <Textarea marginLeft={"3%"} width={"85%"} rows={1} resize={"none"} value={prompt} onChange={(e)=>{setPrompt(e.target.value)}} placeholder='Here is a sample placeholder' onKeyDown={(event)=>{if(event.key==="Shift"&&!shiftDown){setShiftDown(true)}}} onKeyUp={async (event)=>{console.log(prompt);console.log(chatlog);if(event.key==="Enter"&&!shiftDown){console.log(await getResponse())}else if(event.key==="Shift"){setShiftDown(false)}}} isDisabled={loading||onboardingStep<4||questionsUsed>=10} autoFocus={true} />
+                      <Button marginLeft={"1%"} marginRight={"auto"} backgroundColor={"#0e9384"} paddingLeft={"auto"} paddingRight={"auto"} type={'submit'} onClick={async ()=>{console.log(await getResponse())}} isDisabled={loading||onboardingStep<4||questionsUsed>=10}><TbSend size={"1.3em"} color={"#FFFFFF"}/></Button>
                   </Flex>
                 </>
               )
