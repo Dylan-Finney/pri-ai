@@ -85,6 +85,7 @@ const {Input,useMediaQuery, Flex, TagLabel, Tag, Textarea, Button, useDisclosure
 function App() {
   const [prompt, setPrompt] = useState("")
   const [loading, setLoading] = useState(false)
+  
   const [isError, setIsError] = useState({
     name: false,
     age: false,
@@ -97,8 +98,8 @@ function App() {
     dayDOB: null,
     monthDOB: null,
     yearDOB: null,
-    country: null,
-    region: null,
+    country: "United States",
+    region: "California",
     job: null,
     email: null
   })
@@ -791,6 +792,7 @@ function App() {
                           onChange={(val) => setDetails({...details, country: val})} 
                           whitelist={["US"]}
                           priorityOptions={["US"]}
+                          showDefaultOption
                           style={{"box-sizing": "border-box",
                             "appearance": "none" ,
 
@@ -1613,13 +1615,7 @@ function App() {
                               }
                               break
                             case 1:
-                              if ( details.name === "" || details.name === null || 
-                              details.job === "" || details.job === null || 
-                              details.monthDOB === "" || details.monthDOB === null || details.monthDOB.match(/[^$,.\d]/) || parseInt(details.monthDOB) > 31 || parseInt(details.monthDOB) < 1 ||
-                              details.dayDOB === "" || details.dayDOB === null || details.dayDOB.match(/[^$,.\d]/) || parseInt(details.dayDOB) > 31 || parseInt(details.dayDOB) < 1 ||
-                              details.yearDOB === "" || details.yearDOB === null || details.yearDOB.match(/[^$,.\d]/) ||  parseInt(details.yearDOB) < 1900 || parseInt(details.yearDOB) > 2050 ||
-                              details.country === "" || details.country === null || 
-                              details.region === "" || details.region === null) {
+                              if ( details.name === "" || details.name === null) {
                                 setFailedSubmit(true)
                               } else {
                                 setFailedSubmit(false)
