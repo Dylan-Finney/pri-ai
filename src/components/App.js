@@ -79,6 +79,14 @@ const trainModal = "/assets/train_modal.svg"
 const privacyModal = "/assets/privacy_modal.svg"
 
 import {CheckIcon, CloseIcon, HamburgerIcon} from "@chakra-ui/icons"
+import AppButton from './AppButton';
+import OnboardingSidebar from './OnboardingSidebar';
+import Sidebar from './Sidebar';
+import About from './About';
+import ChatResponse from './ChatResponse';
+import ChatPrompt from './ChatPrompt';
+import AppItem from './AppItem';
+import AppAccordion from './AppAccordion';
 const { Configuration, OpenAIApi } = require("openai");
 const {Input,useMediaQuery, Flex, TagLabel, Tag, Textarea, Button, useDisclosure,Modal,ModalOverlay,ModalContent,ModalHeader,ModalCloseButton,Icon,ModalBody,Lorem,ModalFooter, Spinner,Text, Spacer, Box, SimpleGrid, Tooltip, Progress, ChakraProvider, Accordion, AccordionItem, AccordionButton, AccordionIcon, AccordionPanel, UnorderedList, ListItem, Editable, EditablePreview, EditableInput, useEditableControls, ButtonGroup, IconButton, CheckboxIcon, FormErrorMessage, DrawerOverlay, Drawer, DrawerContent, DrawerHeader, DrawerCloseButton, Image, FormControl    } = require("@chakra-ui/react")
 
@@ -105,6 +113,12 @@ function App() {
   })
   const test = () => {
     if(Date.now()%2===0){return "gray"}else {return "red"}
+  }
+
+  const clearChat = () => {
+    setChatlog([]);
+    setPrompt("");
+    setShowWelcomeMessage(false);
   }
   const timeToString = (timestamp) => {
     var now = new Date(timestamp)
@@ -188,7 +202,7 @@ function App() {
   const [chosenTrainTab, setChosenTrainTab] = useState("Social")
   const [chosenApps, setChosenApps] = useState([])
   const [questionsUsed, setQuestionsUsed] = useState(0)
-  const [loginTime, setLoginTime] = useState(timeToString(Date.now()))
+  const [loginTime, setLoginTime] = useState(Date.now())
   const [isLargerThanSM] = useMediaQuery("(min-width: 30em)");
   
   useEffect(() => {
@@ -253,22 +267,6 @@ function App() {
       setLoading(false)
       return e
     }
-    
-
-    
-    // const response = await openai.createCompletion({
-    //   model: "text-curie-001", //text-curie-001 or text-davinci-003
-    //   prompt: `
-    //   ${chatlog.map((exchange)=>{
-    //     return `
-    //     Me: ${exchange.prompt}
-    //     AI: ${exchange.response}`
-    //   })}
-    //   Me: ${prompt}
-    //   AI: `,
-    //   temperature: 0,
-    //   max_tokens: 50,
-    // });
   }
   const apps = [{"name": "23andMe", "tags": ["Misc"]},{"name": "Airbnb", "tags": ["Misc"]},{"name": "Amazon", "tags": ["Misc"]},{"name": "Ancestry", "tags": ["Misc"]}, {"name": "Apple Health", "tags": ["Health"]}, {"name": "Bosch", "tags": ["Health"]}, {"name": "Doordash", "tags": ["Misc"]}, {"name": "Evernote", "tags": ["Misc"]}, {"name": "Facebook", "tags": ["Social"]}, {"name": "Fitbit", "tags": ["Health"]}, {"name": "Google Calendar", "tags": ["Misc"]}, {"name": "Google Maps", "tags": ["Transport"]}, {"name": "Google", "tags": ["Misc"]}, {"name": "Instacart", "tags": ["Misc"]}, {"name": "Instagram", "tags": ["Social"]}, {"name": "iTunes", "tags": ["Social"]}, {"name": "Linkedin", "tags": ["Social"]}, {"name": "Lyft", "tags": ["Transport"]}, {"name": "Maps", "tags": ["Transport"]}, {"name": "Medium", "tags": ["Social"]}, {"name": "Netflix", "tags": ["Social"]}, {"name": "Notion", "tags": ["Misc"]}, {"name": "Oura", "tags": ["Health"]}, {"name": "Peloton", "tags": ["Health"]}, {"name": "Polar", "tags": ["Health"]}, {"name": "Prime Video", "tags": ["Social"]}, {"name": "Reddit", "tags": ["Social"]}, {"name": "Runkeeper", "tags": ["Health"]}, {"name": "Snapchat", "tags": ["Social"]}, {"name": "Spotify", "tags": ["Social"]}, {"name": "Strava", "tags": ["Health"]}, {"name": "Suunto", "tags": ["Health"]}, {"name": "Tiktok", "tags": ["Social"]}, {"name": "Tripadvisor", "tags": ["Misc"]}, {"name": "Twitch", "tags": ["Social"]}, {"name": "Twitter", "tags": ["Social"]}, {"name": "Uber Eats", "tags": ["Misc"]}, {"name": "Uber", "tags": ["Transport"]}, {"name": "Waze", "tags": ["Transport"]}, {"name": "Withings", "tags": ["Health"]}, {"name": "Youtube", "tags": ["Social"]}]
   
@@ -371,10 +369,6 @@ function App() {
         return ""
     }
   }
-
-  
-  
-
   const feedbackResponse = async (id, helpful) => {
     const responseAPI = await axios({
       method: "POST",
@@ -393,17 +387,12 @@ function App() {
     })
     setChatlog(updateChatLog)
   }
-  // if (e.target.value.length<=40){
-
-  // } else {
-
-  // }
   function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
   const initalMessage = async () => {
      await sleep(2000)
-     setLoginTime(timeToString(Date.now()))
+     setLoginTime(Date.now())
      setShowWelcomeMessage(true)
      await sleep(2000)
      setShowWelcomeOneMoreMessage(true)
@@ -413,265 +402,13 @@ function App() {
       <div style={{margin: "",minHeight: "100%"}}>
         
       <>
-          {/* <Modal closeOnOverlayClick={false} isOpen={isOpen} onClose={onClose}>
-            <ModalOverlay />
-            <ModalContent>
-              <ModalHeader>Privacy Warning</ModalHeader>
-              <ModalCloseButton />
-              <ModalBody pb={6}>
-              Please be advised that this personal AI chat service may record and store the entire conversation history between you and the AI. The purpose of this recording is to improve the quality of the service and for research and development purposes. By using this service, you acknowledge and agree to the recording and storage of your conversation history. You also acknowledge that any details provided and any prompts entered hereafter will be sent to and processed by OpenAI. Please note that your personal information will be kept confidential and will not be disclosed to any other third party without your consent, except as required by law.
-              <br/>
-              If you have any concerns about the collection, use, or storage of your personal information, please do not use this service. If you have any questions or comments about our privacy policy or practices, please contact us.
-              <br/>
-              Thank you for using our personal AI chat service.
-              </ModalBody>
-
-              <ModalFooter>
-                <Button colorScheme='blue' mr={3} onClick={onClose}>
-                  Accept
-                </Button>
-                <Button colorScheme='red' onClick={()=>{setSetupScreen(!setupScreen);onClose()}}>Cancel</Button>
-              </ModalFooter>
-            </ModalContent>
-          </Modal> */}
           <Modal closeOnOverlayClick={false} motionPreset="slideInBottom" isOpen={isOpen} onClose={onClose} size={"full"}>
             <ModalOverlay />
             <ModalContent style={{borderRadius: "10px", border: "0px solid transparent"}} width={{base: "100%",sm:"85%"}} height={{base: "100%",sm:"5%"}} minHeight={{base: "100%",sm:"98vh"}} marginTop={{base: "0vh",sm:"1vh"}} padding={{base: "16px", sm: "0px"}}>
               <ModalCloseButton onClick={()=>{setOnboardingStep(0)}} />
               <div style={{display: "flex", flexDirection: "row", "height": "100%"}}>
                 {/* Left Screen of Modal */}
-                <Box display={{base: "none", sm: "block"}} style={{backgroundColor:"#F9FAFB", flex: 2, "max-height": "100%", borderTopLeftRadius: "10px", borderBottomLeftRadius: "10px", border: "10px solid transparent"}}>
-                  <div style={{display: "flex", flexDirection: "row",  justifyContent: "center", "alignItems": "center", marginTop: "auto", height: "100%"}}> 
-                  
-                  
-                  <div style={{display: "flex", flexDirection: "column"}}>
-                 
-                  {
-                    onboardingStep === 0 ? (
-                      <>
-                      <div style={{"display": "flex", "flexDirection": "row"}}>
-
-                      <div style={{"display": "flex", "flexDirection": "column", justifyContent: "center", "alignItems": "center"}}>
-                      <div style={{"background": "#F0FDF9", width: "35px", height: "35px","border-radius": "35px", justifyContent: "center", "alignItems": "center",display:"flex"}}>
-                        <div style={{"boxSizing": "border-box", "background": "#F0FDF9", "border": "2.5px solid #0E9384", "border-radius": "80px", width: "30px",height: "30px", justifyContent: "center", "alignItems": "center",display:"flex"}}>
-                          <div style={{"width": "10px", "height": "10px", backgroundColor:"#0E9384", "border-radius": "15px"}}/>
-                        </div>
-                      </div>
-                      <div style={{width:"2px", height: "46px", background: "#EAECF0"}}/>
-                      </div>
-
-                      <div style={{"display": "flex", "flexDirection": "column"}}>
-                      <Text as={"b"} color={"#107569"}>Your personal AI</Text>
-                      <Text color={"#0E9384"} marginBottom={"2vh"}>Give your AI a name and face</Text>
-                      </div>
-                      </div>
-                      </>
-                    ) : (
-                      <>
-                      <div style={{"display": "flex", "flexDirection": "row"}}>
-
-                      <div style={{"display": "flex", "flexDirection": "column", justifyContent: "center", "alignItems": "center"}}>
-                      <div style={{"background": "#F0FDF9", width: "35px", height: "35px","border-radius": "35px", justifyContent: "center", "alignItems": "center",display:"flex"}}>
-                        <div style={{"boxSizing": "border-box", "background": "#F0FDF9", "border": "2.5px solid #0E9384", "border-radius": "80px", width: "30px",height: "30px", justifyContent: "center", "alignItems": "center",display:"flex"}}>
-                          <MdCheck size={"25px"} color={"#0E9384"}/>
-                        </div>
-                      </div>
-                      <div style={{width:"2px", height: "46px", background: "#0E9384"}}/>
-                      </div>
-                      
-                      <div style={{"display": "flex", "flexDirection": "column"}}>
-                      <Text as={"b"}>Your personal AI</Text>
-                      <Text marginBottom={"2vh"}>Give your AI a name and face.</Text>
-                      </div>
-                      </div>
-                      </>
-                    )
-                  }
-                  {
-                    onboardingStep === 1 ? (
-                      <>
-                      <div style={{"display": "flex", "flexDirection": "row"}}>
-
-                      <div style={{"display": "flex", "flexDirection": "column", justifyContent: "center", "alignItems": "center"}}>
-                      <div style={{"background": "#F0FDF9", width: "35px", height: "35px","border-radius": "35px", justifyContent: "center", "alignItems": "center",display:"flex"}}>
-                        <div style={{"boxSizing": "border-box", "background": "#F0FDF9", "border": "2.5px solid #0E9384", "border-radius": "80px", width: "30px",height: "30px", justifyContent: "center", "alignItems": "center",display:"flex"}}>
-                          <div style={{"width": "10px", "height": "10px", backgroundColor:"#0E9384", "border-radius": "15px"}}/>
-                        </div>
-                      </div>
-                      <div style={{width:"2px", height: "46px", background: "#EAECF0"}}/>
-                      </div>
-
-                      <div style={{"display": "flex", "flexDirection": "column"}}>
-                      <Text as={"b"} color={"#107569"}>Personalize your experience</Text>
-                      <Text color={"#0E9384"} marginBottom={"2vh"}>A few details about yourself</Text>
-                      </div>
-                      </div>
-                      </>
-                    ) : (
-                      onboardingStep === 0? (
-                        <>
-                      <div style={{"display": "flex", "flexDirection": "row"}}>
-
-                      <div style={{"display": "flex", "flexDirection": "column", justifyContent: "center", "alignItems": "center"}}>
-                      <div style={{"background": "#F9FAFB", width: "35px", height: "35px","border-radius": "35px", justifyContent: "center", "alignItems": "center",display:"flex"}}>
-                        <div style={{"boxSizing": "border-box", "background": "#F9FAFB", "border": "2.5px solid #EAECF0", "border-radius": "80px", width: "30px",height: "30px", justifyContent: "center", "alignItems": "center",display:"flex"}}>
-                          <div style={{"width": "10px", "height": "10px", backgroundColor:"#EAECF0", "border-radius": "15px"}}/>
-                        </div>
-                      </div>
-                      <div style={{width:"2px", height: "46px", background: "#EAECF0"}}/>
-                      </div>
-
-                      <div style={{"display": "flex", "flexDirection": "column"}}>
-                      <Text as={"b"}>Personalize your experience</Text>
-                      <Text marginBottom={"2vh"}>A few details about yourself</Text>
-                      </div>
-                      </div>
-                      </>
-                      ) : (
-                        <>
-                      <div style={{"display": "flex", "flexDirection": "row"}}>
-
-                      <div style={{"display": "flex", "flexDirection": "column", justifyContent: "center", "alignItems": "center"}}>
-                      <div style={{"background": "#F0FDF9", width: "35px", height: "35px","border-radius": "35px", justifyContent: "center", "alignItems": "center",display:"flex"}}>
-                        <div style={{"boxSizing": "border-box", "background": "#F0FDF9", "border": "2.5px solid #0E9384", "border-radius": "80px", width: "30px",height: "30px", justifyContent: "center", "alignItems": "center",display:"flex"}}>
-                          <MdCheck size={"25px"} color={"#0E9384"}/>
-                        </div>
-                      </div>
-                      <div style={{width:"2px", height: "46px", background: "#0E9384"}}/>
-                      </div>
-                      
-                      <div style={{"display": "flex", "flexDirection": "column"}}>
-                      <Text as={"b"}>Personalize your experience</Text>
-                      <Text marginBottom={"2vh"}>A few details about yourself</Text>
-                      </div>
-                      </div>
-                      </>
-                      )
-                    )
-                  }
-                  {
-                    onboardingStep === 2 ? (
-                      <>
-                      <div style={{"display": "flex", "flexDirection": "row"}}>
-
-                      <div style={{"display": "flex", "flexDirection": "column", justifyContent: "center", "alignItems": "center"}}>
-                      <div style={{"background": "#F0FDF9", width: "35px", height: "35px","border-radius": "35px", justifyContent: "center", "alignItems": "center",display:"flex"}}>
-                        <div style={{"boxSizing": "border-box", "background": "#F0FDF9", "border": "2.5px solid #0E9384", "border-radius": "80px", width: "30px",height: "30px", justifyContent: "center", "alignItems": "center",display:"flex"}}>
-                          <div style={{"width": "10px", "height": "10px", backgroundColor:"#0E9384", "border-radius": "15px"}}/>
-                        </div>
-                      </div>
-                      <div style={{width:"2px", height: "46px", background: "#EAECF0"}}/>
-                      </div>
-
-                      <div style={{"display": "flex", "flexDirection": "column"}}>
-                      <Text as={"b"} color={"#107569"}>Train your AI</Text>
-                      <Text color={"#0E9384"} marginBottom={"2vh"}>Connect data to train your AI</Text>
-                      </div>
-                      </div>
-                      </>
-                    ) : (
-                      onboardingStep < 2? (
-                        <>
-                      <div style={{"display": "flex", "flexDirection": "row"}}>
-
-                      <div style={{"display": "flex", "flexDirection": "column", justifyContent: "center", "alignItems": "center"}}>
-                      <div style={{"background": "#F9FAFB", width: "35px", height: "35px","border-radius": "35px", justifyContent: "center", "alignItems": "center",display:"flex"}}>
-                        <div style={{"boxSizing": "border-box", "background": "#F9FAFB", "border": "2.5px solid #EAECF0", "border-radius": "80px", width: "30px",height: "30px", justifyContent: "center", "alignItems": "center",display:"flex"}}>
-                          <div style={{"width": "10px", "height": "10px", backgroundColor:"#EAECF0", "border-radius": "15px"}}/>
-                        </div>
-                      </div>
-                      <div style={{width:"2px", height: "46px", background: "#EAECF0"}}/>
-                      </div>
-
-                      <div style={{"display": "flex", "flexDirection": "column"}}>
-                      <Text as={"b"}>Train your AI</Text>
-                      <Text marginBottom={"2vh"}>Connect data to train your AI</Text>
-                      </div>
-                      </div>
-                      </>
-                      ) : (
-                        <>
-                      <div style={{"display": "flex", "flexDirection": "row"}}>
-
-                      <div style={{"display": "flex", "flexDirection": "column", justifyContent: "center", "alignItems": "center"}}>
-                      <div style={{"background": "#F0FDF9", width: "35px", height: "35px","border-radius": "35px", justifyContent: "center", "alignItems": "center",display:"flex"}}>
-                        <div style={{"boxSizing": "border-box", "background": "#F0FDF9", "border": "2.5px solid #0E9384", "border-radius": "80px", width: "30px",height: "30px", justifyContent: "center", "alignItems": "center",display:"flex"}}>
-                          <MdCheck size={"25px"} color={"#0E9384"}/>
-                        </div>
-                      </div>
-                      <div style={{width:"2px", height: "46px", background: "#0E9384"}}/>
-                      </div>
-                      
-                      <div style={{"display": "flex", "flexDirection": "column"}}>
-                      <Text as={"b"}>Train your AI</Text>
-                      <Text marginBottom={"2vh"}>Connect data to train your AI</Text>
-                      </div>
-                      </div>
-                      </>
-                      )
-                    )
-                  }
-                  {
-                    onboardingStep ===  3 ? (
-                      <>
-                      <div style={{"display": "flex", "flexDirection": "row"}}>
-
-                      <div style={{"background": "#F0FDF9", width: "35px", height: "35px","border-radius": "35px", justifyContent: "center", "alignItems": "center",display:"flex"}}>
-                        <div style={{"boxSizing": "border-box", "background": "#F0FDF9", "border": "2.5px solid #0E9384", "border-radius": "80px", width: "30px",height: "30px", justifyContent: "center", "alignItems": "center",display:"flex"}}>
-                          <div style={{"width": "10px", "height": "10px", backgroundColor:"#0E9384", "border-radius": "15px"}}/>
-                        </div>
-                      </div>
-
-
-                      <div style={{"display": "flex", "flexDirection": "column"}}>
-                      <Text as={"b"} color={"#107569"}>Privacy disclaimer</Text>
-                      <Text color={"#0E9384"} marginBottom={"2vh"}>How we handle and store your data</Text>
-                      </div>
-                      </div>
-                      </>
-                    ) : (
-                      onboardingStep < 3? (
-                        <>
-                      <div style={{"display": "flex", "flexDirection": "row"}}>
-
-                      <div style={{"background": "#F9FAFB", width: "35px", height: "35px","border-radius": "35px", justifyContent: "center", "alignItems": "center",display:"flex"}}>
-                        <div style={{"boxSizing": "border-box", "background": "#F9FAFB", "border": "2.5px solid #EAECF0", "border-radius": "80px", width: "30px",height: "30px", justifyContent: "center", "alignItems": "center",display:"flex"}}>
-                          <div style={{"width": "10px", "height": "10px", backgroundColor:"#EAECF0", "border-radius": "15px"}}/>
-                        </div>
-                      </div>
-
-
-                      <div style={{"display": "flex", "flexDirection": "column"}}>
-                      <Text as={"b"}>Privacy disclaimer</Text>
-                      <Text marginBottom={"2vh"}>How we handle and store your data</Text>
-                      </div>
-                      </div>
-                      </>
-                      ) : (
-                        <>
-                      <div style={{"display": "flex", "flexDirection": "row"}}>
-
-                      <div style={{"background": "#F0FDF9", width: "35px", height: "35px","border-radius": "35px", justifyContent: "center", "alignItems": "center",display:"flex"}}>
-                        <div style={{"boxSizing": "border-box", "background": "#F0FDF9", "border": "2.5px solid #0E9384", "border-radius": "80px", width: "30px",height: "30px", justifyContent: "center", "alignItems": "center",display:"flex"}}>
-                          <MdCheck size={"25px"} color={"#0E9384"}/>
-                        </div>
-                      </div>
-
-                      
-                      <div style={{"display": "flex", "flexDirection": "column"}}>
-                      <Text as={"b"}>Privacy disclaimer</Text>
-                      <Text marginBottom={"2vh"}>How we handle and store your data</Text>
-                      </div>
-                      </div>
-                      </>
-                      )
-                    )
-                  }
-                  
-                  
-                  </div>
-                  </div>
-                </Box>
+                <OnboardingSidebar onboardingStep={onboardingStep}/>
                 {/* Right Screen of Modal */}
                 <div style={{backgroundColor:"#FFFFFF", flex: 5, paddingTop: "5vh", paddingLeft: "1vw", display: "flex", flexDirection: "column", paddingRight: "10px", borderTopRightRadius: "10px", borderBottomRightRadius: "10px", border: "10px solid transparent"}}>
                   {
@@ -891,7 +628,7 @@ function App() {
                       <Image src={trainModal} alt="Train Icon" width={"48px"} marginBottom={{base: "24px", sm: "0px"}}/>
                       <Text as={"b"} fontSize={"2xl"} color={"#101828"}>Train your AI</Text>
                       <Text color={"#475467"}>Data is powers your AI, the more you add the better results you will get. Select the apps you use below to train your AI!</Text>
-                      <Box display={{base: "none", sm:"block"}}>
+                      <Box display={{base: "none", sm:"block"}} height={"fit-content"} overflowY={"auto"} scrollBehavior={"smooth"} minHeight={"38%"} maxHeight={"60%"}  marginBottom={"10px"}>
                         <div style={{display: "flex", flexDirection: "row"}}>
                           {
                             chosenTrainTab === "Social" ? (
@@ -946,7 +683,7 @@ function App() {
                             )
                           }
                         </div>
-                        <SimpleGrid columns={7} minChildWidth='84px'  spacing='10px' marginTop={"10px"} marginRight={"10px"}>
+                        <SimpleGrid column={7} minChildWidth='84px'  spacing='10px' marginTop={"10px"} marginRight={"10px"}>
                         {
                           apps.filter(app=>app.tags.includes(chosenTrainTab)).map((app)=>{
                             return (
@@ -954,98 +691,11 @@ function App() {
                               {
                                 chosenApps.includes(app.name) ? (
                                   <>
-                                  <Tooltip label={`${app.name}`}>
-                                  <Box style={{"box-sizing": "border-box",
-                                      /* Auto layout */
-                                      "display": "flex",
-                                      "flex-direction": "row",
-                                      "align-items": "flex-start",
-                                      "padding": "16px",
-                                      "gap": "4px",
-
-                                      "width": "84px",
-                                      "height": "64px",
-
-                                      /* Teal / 50 */
-                                      "background": "#F0FDF9",
-
-                                      /* Teal / 600 */
-                                      "border": "2px solid #0E9384",
-                                      "border-radius": "12px",
-
-                                      /* Inside auto layout */
-                                      "flex": "none",
-                                      "order": 0,
-                                      "flex-grow": 0}} onClick={()=>{setChosenApps(chosenApps.filter(chosenApp=>chosenApp!==app.name))}}>
-                                        <img src={`/assets/apps/${getAppLogo(app.name)}`} alt={`${app.name} Logo`}/>
-                                        <div style={{"box-sizing": "border-box",
-
-                                          "width": "16px",
-                                          "height": "16px",
-
-                                          /* Teal / 600 */
-                                          "background": "#0E9384",
-
-                                          /* Teal / 600 */
-                                          "border": "1px solid #0E9384",
-                                          "border-radius": "8px",
-
-                                          /* Inside auto layout */
-                                          "flex": "none",
-                                          "order": 1,
-                                          "flex-grow": 0}}><img src={Check} style={{"position": "relative",
-                                            "left": "16.67%",
-                                            "right": "16.67%",
-                                            "top": "25%",
-                                            "bottom": "29.17%",                              
-                                            }} alt={"Check"}/></div>
-                                  </Box>
-                                  </Tooltip>
+                                    <AppButton name={app.name} source={getAppLogo(app.name)} checked={true} click={()=>{setChosenApps(chosenApps.filter(chosenApp=>chosenApp!==app.name))}}/>
                                   </>
                                 ) : (
                                   <>
-                                  <Tooltip label={`${app.name}`}>
-                                  <Box style={{"box-sizing": "border-box",
-                                /* Auto layout */
-                                "display": "flex",
-                                "flex-direction": "row",
-                                "align-items": "flex-start",
-                                "padding": "16px",
-                                "gap": "4px",
-
-                                "width": "84px",
-                                "height": "64px",
-
-                              /* Base/White */
-                              "background": "#FFFFFF",
-
-                              /* Gray/200 */
-                              "border": "1px solid #EAECF0",
-                              "border-radius": "12px",
-
-                                /* Inside auto layout */
-                                "flex": "none",
-                                "order": 0,
-                                "flex-grow": 0}} onClick={()=>{setChosenApps([...chosenApps, app.name])}}>
-                                  <img src={`/assets/apps/${getAppLogo(app.name)}`} alt={`${app.name} Logo`}/>
-                                  <div style={{"box-sizing": "border-box",
-
-                                    "width": "16px",
-                                    "height": "16px",
-
-                                    /* Base/White */
-                                    "background": "#FFFFFF",
-
-                                    /* Gray/200 */
-                                    "border": "1px solid #D0D5DD",
-                                    "border-radius": "8px",
-
-                                    /* Inside auto layout */
-                                    "flex": "none",
-                                    "order": 1,
-                                    "flex-grow": 0}}></div>
-                                  </Box>
-                                  </Tooltip>
+                                    <AppButton name={app.name} source={getAppLogo(app.name)} checked={false} click={()=>{setChosenApps([...chosenApps, app.name])}}/>
                                   </>
                                 )
                               }
@@ -1058,516 +708,7 @@ function App() {
                         </SimpleGrid>
                       </Box> 
                       <Box display={{base: "block", sm:"none"}} overflowY={"auto"} scrollBehavior={"smooth"} minHeight={"49vh"} maxHeight={"49vh"} marginTop={"2vh"}>
-                      <Accordion variant={"prifina"} allowToggle>
-                        <AccordionItem marginBottom={"16px"}>
-                          {({ isExpanded }) => (
-                            <>
-                                <div>
-                                    <AccordionButton backgroundColor={"#FFFFFF"} border={"1px solid #D0D5DD"} boxShadow={"0px 1px 2px rgba(16, 24, 40, 0.05)"} borderRadius={"8px"}>
-                                      <Box as="span" flex='1' textAlign='left'>
-                                        <Text as={"b"} color={ isExpanded ? "#101828" : "#667085"} fontSize={"16px"}>Social & streaming</Text>
-                                      </Box>
-                                      <AccordionIcon />
-                                    </AccordionButton>
-                                  <AccordionPanel pb={4} marginLeft={"27px"}>
-                                  <SimpleGrid columns={7} minChildWidth='84px'  spacing='10px' marginTop={"10px"} marginRight={"10px"}>
-                                    {
-                                      apps.filter(app=>app.tags.includes("Social")).map((app)=>{
-                                        return (
-                                          <>
-                                          {
-                                            chosenApps.includes(app.name) ? (
-                                              <>
-                                              <Tooltip label={`${app.name}`}>
-                                              <Box style={{"box-sizing": "border-box",
-                                                  /* Auto layout */
-                                                  "display": "flex",
-                                                  "flex-direction": "row",
-                                                  "align-items": "flex-start",
-                                                  "padding": "16px",
-                                                  "gap": "4px",
-
-                                                  "width": "84px",
-                                                  "height": "64px",
-
-                                                  /* Teal / 50 */
-                                                  "background": "#F0FDF9",
-
-                                                  /* Teal / 600 */
-                                                  "border": "2px solid #0E9384",
-                                                  "border-radius": "12px",
-
-                                                  /* Inside auto layout */
-                                                  "flex": "none",
-                                                  "order": 0,
-                                                  "flex-grow": 0}} onClick={()=>{setChosenApps(chosenApps.filter(chosenApp=>chosenApp!==app.name))}}>
-                                                    <img src={`/assets/apps/${getAppLogo(app.name)}`} alt={`${app.name} Logo`}/>
-                                                    <div style={{"box-sizing": "border-box",
-
-                                                      "width": "16px",
-                                                      "height": "16px",
-
-                                                      /* Teal / 600 */
-                                                      "background": "#0E9384",
-
-                                                      /* Teal / 600 */
-                                                      "border": "1px solid #0E9384",
-                                                      "border-radius": "8px",
-
-                                                      /* Inside auto layout */
-                                                      "flex": "none",
-                                                      "order": 1,
-                                                      "flex-grow": 0}}><img src={Check} style={{"position": "relative",
-                                                        "left": "16.67%",
-                                                        "right": "16.67%",
-                                                        "top": "25%",
-                                                        "bottom": "29.17%",                              
-                                                        }} alt={"Check"}/></div>
-                                              </Box>
-                                              </Tooltip>
-                                              </>
-                                            ) : (
-                                              <>
-                                              <Tooltip label={`${app.name}`}>
-                                              <Box style={{"box-sizing": "border-box",
-                                            /* Auto layout */
-                                            "display": "flex",
-                                            "flex-direction": "row",
-                                            "align-items": "flex-start",
-                                            "padding": "16px",
-                                            "gap": "4px",
-
-                                            "width": "84px",
-                                            "height": "64px",
-
-                                          /* Base/White */
-                                          "background": "#FFFFFF",
-
-                                          /* Gray/200 */
-                                          "border": "1px solid #EAECF0",
-                                          "border-radius": "12px",
-
-                                            /* Inside auto layout */
-                                            "flex": "none",
-                                            "order": 0,
-                                            "flex-grow": 0}} onClick={()=>{setChosenApps([...chosenApps, app.name])}}>
-                                              <img src={`/assets/apps/${getAppLogo(app.name)}`} alt={`${app.name} Logo`}/>
-                                              <div style={{"box-sizing": "border-box",
-
-                                                "width": "16px",
-                                                "height": "16px",
-
-                                                /* Base/White */
-                                                "background": "#FFFFFF",
-
-                                                /* Gray/200 */
-                                                "border": "1px solid #D0D5DD",
-                                                "border-radius": "8px",
-
-                                                /* Inside auto layout */
-                                                "flex": "none",
-                                                "order": 1,
-                                                "flex-grow": 0}}></div>
-                                              </Box>
-                                              </Tooltip>
-                                              </>
-                                            )
-                                          }
-                                          
-                                          
-                                          </>
-                                        )
-                                      })
-                                    }
-                                  </SimpleGrid>
-                                  </AccordionPanel>
-                                </div>
-                            </>
-                            
-                          )}
-                        </AccordionItem>
-                        <AccordionItem marginBottom={"16px"}>
-                          {({ isExpanded }) => (
-                            <>
-                                <div>
-                                    <AccordionButton backgroundColor={"#FFFFFF"} border={"1px solid #D0D5DD"} boxShadow={"0px 1px 2px rgba(16, 24, 40, 0.05)"} borderRadius={"8px"}>
-                                      <Box as="span" flex='1' textAlign='left'>
-                                        <Text as={"b"} color={ isExpanded ? "#101828" : "#667085"} fontSize={"16px"}>Transport</Text>
-                                      </Box>
-                                      <AccordionIcon />
-                                    </AccordionButton>
-                                  <AccordionPanel pb={4} marginLeft={"27px"}>
-                                  <SimpleGrid columns={7} minChildWidth='84px'  spacing='10px' marginTop={"10px"} marginRight={"10px"}>
-                                    {
-                                      apps.filter(app=>app.tags.includes("Transport")).map((app)=>{
-                                        return (
-                                          <>
-                                          {
-                                            chosenApps.includes(app.name) ? (
-                                              <>
-                                              <Tooltip label={`${app.name}`}>
-                                              <Box style={{"box-sizing": "border-box",
-                                                  /* Auto layout */
-                                                  "display": "flex",
-                                                  "flex-direction": "row",
-                                                  "align-items": "flex-start",
-                                                  "padding": "16px",
-                                                  "gap": "4px",
-
-                                                  "width": "84px",
-                                                  "height": "64px",
-
-                                                  /* Teal / 50 */
-                                                  "background": "#F0FDF9",
-
-                                                  /* Teal / 600 */
-                                                  "border": "2px solid #0E9384",
-                                                  "border-radius": "12px",
-
-                                                  /* Inside auto layout */
-                                                  "flex": "none",
-                                                  "order": 0,
-                                                  "flex-grow": 0}} onClick={()=>{setChosenApps(chosenApps.filter(chosenApp=>chosenApp!==app.name))}}>
-                                                    <img src={`/assets/apps/${getAppLogo(app.name)}`} alt={`${app.name} Logo`}/>
-                                                    <div style={{"box-sizing": "border-box",
-
-                                                      "width": "16px",
-                                                      "height": "16px",
-
-                                                      /* Teal / 600 */
-                                                      "background": "#0E9384",
-
-                                                      /* Teal / 600 */
-                                                      "border": "1px solid #0E9384",
-                                                      "border-radius": "8px",
-
-                                                      /* Inside auto layout */
-                                                      "flex": "none",
-                                                      "order": 1,
-                                                      "flex-grow": 0}}><img src={Check} style={{"position": "relative",
-                                                        "left": "16.67%",
-                                                        "right": "16.67%",
-                                                        "top": "25%",
-                                                        "bottom": "29.17%",                              
-                                                        }} alt={"Check"}/></div>
-                                              </Box>
-                                              </Tooltip>
-                                              </>
-                                            ) : (
-                                              <>
-                                              <Tooltip label={`${app.name}`}>
-                                              <Box style={{"box-sizing": "border-box",
-                                            /* Auto layout */
-                                            "display": "flex",
-                                            "flex-direction": "row",
-                                            "align-items": "flex-start",
-                                            "padding": "16px",
-                                            "gap": "4px",
-
-                                            "width": "84px",
-                                            "height": "64px",
-
-                                          /* Base/White */
-                                          "background": "#FFFFFF",
-
-                                          /* Gray/200 */
-                                          "border": "1px solid #EAECF0",
-                                          "border-radius": "12px",
-
-                                            /* Inside auto layout */
-                                            "flex": "none",
-                                            "order": 0,
-                                            "flex-grow": 0}} onClick={()=>{setChosenApps([...chosenApps, app.name])}}>
-                                              <img src={`/assets/apps/${getAppLogo(app.name)}`} alt={`${app.name} Logo`}/>
-                                              <div style={{"box-sizing": "border-box",
-
-                                                "width": "16px",
-                                                "height": "16px",
-
-                                                /* Base/White */
-                                                "background": "#FFFFFF",
-
-                                                /* Gray/200 */
-                                                "border": "1px solid #D0D5DD",
-                                                "border-radius": "8px",
-
-                                                /* Inside auto layout */
-                                                "flex": "none",
-                                                "order": 1,
-                                                "flex-grow": 0}}></div>
-                                              </Box>
-                                              </Tooltip>
-                                              </>
-                                            )
-                                          }
-                                          
-                                          
-                                          </>
-                                        )
-                                      })
-                                    }
-                                  </SimpleGrid>
-                                  </AccordionPanel>
-                                </div>
-                            </>
-                            
-                          )}
-                        </AccordionItem>
-                        <AccordionItem marginBottom={"16px"}>
-                          {({ isExpanded }) => (
-                            <>
-                                <div>
-                                    <AccordionButton backgroundColor={"#FFFFFF"} border={"1px solid #D0D5DD"} boxShadow={"0px 1px 2px rgba(16, 24, 40, 0.05)"} borderRadius={"8px"}>
-                                      <Box as="span" flex='1' textAlign='left'>
-                                        <Text as={"b"} color={ isExpanded ? "#101828" : "#667085"} fontSize={"16px"}>Health & Fitness</Text>
-                                      </Box>
-                                      <AccordionIcon />
-                                    </AccordionButton>
-                                  <AccordionPanel pb={4} marginLeft={"27px"}>
-                                  <SimpleGrid columns={7} minChildWidth='84px'  spacing='10px' marginTop={"10px"} marginRight={"10px"}>
-                                    {
-                                      apps.filter(app=>app.tags.includes("Health")).map((app)=>{
-                                        return (
-                                          <>
-                                          {
-                                            chosenApps.includes(app.name) ? (
-                                              <>
-                                              <Tooltip label={`${app.name}`}>
-                                              <Box style={{"box-sizing": "border-box",
-                                                  /* Auto layout */
-                                                  "display": "flex",
-                                                  "flex-direction": "row",
-                                                  "align-items": "flex-start",
-                                                  "padding": "16px",
-                                                  "gap": "4px",
-
-                                                  "width": "84px",
-                                                  "height": "64px",
-
-                                                  /* Teal / 50 */
-                                                  "background": "#F0FDF9",
-
-                                                  /* Teal / 600 */
-                                                  "border": "2px solid #0E9384",
-                                                  "border-radius": "12px",
-
-                                                  /* Inside auto layout */
-                                                  "flex": "none",
-                                                  "order": 0,
-                                                  "flex-grow": 0}} onClick={()=>{setChosenApps(chosenApps.filter(chosenApp=>chosenApp!==app.name))}}>
-                                                    <img src={`/assets/apps/${getAppLogo(app.name)}`} alt={`${app.name} Logo`}/>
-                                                    <div style={{"box-sizing": "border-box",
-
-                                                      "width": "16px",
-                                                      "height": "16px",
-
-                                                      /* Teal / 600 */
-                                                      "background": "#0E9384",
-
-                                                      /* Teal / 600 */
-                                                      "border": "1px solid #0E9384",
-                                                      "border-radius": "8px",
-
-                                                      /* Inside auto layout */
-                                                      "flex": "none",
-                                                      "order": 1,
-                                                      "flex-grow": 0}}><img src={Check} style={{"position": "relative",
-                                                        "left": "16.67%",
-                                                        "right": "16.67%",
-                                                        "top": "25%",
-                                                        "bottom": "29.17%",                              
-                                                        }} alt={"Check"}/></div>
-                                              </Box>
-                                              </Tooltip>
-                                              </>
-                                            ) : (
-                                              <>
-                                              <Tooltip label={`${app.name}`}>
-                                              <Box style={{"box-sizing": "border-box",
-                                            /* Auto layout */
-                                            "display": "flex",
-                                            "flex-direction": "row",
-                                            "align-items": "flex-start",
-                                            "padding": "16px",
-                                            "gap": "4px",
-
-                                            "width": "84px",
-                                            "height": "64px",
-
-                                          /* Base/White */
-                                          "background": "#FFFFFF",
-
-                                          /* Gray/200 */
-                                          "border": "1px solid #EAECF0",
-                                          "border-radius": "12px",
-
-                                            /* Inside auto layout */
-                                            "flex": "none",
-                                            "order": 0,
-                                            "flex-grow": 0}} onClick={()=>{setChosenApps([...chosenApps, app.name])}}>
-                                              <img src={`/assets/apps/${getAppLogo(app.name)}`} alt={`${app.name} Logo`}/>
-                                              <div style={{"box-sizing": "border-box",
-
-                                                "width": "16px",
-                                                "height": "16px",
-
-                                                /* Base/White */
-                                                "background": "#FFFFFF",
-
-                                                /* Gray/200 */
-                                                "border": "1px solid #D0D5DD",
-                                                "border-radius": "8px",
-
-                                                /* Inside auto layout */
-                                                "flex": "none",
-                                                "order": 1,
-                                                "flex-grow": 0}}></div>
-                                              </Box>
-                                              </Tooltip>
-                                              </>
-                                            )
-                                          }
-                                          
-                                          
-                                          </>
-                                        )
-                                      })
-                                    }
-                                  </SimpleGrid>
-                                  </AccordionPanel>
-                                </div>
-                            </>
-                            
-                          )}
-                        </AccordionItem>
-                        <AccordionItem marginBottom={"16px"}>
-                          {({ isExpanded }) => (
-                            <>
-                                <div>
-                                    <AccordionButton backgroundColor={"#FFFFFF"} border={"1px solid #D0D5DD"} boxShadow={"0px 1px 2px rgba(16, 24, 40, 0.05)"} borderRadius={"8px"}>
-                                      <Box as="span" flex='1' textAlign='left'>
-                                        <Text as={"b"} color={ isExpanded ? "#101828" : "#667085"} fontSize={"16px"}>Misc</Text>
-                                      </Box>
-                                      <AccordionIcon />
-                                    </AccordionButton>
-                                  <AccordionPanel pb={4} marginLeft={"27px"}>
-                                  <SimpleGrid columns={7} minChildWidth='84px'  spacing='10px' marginTop={"10px"} marginRight={"10px"}>
-                                    {
-                                      apps.filter(app=>app.tags.includes("Misc")).map((app)=>{
-                                        return (
-                                          <>
-                                          {
-                                            chosenApps.includes(app.name) ? (
-                                              <>
-                                              <Tooltip label={`${app.name}`}>
-                                              <Box style={{"box-sizing": "border-box",
-                                                  /* Auto layout */
-                                                  "display": "flex",
-                                                  "flex-direction": "row",
-                                                  "align-items": "flex-start",
-                                                  "padding": "16px",
-                                                  "gap": "4px",
-
-                                                  "width": "84px",
-                                                  "height": "64px",
-
-                                                  /* Teal / 50 */
-                                                  "background": "#F0FDF9",
-
-                                                  /* Teal / 600 */
-                                                  "border": "2px solid #0E9384",
-                                                  "border-radius": "12px",
-
-                                                  /* Inside auto layout */
-                                                  "flex": "none",
-                                                  "order": 0,
-                                                  "flex-grow": 0}} onClick={()=>{setChosenApps(chosenApps.filter(chosenApp=>chosenApp!==app.name))}}>
-                                                    <img src={`/assets/apps/${getAppLogo(app.name)}`} alt={`${app.name} Logo`}/>
-                                                    <div style={{"box-sizing": "border-box",
-
-                                                      "width": "16px",
-                                                      "height": "16px",
-
-                                                      /* Teal / 600 */
-                                                      "background": "#0E9384",
-
-                                                      /* Teal / 600 */
-                                                      "border": "1px solid #0E9384",
-                                                      "border-radius": "8px",
-
-                                                      /* Inside auto layout */
-                                                      "flex": "none",
-                                                      "order": 1,
-                                                      "flex-grow": 0}}><img src={Check} style={{"position": "relative",
-                                                        "left": "16.67%",
-                                                        "right": "16.67%",
-                                                        "top": "25%",
-                                                        "bottom": "29.17%",                              
-                                                        }} alt={"Check"}/></div>
-                                              </Box>
-                                              </Tooltip>
-                                              </>
-                                            ) : (
-                                              <>
-                                              <Tooltip label={`${app.name}`}>
-                                              <Box style={{"box-sizing": "border-box",
-                                            /* Auto layout */
-                                            "display": "flex",
-                                            "flex-direction": "row",
-                                            "align-items": "flex-start",
-                                            "padding": "16px",
-                                            "gap": "4px",
-
-                                            "width": "84px",
-                                            "height": "64px",
-
-                                          /* Base/White */
-                                          "background": "#FFFFFF",
-
-                                          /* Gray/200 */
-                                          "border": "1px solid #EAECF0",
-                                          "border-radius": "12px",
-
-                                            /* Inside auto layout */
-                                            "flex": "none",
-                                            "order": 0,
-                                            "flex-grow": 0}} onClick={()=>{setChosenApps([...chosenApps, app.name])}}>
-                                              <img src={`/assets/apps/${getAppLogo(app.name)}`} alt={`${app.name} Logo`}/>
-                                              <div style={{"box-sizing": "border-box",
-
-                                                "width": "16px",
-                                                "height": "16px",
-
-                                                /* Base/White */
-                                                "background": "#FFFFFF",
-
-                                                /* Gray/200 */
-                                                "border": "1px solid #D0D5DD",
-                                                "border-radius": "8px",
-
-                                                /* Inside auto layout */
-                                                "flex": "none",
-                                                "order": 1,
-                                                "flex-grow": 0}}></div>
-                                              </Box>
-                                              </Tooltip>
-                                              </>
-                                            )
-                                          }
-                                          
-                                          
-                                          </>
-                                        )
-                                      })
-                                    }
-                                  </SimpleGrid>
-                                  </AccordionPanel>
-                                </div>
-                            </>
-                            
-                          )}
-                        </AccordionItem>
-                      </Accordion>
+                        <AppAccordion apps={apps} chosenApps={chosenApps} add={(app)=>{setChosenApps(chosenApps.filter(chosenApp=>chosenApp!==app.name))}} remove={(app)=>{setChosenApps([...chosenApps, app.name])}} />
                       </Box> 
 
                       </>
@@ -1661,127 +802,16 @@ function App() {
               
             </ModalContent>
           </Modal>
+
           <Drawer placement={"left"} isOpen={isSideBarOpen} onClose={onSideBarClose} size={"xs"}>
           <DrawerOverlay />
           <DrawerContent width={"85%"} padding={"16px"}>
             <DrawerCloseButton />
-            <Box display={"flex"} flexDirection={"row"}>
-              <img src={logo} style={{ display: 'inline-block', width: "30px",filter: "drop-shadow(0px 1px 3px rgba(16, 24, 40, 0.1)) drop-shadow(0px 1px 2px rgba(16, 24, 40, 0.06))" }}/>
-              <Text paddingLeft={"10px"} color='#0E9384' fontWeight="700" fontSize={"20px"}>Pri-AI</Text>
-            </Box>
-            {section === "chat"? (
-                <div style={{display: "flex", flexDirection: "row", alignItems: "center", marginTop: "10vh", paddingLeft: "10px", paddingTop: "3px", paddingBottom: "3px", backgroundColor:"#f9fafb", borderRadius:"25px"}}>
-                  <img src={chat} style={{ display: 'inline-block', marginTop: "auto", marginBottom: "auto"}}/>
-                  <Text as='b' marginTop={"auto"} marginBottom={"auto"} marginLeft={"22px"} fontWeight={"600"} position="absolute" left={"2rem"} fontSize={"16px"}> Chat</Text>
-                </div>
-                
-              ) : (
-                <div onClick={()=>{setSection("chat")}} style={{display: "flex", flexDirection: "row", alignItems: "center", marginTop: "10vh", paddingLeft: "10px", paddingTop: "3px", paddingBottom: "3px", borderRadius:"25px", cursor: "pointer"}}>
-                  <img src={chat} style={{ display: 'inline-block', marginTop: "auto", marginBottom: "auto"}}/>
-                  <Text marginTop={"auto"} marginBottom={"auto"} marginLeft={"22px"} fontWeight={"600"} position="absolute" left={"2rem"} fontSize={"16px"}> Chat</Text>
-                </div>
-              )}
-
-              <div style={{display: "flex", flexDirection: "row", alignItems: "center", paddingLeft: "10px", paddingTop: "3px", paddingBottom: "3px", borderRadius:"25px", cursor: "pointer"}}>
-                <img src={FAQ} style={{ display: 'inline-block', marginTop: "auto", marginBottom: "auto"}}/>
-                <Text marginTop={"auto"} marginBottom={"auto"} marginLeft={"22px"} fontWeight={"600"} position="absolute" left={"2rem"} fontSize={"16px"}> FAQ</Text>
-                <img src={external} style={{ display: 'inline-block', marginTop: "auto", marginBottom: "auto", marginLeft: "auto"}}/>
-              </div>
-
-              {section === "about"? (
-                <div style={{display: "flex", flexDirection: "row", alignItems: "center", paddingLeft: "10px", paddingTop: "3px", paddingBottom: "3px", backgroundColor:"#f9fafb", borderRadius:"25px"}}>
-                <img src={about} style={{ display: 'inline-block', marginTop: "auto", marginBottom: "auto"}}/>
-                <Text as='b' marginTop={"auto"} marginBottom={"auto"} marginLeft={"22px"} fontWeight={"600"} position="absolute" left={"2rem"} fontSize={"16px"}> About this demo</Text>
-              </div>
-              ) : (
-                <div onClick={()=>{setSection("about")}} style={{display: "flex", flexDirection: "row", alignItems: "center", paddingLeft: "10px", paddingTop: "3px", paddingBottom: "3px", borderRadius:"25px", cursor: "pointer"}}>
-                  <img src={about} style={{ display: 'inline-block', marginTop: "auto", marginBottom: "auto"}}/>
-                  <Text marginTop={"auto"} marginBottom={"auto"} marginLeft={"22px"} fontWeight={"600"} position="absolute" left={"2rem"} fontSize={"16px"}> About this demo</Text>
-                </div>
-              )}
-              <div style={{display: "flex", flexDirection: "row", alignItems: "center", paddingLeft: "10px", paddingTop: "3px", paddingBottom: "3px", borderRadius:"25px", cursor: "pointer"}}>
-                <CgSlack color='#475467' size={"22px"}/>
-                <Text marginTop={"auto"} marginBottom={"auto"} marginLeft={"22px"} fontWeight={"600"} position="absolute" left={"2rem"} fontSize={"16px"} onClick={()=>{window.open("https://join.slack.com/t/libertyequalitydata/shared_invite/zt-ddr4t974-MCzsch4FSeux8DrFQ2atbQ", '_blank').focus();}}> LED Slack</Text>
-                <img src={external} style={{ display: 'inline-block', marginTop: "auto", marginLeft: "auto"}}/>
-              </div>
-              
-              <Box gap={"20px"} display={"flex"} flexDirection={"column"} marginBottom={"auto"}>
-                <Button size='sm' backgroundColor={"#f0fdf9"} color={"#107569"} marginTop={"1vh"} onClick={()=>{setChatlog([]);setPrompt("");setShowWelcomeMessage(false);}}>Clear chat <RiDeleteBin6Line/></Button>
-                <Button size='sm' backgroundColor={"#0e9384"} color={"#FFFFFF"} onClick={()=>{window.open("https://join.slack.com/t/libertyequalitydata/shared_invite/zt-ddr4t974-MCzsch4FSeux8DrFQ2atbQ", '_blank').focus();}}>Join the community<CgSlack/></Button>
-                <Button size='sm'  color={"#107569"} variant={'ghost'} >Share<img src={share} /></Button>
-              </Box>
-
-              
-              
-              <div style={{padding: "20px 16px", backgroundColor: "#F0FDF9", border: "1px solid #99F6E0", borderRadius: "8px", marginLeft: "10px",marginBottom: "2vh"  }}>
-                <Text fontWeight={"600"} color={"#107569"} as="b">{questionsUsed}/10 Questions used </Text>
-                <Text fontWeight={"400"} color={"#134E48"} marginTop={"4px"} fontSize={"12px"}>For this demo session you are limited to 10 questions. </Text>
-                <Progress value={10*questionsUsed} height={"8px"} marginTop={"16px"} borderRadius={"4px"} variant={"prifina"}/>
-              </div>
-              <div style={{display: "flex", flexDirection: "row", alignItems: "center", marginBottom: "10px", marginLeft: "10px", paddingTop: "10px", borderTop: "1px solid #eaecf0" }}>
-              <img src={`/assets/avatar/Unknown.svg`} ALT="Profile Pic" style={{ display: 'inline-block', marginTop: "auto", marginBottom: "auto"}}/>
-              <Text paddingLeft={"5px"} fontWeight="600">{details.name}</Text>
-              <img src={logout} style={{ display: 'inline-block', marginTop: "auto", marginBottom: "auto", marginLeft: "auto"}}/>
-              </div>
+            <Sidebar section={section} name={details.name} questionsUsed={questionsUsed} changeSection={setSection} clear={clearChat}/>
           </DrawerContent>
           </Drawer>
           <div style={{display:"flex", flexDirection:"row"}}>
-            <Box id="sidebar" display={{base: "none", sm: "flex"}} style={{width: "19.5%", maxWidth: "270px", flexDirection:"column",  minHeight:"100vh",maxHeight:"100vh", paddingRight: "1rem", "border-right": "1px solid #eaecf0"}}>
-              <div style={{display:"flex", flexDirection:"row", marginLeft: "10px",  marginTop: "10px"}}>
-                <img src={logo} style={{ display: 'inline-block', filter: "drop-shadow(0px 1px 3px rgba(16, 24, 40, 0.1)) drop-shadow(0px 1px 2px rgba(16, 24, 40, 0.06))" }}/>
-                <Text paddingLeft={"10px"} color='#0E9384' fontWeight="700" fontSize={"20px"}>Pri-AI</Text>
-              </div>
-              
-              {section === "chat"? (
-                <div style={{display: "flex", flexDirection: "row", alignItems: "center", marginTop: "10vh", paddingLeft: "10px", paddingTop: "3px", paddingBottom: "3px", backgroundColor:"#f9fafb", borderRadius:"25px"}}>
-                  <img src={chat} style={{ display: 'inline-block', marginTop: "auto", marginBottom: "auto"}}/>
-                  <Text as='b' marginTop={"auto"} marginBottom={"auto"} marginLeft={"3px"} fontWeight={"600"} position="absolute" left={"2rem"}> Chat</Text>
-                </div>
-                
-              ) : (
-                <div onClick={()=>{setSection("chat")}} style={{display: "flex", flexDirection: "row", alignItems: "center", marginTop: "10vh", paddingLeft: "10px", paddingTop: "3px", paddingBottom: "3px", borderRadius:"25px", cursor: "pointer"}}>
-                  <img src={chat} style={{ display: 'inline-block', marginTop: "auto", marginBottom: "auto"}}/>
-                  <Text marginTop={"auto"} marginBottom={"auto"} marginLeft={"3px"} fontWeight={"600"} position="absolute" left={"2rem"}> Chat</Text>
-                </div>
-              )}
-
-              <div style={{display: "flex", flexDirection: "row", alignItems: "center", paddingLeft: "10px", paddingTop: "3px", paddingBottom: "3px", borderRadius:"25px", cursor: "pointer"}} onClick={()=>{window.open("https://beta.prifina.com/priai.html", '_blank').focus();}}>
-                <img src={FAQ} style={{ display: 'inline-block', marginTop: "auto", marginBottom: "auto"}}/>
-                <Text marginTop={"auto"} marginBottom={"auto"} marginLeft={"3px"} fontWeight={"600"} position="absolute" left={"2rem"}> FAQ</Text>
-                <img src={external} style={{ display: 'inline-block', marginTop: "auto", marginBottom: "auto", marginLeft: "auto"}}/>
-              </div>
-
-              {section === "about"? (
-                <div style={{display: "flex", flexDirection: "row", alignItems: "center", paddingLeft: "10px", paddingTop: "3px", paddingBottom: "3px", backgroundColor:"#f9fafb", borderRadius:"25px"}}>
-                <img src={about} style={{ display: 'inline-block', marginTop: "auto", marginBottom: "auto"}}/>
-                <Text as='b' marginTop={"auto"} marginBottom={"auto"} marginLeft={"3px"} fontWeight={"600"} position="absolute" left={"2rem"}> About this demo</Text>
-              </div>
-              ) : (
-                <div onClick={()=>{setSection("about")}} style={{display: "flex", flexDirection: "row", alignItems: "center", paddingLeft: "10px", paddingTop: "3px", paddingBottom: "3px", borderRadius:"25px", cursor: "pointer"}}>
-                  <img src={about} style={{ display: 'inline-block', marginTop: "auto", marginBottom: "auto"}}/>
-                  <Text marginTop={"auto"} marginBottom={"auto"} marginLeft={"3px"} fontWeight={"600"} position="absolute" left={"2rem"}> About this demo</Text>
-                </div>
-              )}
-              
-              
-              <div style={{display: "flex", flexDirection: "row", alignItems: "center", paddingLeft: "10px", paddingTop: "3px", paddingBottom: "3px", borderRadius:"25px", cursor: "pointer", marginBottom: "auto"}}>
-                <CgSlack color='#475467' size={"22px"}/>
-                <Text marginTop={"auto"} marginBottom={"auto"} marginLeft={"3px"} fontWeight={"600"} position="absolute" left={"2rem"} onClick={()=>{window.open("https://join.slack.com/t/libertyequalitydata/shared_invite/zt-ddr4t974-MCzsch4FSeux8DrFQ2atbQ", '_blank').focus();}}> LED Slack</Text>
-                <img src={external} style={{ display: 'inline-block', marginTop: "auto", marginBottom: "auto", marginLeft: "auto"}}/>
-              </div>
-              <div style={{padding: "20px 16px", backgroundColor: "#F0FDF9", border: "1px solid #99F6E0", borderRadius: "8px", marginLeft: "10px",marginBottom: "2vh"  }}>
-                <Text fontWeight={"600"} color={"#107569"} as="b">{questionsUsed}/10 Questions used </Text>
-                <Text fontWeight={"400"} color={"#134E48"} marginTop={"4px"} fontSize={"12px"}>For this demo session you are limited to 10 questions. </Text>
-                <Progress value={10*questionsUsed} height={"8px"} marginTop={"16px"} borderRadius={"4px"} variant={"prifina"}/>
-              </div>
-              <div style={{display: "flex", flexDirection: "row", alignItems: "center", marginBottom: "10px", marginLeft: "10px", paddingTop: "10px", borderTop: "1px solid #eaecf0" }}>
-              <img src={`/assets/avatar/Unknown.svg`} style={{ display: 'inline-block', marginTop: "auto", marginBottom: "auto"}}/>
-              <Text paddingLeft={"5px"} fontWeight="600">{details.name}</Text>
-              <img src={logout} style={{ display: 'inline-block', marginTop: "auto", marginBottom: "auto", marginLeft: "auto"}}/>
-              </div>
-              
-              
-            </Box>
+            <Sidebar display={{base: "none", sm: "flex"}} section={section} name={details.name} questionsUsed={questionsUsed} changeSection={setSection}/>
             <div style={{flexDirection:"column", minWidth: "80.5%", width: "100%"}}>
 
             <Box style={{display:"flex", flexDirection:"row", alignItems: "center", paddingLeft: "1rem", marginTop: "10px", marginBottom: "10px"}}>
@@ -1839,165 +869,7 @@ function App() {
             {
               section === "about" ? (
                 <>
-                  <hr/>
-                  <div style={{marginTop: "10px", marginLeft: "1.5rem", whiteSpace: "pre-wrap","overflow-y": "scroll", "scroll-behavior": "smooth", "min-height": "87vh","max-height": "87vh",}}>
-                    <div style={{marginRight: "30px"}}>                    
-                      <Text fontWeight={"600"} as={"b"} fontSize={"36px"} color={"#107569"} letterSpacing={"-0.02em"}>Pri-AI Demo v1.0.0</Text>
-                      <Text fontSize={"20px"} color={"#134E48"}>This demo is designed to simulate the experience of having a personal AI assistant which has access to a wide range of your personal data from your applications and devices. This Pri-AI (Personal AI) is planned to be launched as a feature on Prifina, the first holistic personal data platform.</Text>
-                      <Text fontWeight={"600"} fontSize={"24px"} color={"#107569"}>What can Pri-AI do?</Text>
-                      <UnorderedList color={"#134E48"} fontSize={"20px"}>
-                        <ListItem>Provide intuitive and easy-to-understand answers to your data-related questions</ListItem>
-                        <ListItem>Uncover patterns in your spending habits, fitness progress, and behavior changes over time</ListItem>
-                        <ListItem>Many more advanced features upcoming. Watch this space!</ListItem>
-                      </UnorderedList>
-                      <Text fontWeight={"600"} fontSize={"24px"} color={"#107569"}>Limitations </Text>
-                      <UnorderedList color={"#134E48"} fontSize={"20px"}>
-                        <ListItem>May occasionally provide incorrect or inappropriate responses. If this happens please leave feedback so we can improve the system.</ListItem>
-                        <ListItem>As this is a demonstration and Pri-AI is not actually accessing your data answers will not be specific to you but rather plausible answers based on  assumptions.</ListItem>
-                        <ListItem>This is a simulated experience based on limited data. The main goal is to demonstrate how you might interact with a data source and personal personals AI like this.</ListItem>
-                        <ListItem>Although this is a demonstration you can rest assured that everything you see here here(and much more) is possible within Prifina’s personal data ecosystem</ListItem>
-                      </UnorderedList>
-                      <Accordion variant={"prifina"} allowToggle>
-                        <AccordionItem>
-                          {({ isExpanded }) => (
-                            <>
-                              {isExpanded ? (
-                                <div style={{backgroundColor:"#F9FAFB", borderRadius:"16px"}}>
-                                    <AccordionButton>
-                                      <img src={close} alt="Close Button" style={{marginRight: "5px"}}/>
-                                      <Box as="span" flex='1' textAlign='left'>
-                                        <Text fontWeight={"600"} as={"b"} color={"#107569"} fontSize={"18px"}>What is Prifina?</Text>
-                                      </Box>
-                                    </AccordionButton>
-                                  <AccordionPanel pb={4} marginLeft={"27px"} fontSize={"16px"}>
-                                  <Text color={"#134E48"}>Yes, you can try us for free for 30 days. If you want, we’ll provide you with a free, personalized 30-minute onboarding call to get you up and running as soon as possible.</Text>
-                                  </AccordionPanel>
-                                </div>
-                              ): (
-                                <div>
-                                    <AccordionButton>
-                                      <img src={open} alt="Open Button" style={{marginRight: "5px"}}/>
-                                      <Box as="span" flex='1' textAlign='left'>
-                                        <Text fontWeight={"600"} as={"b"} color={"#107569"} fontSize={"18px"}>What is Prifina?</Text>
-                                      </Box>
-                                    </AccordionButton>
-                                  <AccordionPanel pb={4} marginLeft={"27px"}>
-                                  <Text color={"#134E48"}>Yes, you can try us for free for 30 days. If you want, we’ll provide you with a free, personalized 30-minute onboarding call to get you up and running as soon as possible.</Text>
-                                  </AccordionPanel>
-                                </div>
-                              )}
-                            </>
-                            
-                          )}
-                        </AccordionItem>
-                        <AccordionItem>
-                          {({ isExpanded }) => (
-                            <>
-                              {isExpanded ? (
-                                <div style={{backgroundColor:"#F9FAFB", borderRadius:"16px"}}>
-                                    <AccordionButton>
-                                      <img src={close} alt="Close Button" style={{marginRight: "5px"}}/>
-                                      <Box as="span" flex='1' textAlign='left'>
-                                        <Text fontWeight={"600"} as={"b"} color={"#107569"} fontSize={"18px"}>What is holistic personal data?</Text>
-                                      </Box>
-                                    </AccordionButton>
-                                  <AccordionPanel pb={4} marginLeft={"27px"} fontSize={"16px"}>
-                                  <Text color={"#134E48"}>Your data is the key to unlocking new experiences, and our system makes it better. By bringing your data together from different sources and enhancing it, you'll have a holistic data source that can be used to create personalized experiences that meet your unique needs.</Text>
-                                  </AccordionPanel>
-                                </div>
-                              ): (
-                                <div>
-                                    <AccordionButton>
-                                      <img src={open} alt="Open Button" style={{marginRight: "5px"}}/>
-                                      <Box as="span" flex='1' textAlign='left'>
-                                        <Text fontWeight={"600"} as={"b"} color={"#107569"} fontSize={"18px"}>What is holistic personal data?</Text>
-                                      </Box>
-                                    </AccordionButton>
-                                  <AccordionPanel pb={4} marginLeft={"27px"}>
-                                  <Text color={"#134E48"}>Your data is the key to unlocking new experiences, and our system makes it better. By bringing your data together from different sources and enhancing it, you'll have a holistic data source that can be used to create personalized experiences that meet your unique needs.</Text>
-                                  </AccordionPanel>
-                                </div>
-                              )}
-                            </>
-                            
-                          )}
-                        </AccordionItem>
-                        <AccordionItem>
-                          {({ isExpanded }) => (
-                            <>
-                              {isExpanded ? (
-                                <div style={{backgroundColor:"#F9FAFB", borderRadius:"16px"}}>
-                                    <AccordionButton>
-                                      <img src={close} alt="Close Button" style={{marginRight: "5px"}}/>
-                                      <Box as="span" flex='1' textAlign='left'>
-                                        <Text fontWeight={"600"} as={"b"} color={"#107569"} fontSize={"18px"}>How does Pri-AI work?</Text>
-                                      </Box>
-                                    </AccordionButton>
-                                  <AccordionPanel pb={4} marginLeft={"27px"} fontSize={"16px"}>
-                                  <Text color={"#134E48"}>At the core of each Prifina account are two things; your data and your own personal AI assistant. Your AI-powered personal assistant lives in your secure personal data cloud and connects the dots in your data for a holistic view of you. Pri-AI helps categorize and enrich incoming data into a reusable holistic data source and then gives you the ability to interact with your data via the AI Chatbot you see demoed here.</Text>
-                                  </AccordionPanel>
-                                </div>
-                              ): (
-                                <div>
-                                    <AccordionButton>
-                                      <img src={open} alt="Open Button" style={{marginRight: "5px"}}/>
-                                      <Box as="span" flex='1' textAlign='left'>
-                                        <Text fontWeight={"600"} as={"b"} color={"#107569"} fontSize={"18px"}>How does Pri-AI work?</Text>
-                                      </Box>
-                                    </AccordionButton>
-                                  <AccordionPanel pb={4} marginLeft={"27px"}>
-                                  <Text color={"#134E48"}>At the core of each Prifina account are two things; your data and your own personal AI assistant. Your AI-powered personal assistant lives in your secure personal data cloud and connects the dots in your data for a holistic view of you. Pri-AI helps categorize and enrich incoming data into a reusable holistic data source and then gives you the ability to interact with your data via the AI Chatbot you see demoed here.</Text>
-                                  </AccordionPanel>
-                                </div>
-                              )}
-                            </>
-                            
-                          )}
-                        </AccordionItem>
-                        <AccordionItem>
-                          {({ isExpanded }) => (
-                            <>
-                              {isExpanded ? (
-                                <div style={{backgroundColor:"#F9FAFB", borderRadius:"16px"}}>
-                                    <AccordionButton>
-                                      <img src={close} alt="Close Button" style={{marginRight: "5px"}}/>
-                                      <Box as="span" flex='1' textAlign='left'>
-                                        <Text fontWeight={"600"} as={"b"} color={"#107569"} fontSize={"18px"}>How is my data handled in this demo experience?</Text>
-                                      </Box>
-                                    </AccordionButton>
-                                  <AccordionPanel pb={4} marginLeft={"27px"} fontSize={"16px"}>
-                                  <Text color={"#134E48"}>This Personal AI chat service demo records each chat session and related details. The purpose of this recording is to improve the quality of our service and for development purposes. <br/>
-                                  By using this demo, you acknowledge and agree to the recording and storage of your conversation history. Furthermore, any details provided or prompts entered hereafter will be sent to and processed by Prifina and OpenAI.<br/>
-                                  We want you to know that any personal information collected will be kept confidential and will not be disclosed to any third party without your consent, except as required by law.<br/>
-                                  If you have any concerns about the collection, use, or storage of your personal information, please do not use this service. If you have any questions or comments about our privacy policy or practices, please feel free to contact us.<br/>
-                                  Thank you for using our Personal AI chat service.</Text>
-                                  </AccordionPanel>
-                                </div>
-                              ): (
-                                <div>
-                                    <AccordionButton>
-                                      <img src={open} alt="Open Button" style={{marginRight: "5px"}}/>
-                                      <Box as="span" flex='1' textAlign='left'>
-                                        <Text fontWeight={"600"} as={"b"} color={"#107569"} fontSize={"18px"}>How is my data handled in this demo experience?</Text>
-                                      </Box>
-                                    </AccordionButton>
-                                  <AccordionPanel pb={4} marginLeft={"27px"}>
-                                  <Text color={"#134E48"}>This Personal AI chat service demo records each chat session and related details. The purpose of this recording is to improve the quality of our service and for development purposes. <br/>
-                                  By using this demo, you acknowledge and agree to the recording and storage of your conversation history. Furthermore, any details provided or prompts entered hereafter will be sent to and processed by Prifina and OpenAI.<br/>
-                                  We want you to know that any personal information collected will be kept confidential and will not be disclosed to any third party without your consent, except as required by law.<br/>
-                                  If you have any concerns about the collection, use, or storage of your personal information, please do not use this service. If you have any questions or comments about our privacy policy or practices, please feel free to contact us.<br/>
-                                  Thank you for using our Personal AI chat service.</Text>
-                                  </AccordionPanel>
-                                </div>
-                              )}
-                            </>
-                            
-                          )}
-                        </AccordionItem>
-                      </Accordion>
-                    </div>
-
-                  </div>
+                  <About/>
                 </> 
               ) : (
                 <>
@@ -2008,45 +880,15 @@ function App() {
                           {
                             showWelcomeMessage ? (
                               <>
-                              <div style={{"width": "100%", "height": "20px", "border-bottom": "3px solid #e0faf5", "text-align": "center", marginBottom:"8px"}}>
-                              <Text as={"b"} display={"inline-block"} color={"#2a9f92"} fontSize={"xs"} marginLeft={"auto"} marginRight={"auto"} paddingTop={"9px"} paddingRight={"5px"} paddingLeft={"5px"} width={"fit-content"} backgroundColor={"#fcfcfd"}>Today</Text>
-                              </div>
-                              <div className='response' style={{backgroundColor: "#FFFFFF", paddingLeft: "3vw",paddingRight: "10vw", paddingBottom: "2vh", paddingTop: "1vh"}}>
-                                <Box display={"flex"} flexDirection={"row"} marginBottom={{base: "2vh", sm: "0vh"}}>
-                                <Image src={`/assets/avatar/${selectedAvatar}`} alt="Avatar" width={{base: "30px", sm: "40px"}} marginRight={{base: "2.5vw", sm: "0.5vw"}} marginBottom={{base: "-2vh", sm: "-1vh"}} position={"relative"} bottom={{base: "6px", sm: "-7px"}}/>
-                                <div style={{display:"flex", flexDirection: "row", "border-bottom": "1px solid #f0f1f4", width: "100%", alignItems: "center"}}>
-                                <Text as={"b"} fontSize={"sm"} color={"#107569"} display={"inline-block"} marginRight={"auto"}>{aIName}</Text>
-                                <Text fontSize={"xs"} color={"#215852"} marginTop={"auto"} marginBottom={"auto"}>{loginTime}</Text>
-                                </div>
-                                </Box>
-                                
-                                <Text fontSize={"sm"} color={"#215852"} paddingLeft={{base: "9.5vw", sm: "3.5vw"}} paddingRight={"1vw"}>
-                                👋 Welcome to the Private Al demo by Prifina!<br/>
-                                This demo is designed to simulate having access to all of your personal data and information available in your private data cloud, along with data from various common applications and services typically used by consumers. This includes your emails, social media accounts, wearables, calendar, smart home devices, and other public data sources. By combining these sources, we're able to provide you with the best possible answers. <br/>
-                                In addition, this demo utilizes application interfaces to interact with your applications and other external services, which means it can not only answer any question you may have, but it can also take any action you ask it to do. <br/>
-                                We've also customized this demo based on the personalization details you provided, so you can expect more relevant and personalized responses. <br/>
-                                So, go ahead and ask your first question! We're excited to show you how our Private Al demo can provide you with realistic answers and help simplify your life. 
-                                </Text>
-
-                                
-                              </div>
+                              <ChatResponse aIName={aIName} selectedAvatar={selectedAvatar} response={{text: `👋 Welcome to the Private Al demo by Prifina!
+This demo is designed to simulate having access to all of your personal data and information available in your private data cloud, along with data from various common applications and services typically used by consumers. This includes your emails, social media accounts, wearables, calendar, smart home devices, and other public data sources. By combining these sources, we're able to provide you with the best possible answers.
+In addition, this demo utilizes application interfaces to interact with your applications and other external services, which means it can not only answer any question you may have, but it can also take any action you ask it to do. 
+We've also customized this demo based on the personalization details you provided, so you can expect more relevant and personalized responses. 
+So, go ahead and ask your first question! We're excited to show you how our Private Al demo can provide you with realistic answers and help simplify your life. `, time: loginTime}} feedback={false}/>
                               {showWelcomeOneMoreMessage?(
                                 <>
-                                  <div className='response' style={{backgroundColor: "#FFFFFF", paddingLeft: "3vw",paddingRight: "10vw", paddingBottom: "2vh", paddingTop: "1vh"}}>
-                                    <Box display={"flex"} flexDirection={"row"} marginBottom={{base: "2vh", sm: "0vh"}}>
-                                    <Image src={`/assets/avatar/${selectedAvatar}`} alt="Avatar" width={{base: "30px", sm: "40px"}} marginRight={{base: "2.5vw", sm: "0.5vw"}} marginBottom={{base: "-2vh", sm: "-1vh"}} position={"relative"} bottom={{base: "6px", sm: "-7px"}}/>
-                                    <div style={{display:"flex", flexDirection: "row", "border-bottom": "1px solid #f0f1f4", width: "100%", alignItems: "center"}}>
-                                    <Text as={"b"} fontSize={"sm"} color={"#107569"} display={"inline-block"} marginRight={"auto"}>{aIName}</Text>
-                                    <Text fontSize={"xs"} color={"#215852"} marginTop={"auto"} marginBottom={"auto"}>{loginTime}</Text>
-                                    </div>
-                                    </Box>
-                                    
-                                    <Text fontSize={"sm"} color={"#215852"} paddingLeft={{base: "9.5vw", sm: "3.5vw"}} paddingRight={"1vw"}>
-                                    ☝️Oh, One more thing before you get started. For this Demo, each session is limited 10 questions, you can see your question count in the navigation menu.<br/>
-                                    Ok, go ahead and ask your first question! We're excited to show you how our Private AI demo can provide you with realistic answers and help simplify your life.
-                                    </Text>
-                                    
-                                  </div>
+                                  <ChatResponse aIName={aIName} selectedAvatar={selectedAvatar} response={{text: `☝️Oh, One more thing before you get started. For this Demo, each session is limited 10 questions, you can see your question count in the navigation menu.
+Ok, go ahead and ask your first question! We're excited to show you how our Private AI demo can provide you with realistic answers and help simplify your life.`, time: loginTime}} feedback={false}/>
                                 </>
                               ) : (
                                 <>
@@ -2063,51 +905,9 @@ function App() {
                           chatlog.map((exchange, index)=>{
                             return (
                               <>
-                                {/* <div style={{"display": "flex","flexDirection": "row", "justifyContent": "space-between"}}> */}
-                                {/* <span>{exchange.response.text}</span>
-                                <div>
-                                {exchange.response.helpful===true ? (
-                                  <Button colorScheme={"green"} onClick={()=>{feedbackResponse(exchange.response.id, null)}}>Upvote</Button>
-                                ):(
-                                  <Button colorScheme={"gray"} onClick={()=>{feedbackResponse(exchange.response.id, true)}}>Upvote</Button>
-                                )}
-                                {exchange.response.helpful===false ? (
-                                  <Button colorScheme={"red"} onClick={()=>{feedbackResponse(exchange.response.id, null)}}>Downvote</Button>
-                                ):(
-                                  <Button colorScheme={"gray"} onClick={()=>{feedbackResponse(exchange.response.id, false)}}>Downvote</Button>
-                                )} */}
-                                {/* </div> */}
-                                <div className='prompt' style={{backgroundColor: "#f6fefc", paddingLeft: "3vw",paddingRight: "10vw", width:"100%", paddingBottom: "3vh", paddingTop: "1.5vh"}}>
-                                <Box display={"flex"} flexDirection={"row"} marginBottom={{base: "2vh", sm: "0vh"}}>
-                                <Image src={`/assets/avatar/Unknown.svg`} alt="Avatar" width={{base: "30px", sm: "40px"}} marginRight={{base: "2.5vw", sm: "0.5vw"}} marginBottom={{base: "-2vh", sm: "-1vh"}} position={"relative"} bottom={{base: "6px", sm: "-7px"}}/>
-                                <div style={{display:"flex", flexDirection: "row", "border-bottom": "1px solid #2ED3B7", width: "100%", alignItems: "center"}}>
-                                <Text as={"b"} fontSize={"sm"} color={"#107569"} display={"inline-block"} marginRight={"auto"}>You ({details.name})</Text>
-                                <Text fontSize={"xs"} color={"#215852"} marginTop={"auto"} marginBottom={"auto"}>{timeToString(exchange.prompt.time)}</Text>
-                                </div>
-                                </Box>
-                                <Text fontSize={"sm"} color={"#215852"} paddingLeft={{base: "9.5vw", sm: "3.5vw"}} paddingRight={"1vw"}>
-                                {exchange.prompt.text}
-                                </Text>
-                                </div>
+                                <ChatPrompt name={details.name} response={exchange.response}/>
                                 
-                                <div className='response' style={{backgroundColor: "#FFFFFF", paddingLeft: "3vw",paddingRight: "10vw", paddingBottom: "2vh", paddingTop: "1vh"}}>
-                                <Box display={"flex"} flexDirection={"row"} marginBottom={{base: "2vh", sm: "0vh"}}>
-                                <Image src={`/assets/avatar/${selectedAvatar}`} alt="Avatar" width={{base: "30px", sm: "40px"}} marginRight={{base: "2.5vw", sm: "0.5vw"}} marginBottom={{base: "-2vh", sm: "-1vh"}} position={"relative"} bottom={{base: "6px", sm: "-7px"}}/>
-                                <div style={{display:"flex", flexDirection: "row", "border-bottom": "1px solid #f0f1f4", width: "100%", alignItems: "center"}}>
-                                <Text as={"b"} fontSize={"sm"} color={"#107569"} display={"inline-block"} marginRight={"auto"}>{aIName}</Text>
-                                <Text fontSize={"xs"} color={"#215852"} marginTop={"auto"} marginBottom={"auto"}>{timeToString(exchange.response.time)}</Text>
-                                </div>
-                                </Box>
-                                
-                                <Text fontSize={"sm"} color={"#215852"} paddingLeft={{base: "9.5vw", sm: "3.5vw"}} paddingRight={"1vw"}>
-                                {exchange.response.text}
-                                </Text>
-                                <Box display={"flex"} flexDirection={"row"} backgroundColor={"#f9fafb"} marginTop={"1vh"} marginBottom={"1vh"} paddingTop={"1vh"} paddingBottom={"1vh"} borderRadius={"0px 5px 5px 5px"} marginLeft={{base: "7vw", sm: "3vw"}}>
-                                <Text fontSize={"sm"} color={"#215852"} paddingLeft={{base: "2.5vw", sm: "0.5vw"}} marginRight={"auto"}>How was this response?</Text>
-                                <Button variant='ghost' height={"fit-content"} width={"fit-content"} paddingLeft={"5px"} paddingRight={"5px"} marginRight={"5px"} marginTop={"auto"} marginBottom={"auto"} minWidth={"0vw"}><FiThumbsUp color={"#107569"}/></Button>
-                                <Button variant='ghost' height={"fit-content"} width={"fit-content"} paddingLeft={"5px"} marginTop={"auto"} marginBottom={"auto"} paddingRight={"5px"} minWidth={"0vw"}><FiThumbsDown color={"#107569"}/></Button>
-                                </Box>                          
-                                </div>
+                                <ChatResponse aIName={aIName} selectedAvatar={selectedAvatar} response={exchange.response}/>
                               </>
                           )
                           })
@@ -2129,28 +929,12 @@ function App() {
                           {
                             questionsUsed >= 10 ? (
                               <>
-                                <div className='response' style={{backgroundColor: "#FFFFFF", paddingLeft: "3vw",paddingRight: "10vw", paddingBottom: "2vh", paddingTop: "1vh"}}>
-                                <Box display={"flex"} flexDirection={"row"} marginBottom={{base: "2vh", sm: "0vh"}}>
-                                <Image src={`/assets/avatar/${selectedAvatar}`} alt="Avatar" width={{base: "30px", sm: "40px"}} marginRight={{base: "2.5vw", sm: "0.5vw"}} marginBottom={{base: "-2vh", sm: "-1vh"}} position={"relative"} bottom={{base: "6px", sm: "-7px"}}/>
-                                <div style={{display:"flex", flexDirection: "row", "border-bottom": "1px solid #f0f1f4", width: "100%", alignItems: "center"}}>
-                                <Text as={"b"} fontSize={"sm"} color={"#107569"} display={"inline-block"} marginRight={"auto"}>{aIName}</Text>
-                                <Text fontSize={"xs"} color={"#215852"} marginTop={"auto"} marginBottom={"auto"}>{timeToString(chatlog[questionsUsed-1].response.time)}</Text>
-                                </div>
-                                </Box>
-                                
-                                <Text fontSize={"sm"} color={"#215852"} paddingLeft={{base: "9.5vw", sm: "3.5vw"}} paddingRight={"1vw"} marginBottom={"1vh"}>
-                                Thank you for trying out our Pri-AI (personal AI) demo! We hope you found it helpful and informative.<br/>
-                                If you enjoyed this experience, please share it with your friends and don’t forget to check back for updates! <br/>
-                                Pri-AI is created with 💖 by the Prifina team. <br/>
-                                At Prifina, we're committed to empowering people with their personal data to live happier and healthier lives. Pri-AI is just one piece of the Prifina puzzle.<br/>  
-                                👉 Learn more about Prifina at https://www.prifina.com/<br/>
-                                👉 Get involved while you wait for Pri-AI to launch by joining our Slack communityLiberty.Equality.Data.
-                                </Text>
-                                <Box paddingLeft={{base: "9.5vw", sm: "3.5vw"}} gap={"10px"} display={"flex"} flexDirection={{base: "column",sm: "row"}}>
-                                  <Button borderRadius={"8px"} backgroundColor={"#F0FDF9"}><Text fontWeight={"600"} color={"#107569"} marginRight={"5px"}>Start a new chat</Text><ChatJS color='#107569' boxSize={6} /></Button>
-                                  <Button borderRadius={"8px"} backgroundColor={"#0E9384"}><Text fontWeight={"600"} color={"#FFFFFF"} marginRight={"5px"} onClick={()=>{window.open("https://join.slack.com/t/libertyequalitydata/shared_invite/zt-ddr4t974-MCzsch4FSeux8DrFQ2atbQ", '_blank').focus();}}>Join the community</Text> <CgSlack color={"#FFFFFF"} size={"22px"}/></Button>
-                                </Box>
-                                </div>
+                                <ChatResponse aIName={aIName} selectedAvatar={selectedAvatar} response={{text: `Thank you for trying out our Pri-AI (personal AI) demo! We hope you found it helpful and informative.
+If you enjoyed this experience, please share it with your friends and don’t forget to check back for updates!
+Pri-AI is created with 💖 by the Prifina team. 
+At Prifina, we're committed to empowering people with their personal data to live happier and healthier lives. Pri-AI is just one piece of the Prifina puzzle.
+👉 Learn more about Prifina at https://www.prifina.com/
+👉 Get involved while you wait for Pri-AI to launch by joining our Slack communityLiberty.Equality.Data.`,time:chatlog[questionsUsed-1].response.time}} end={true}/>
                               </>
                             ) : (
                               <>
@@ -2163,7 +947,7 @@ function App() {
                         <div id="chatlog" style={{backgroundColor: "#F6FEFC",whiteSpace: "pre-wrap","overflow-y": "scroll", "scroll-behavior": "smooth", "min-height": "77vh","max-height": "77vh", "border-left": "1px solid #eaecf0", "border-top": "1px solid #eaecf0", "display": "flex", "flexDirection": "column", justifyContent: "center", "alignItems": "center", "textAlign": "center"}}>
                           <img src={Illustration}/>
                           <Text as="b" fontSize='lg'>Finish Setting up your AI</Text>
-                          <Text maxWidth={"20vw"} color="#475467">To work properly your AI needs to know more about you. Complete the onboarding to continue.</Text>
+                          <Text maxWidth={"38%"} color="#475467">To work properly your AI needs to know more about you. Complete the onboarding to continue.</Text>
                           <div>
                             <Button width={"fit-content"} backgroundColor={"#FFFFFF"} border={"1px solid #D0D5DD"} marginRight={"8px"}>Exit Demo</Button>
                             <Button width={"fit-content"} color={"#FFFFFF"} backgroundColor={"#0E9384"} marginLeft={"8px"} onClick={()=>{onOpen()}}><RiLoginCircleLine size={"1.3em"} style={{transform: 'rotate(315deg)' }} />Onboarding</Button>
@@ -2181,15 +965,6 @@ function App() {
                 </>
               )
             }
-            
-            
-            
-            
-            {/* <Textarea rows={1} width="100%" resize={"none"} marginTop={"0.5rem"} value={prompt} onChange={(e)=>{setPrompt(e.target.value)}} placeholder='Here is a sample placeholder' onKeyDown={(event)=>{if(event.key==="Shift"&&!shiftDown){setShiftDown(true)}}} onKeyUp={async (event)=>{console.log(prompt);console.log(chatlog);if(event.key==="Enter"&&!shiftDown){console.log("await getResponse()")}else if(event.key==="Shift"){setShiftDown(false)}}} isDisabled={loading} autoFocus={true} />
-            <Button style={{"marginTop": "0.5rem"}} type={'submit'} onClick={async ()=>{console.log(await getResponse())}} isDisabled={loading}>Submit</Button>
-            <Button style={{"marginTop": "0.5rem", "marginLeft": "0.5rem"}} colorScheme={"red"} onClick={()=>{setChatlog([]);setPrompt("");}}>Clear</Button>
-            <Button style={{"marginTop": "0.5rem", "marginLeft": "0.5rem"}} colorScheme={"red"} onClick={()=>{console.log(chatlog)}}>Chatlog</Button>
-                 */}
             </div>
           </div>
         </>
