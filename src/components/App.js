@@ -905,7 +905,7 @@ Ok, go ahead and ask your first question! We're excited to show you how our Priv
                           chatlog.map((exchange, index)=>{
                             return (
                               <>
-                                <ChatPrompt name={details.name} response={exchange.response}/>
+                                <ChatPrompt name={details.name} prompt={exchange.prompt}/>
                                 
                                 <ChatResponse aIName={aIName} selectedAvatar={selectedAvatar} response={exchange.response}/>
                               </>
