@@ -95,8 +95,12 @@ export const Context = createContext();
 function App() {
   const [prompt, setPrompt] = useState("")
   const [loading, setLoading] = useState(false)
-  const [audio] = useState(new Audio('/sounds/new_message.wav'));
+  const [audio, setAudio] = useState(null);
   
+  useEffect(() => {
+    setAudio(new Audio('/sounds/new_message.wav'))
+  // only run once on the first render on the client
+  }, [])
   const [isError, setIsError] = useState({
     name: false,
     age: false,
