@@ -215,7 +215,7 @@ function App() {
             <Sidebar display={{base: "none", sm: "flex"}} section={section} name={details.name} questionsUsed={questionsUsed} changeSection={setSection}/>
             <div style={{flexDirection:"column", minWidth: "80.5%", width: "100%"}}>
 
-            <Box style={{display:"flex", flexDirection:"row", alignItems: "center", paddingLeft: "1rem", marginTop: "10px", marginBottom: "10px"}}>
+            <Box flexGrow={0.5} style={{display:"flex", flexDirection:"row", alignItems: "center", paddingLeft: "1rem", marginTop: "10px", marginBottom: "10px"}}>
               <Box display={{base: "none", sm:"flex"}} width={"100%"} height={"100%"} alignItems={"center"}>
               {
                 selectedAvatar === null || onboarding ? (
@@ -359,7 +359,7 @@ At Prifina, we're committed to empowering people with their personal data to liv
                       </Box>
                     ) : (
                       <>
-                        <Box  id="chatlog" maxH={{base: "81%", sm: "83%"}} minH={{base: "81%", sm: "83%"}} style={{backgroundColor: "#F6FEFC",whiteSpace: "pre-wrap","overflow-y": "scroll", "scroll-behavior": "smooth", "border-left": "1px solid #eaecf0", "border-top": "1px solid #eaecf0", "display": "flex", "flexDirection": "column", justifyContent: "center", "alignItems": "center", "textAlign": "center"}}>
+                        <Box  flexGrow={33} id="chatlog" style={{backgroundColor: "#F6FEFC",whiteSpace: "pre-wrap","overflow-y": "scroll", "scroll-behavior": "smooth", "border-left": "1px solid #eaecf0", "border-top": "1px solid #eaecf0", "display": "flex", "flexDirection": "column", justifyContent: "center", "alignItems": "center", "textAlign": "center"}}>
                         <Box style={{ width: "220px", height: "160px"}}>
                             <NextImage 
                               src={Illustration}
@@ -379,7 +379,7 @@ At Prifina, we're committed to empowering people with their personal data to liv
 
                     )
                   }
-                  <Flex borderTop={"2px solid #eeeff2"} minWidth='max-content' alignItems='center' height={{base: "calc(100vh - (70px + 81%))", sm: "calc(100vh - (55px + 83%))"}}>
+                  <Flex flexGrow={2.5}  borderTop={"2px solid #eeeff2"} minWidth='max-content' alignItems='center' >
                       <Textarea marginLeft={"3%"} width={"85%"} rows={1} resize={"none"} value={prompt} onChange={(e)=>{setPrompt(e.target.value)}} placeholder='Here is a sample placeholder' onKeyDown={async (event)=>{if(event.key==="Shift"&&!shiftDown){setShiftDown(true)}else if (event.key === "Enter"&&!shiftDown){event.preventDefault;await getResponse()}}} onKeyUp={async (event)=>{if(event.key==="Shift"){setShiftDown(false)}}} isDisabled={loading||onboarding||questionsUsed>=10} autoFocus={true} />
                       <Button marginLeft={"1%"} marginRight={"auto"} backgroundColor={"#0e9384"} paddingLeft={"auto"} paddingRight={"auto"} type={'submit'} onClick={async ()=>{await getResponse()}} isDisabled={loading||onboarding||questionsUsed>=10}><TbSend size={"1.3em"} color={"#FFFFFF"}/></Button>
                   </Flex>
