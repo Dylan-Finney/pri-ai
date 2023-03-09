@@ -1,5 +1,5 @@
 import {Tooltip, Box} from "@chakra-ui/react"
-
+import NextImage from "next/image";
 export default function AppButton(props) {
     return (
         <Tooltip label={`${props.name}`}>
@@ -25,7 +25,14 @@ export default function AppButton(props) {
                 "flex": "none",
                 "order": 0,
                 "flex-grow": 0}} onClick={()=>{props.click()}}>
-                <img src={`/assets/apps/${props.source}`} alt={`${props.name} Logo`}/>
+                    <Box>
+                        <NextImage
+                          src={`/assets/apps/${props.source}`}
+                          alt={`${props.name} Logo`}
+                          width={32}
+                          height={100}
+                        />
+                      </Box>
                 <div style={{"box-sizing": "border-box",
 
                     "width": "16px",
@@ -42,12 +49,19 @@ export default function AppButton(props) {
                     "order": 1,
                     "flex-grow": 0}}>{
                         props.checked ? (
-                        <img src={"/assets/check.svg"} style={{"position": "relative",
+                        <Box style={{"position": "relative",
                         "left": "16.67%",
                         "right": "16.67%",
                         "top": "25%",
                         "bottom": "29.17%",                              
-                        }} alt={"Check"}/>
+                        }}>
+                            <NextImage
+                            src={"/assets/check.svg"}
+                            alt={"Check"}
+                            width={10}
+                            height={7}
+                            />
+                        </Box>
                         ) : (
                             <>
                             </>

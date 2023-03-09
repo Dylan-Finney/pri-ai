@@ -1,6 +1,8 @@
 import { Text, AccordionPanel, AccordionButton, Box, AccordionItem } from "@chakra-ui/react"
+import NextImage from "next/image"
 const open = "/assets/open.svg"
 const close = "/assets/close.svg"
+
 
 export default function AboutItem(props) {
     return (
@@ -9,7 +11,14 @@ export default function AboutItem(props) {
         <>
         <div style={{backgroundColor: isExpanded ? "#F9FAFB": "", borderRadius:isExpanded ? "16px": ""}}>
             <AccordionButton>
-                <img src={isExpanded ? close : open} alt={`${isExpanded ? "Close" : "Open"} Button`} style={{marginRight: "5px"}}/>
+                <Box style={{marginRight: "5px"}}>
+                    <NextImage
+                    src={isExpanded ? close : open}
+                    alt={`${isExpanded ? "Close" : "Open"} Button`}
+                    width={22}
+                    height={23}
+                    />
+                </Box>
                 <Box as="span" flex='1' textAlign='left'>
                 <Text fontWeight={"600"} as={"b"} color={"#107569"} fontSize={"18px"}>{props.question}</Text>
                 </Box>

@@ -156,3 +156,12 @@ export function getAppLogo (app) {
         return ""
     }
   }
+
+export function getCountryLogo (country) {
+    switch(country){
+      case "United States":
+        return "US.svg"
+      default:
+        return ""
+    }
+  }
