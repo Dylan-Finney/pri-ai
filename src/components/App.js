@@ -95,6 +95,7 @@ export const Context = createContext();
 function App() {
   const [prompt, setPrompt] = useState("")
   const [loading, setLoading] = useState(false)
+  const [audio] = useState(new Audio('/sounds/new_message.wav'));
   
   const [isError, setIsError] = useState({
     name: false,
@@ -234,6 +235,7 @@ function App() {
   }
   const getResponse = async () => {
     var promptSent = Date.now()
+    
     setLoading(true)
     try{
       const responseAPI = await axios({
@@ -258,8 +260,7 @@ function App() {
       setQuestionsUsed(questionsUsed+1)
       setPrompt("")
       setLoading(false)
-      var element = document.getElementById('chatlog');
-      element.scrollTop = element.scrollHeight;
+      audio.play();
       return responseAPI
       
 
@@ -396,8 +397,10 @@ function App() {
      await sleep(2000)
      setLoginTime(Date.now())
      setShowWelcomeMessage(true)
+     audio.play();
      await sleep(2000)
      setShowWelcomeOneMoreMessage(true)
+     audio.play();
   }
 
   useLayoutEffect(()=>{
@@ -969,7 +972,7 @@ At Prifina, we're committed to empowering people with their personal data to liv
                   }
                   <hr/>
                   <Flex minWidth='max-content' alignItems='center' height={"14%"}>
-                      <Textarea marginLeft={"3%"} width={"85%"} rows={1} resize={"none"} value={prompt} onChange={(e)=>{setPrompt(e.target.value)}} placeholder='Here is a sample placeholder' onKeyDown={(event)=>{if(event.key==="Shift"&&!shiftDown){setShiftDown(true)}}} onKeyUp={async (event)=>{if(event.key==="Enter"&&!shiftDown){console.log(await getResponse())}else if(event.key==="Shift"){setShiftDown(false)}}} isDisabled={loading||onboardingStep<4||questionsUsed>=10} autoFocus={true} />
+                      <Textarea marginLeft={"3%"} width={"85%"} rows={1} resize={"none"} value={prompt} onChange={(e)=>{setPrompt(e.target.value)}} placeholder='Here is a sample placeholder' onKeyDown={async (event)=>{if(event.key==="Shift"&&!shiftDown){setShiftDown(true)}else if (event.key === "Enter"&&!shiftDown){event.preventDefault;console.log(await getResponse())}}} onKeyUp={async (event)=>{if(event.key==="Shift"){setShiftDown(false)}}} isDisabled={loading||onboardingStep<4||questionsUsed>=10} autoFocus={true} />
                       <Button marginLeft={"1%"} marginRight={"auto"} backgroundColor={"#0e9384"} paddingLeft={"auto"} paddingRight={"auto"} type={'submit'} onClick={async ()=>{console.log(await getResponse())}} isDisabled={loading||onboardingStep<4||questionsUsed>=10}><TbSend size={"1.3em"} color={"#FFFFFF"}/></Button>
                   </Flex>
                 </>
