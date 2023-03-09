@@ -213,7 +213,7 @@ function App() {
           </Drawer>
           <div style={{display:"flex", flexDirection:"row", height: "100vh"}}>
             <Sidebar display={{base: "none", sm: "flex"}} section={section} name={details.name} questionsUsed={questionsUsed} changeSection={setSection}/>
-            <div style={{flexDirection:"column", minWidth: "80.5%", width: "100%"}}>
+            <div style={{flexDirection:"column", minWidth: "80.5%", width: "100%", display: "flex"}}>
 
             <Box flexGrow={0.5} style={{display:"flex", flexDirection:"row", alignItems: "center", paddingLeft: "1rem", marginTop: "10px", marginBottom: "10px"}}>
               <Box display={{base: "none", sm:"flex"}} width={"100%"} height={"100%"} alignItems={"center"}>
@@ -290,7 +290,7 @@ function App() {
                 <>
                   {
                     !onboarding ? (
-                        <Box id="chatlog" maxH={{base: "81%"}} minH={{base: "81%"}}style={{backgroundColor: "#fcfcfd",whiteSpace: "pre-wrap","overflow-y": "scroll", "scroll-behavior": "smooth", "border-left": "1px solid #eaecf0", "border-top": "1px solid #eaecf0", "display": "flex", "flexDirection": "column"}}>
+                        <Box id="chatlog" flexGrow={33} style={{backgroundColor: "#fcfcfd",whiteSpace: "pre-wrap","overflow-y": "scroll", "scroll-behavior": "smooth", "border-left": "1px solid #eaecf0", "border-top": "1px solid #eaecf0", "display": "flex", "flexDirection": "column"}}>
                           <div style={{marginTop:"auto"}}/>
                           {
                             showWelcomeMessage ? (
@@ -379,7 +379,7 @@ At Prifina, we're committed to empowering people with their personal data to liv
 
                     )
                   }
-                  <Flex flexGrow={2.5}  borderTop={"2px solid #eeeff2"} minWidth='max-content' alignItems='center' >
+                  <Flex flexGrow={2.5} padding={"10px"} borderTop={"2px solid #eeeff2"} minWidth='max-content' alignItems='center' >
                       <Textarea marginLeft={"3%"} width={"85%"} rows={1} resize={"none"} value={prompt} onChange={(e)=>{setPrompt(e.target.value)}} placeholder='Here is a sample placeholder' onKeyDown={async (event)=>{if(event.key==="Shift"&&!shiftDown){setShiftDown(true)}else if (event.key === "Enter"&&!shiftDown){event.preventDefault;await getResponse()}}} onKeyUp={async (event)=>{if(event.key==="Shift"){setShiftDown(false)}}} isDisabled={loading||onboarding||questionsUsed>=10} autoFocus={true} />
                       <Button marginLeft={"1%"} marginRight={"auto"} backgroundColor={"#0e9384"} paddingLeft={"auto"} paddingRight={"auto"} type={'submit'} onClick={async ()=>{await getResponse()}} isDisabled={loading||onboarding||questionsUsed>=10}><TbSend size={"1.3em"} color={"#FFFFFF"}/></Button>
                   </Flex>
