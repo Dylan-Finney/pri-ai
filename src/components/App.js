@@ -1,5 +1,5 @@
 /* eslint-disable react/no-unescaped-entities */
-import { useEffect, useRef, useState } from 'react';
+import { createContext, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import axios from "axios"
 import "@/styles/App.module.css"
 // import AccountCircleIcon from '@mui/icons-material/AccountCircle';
@@ -89,6 +89,8 @@ import AppItem from './AppItem';
 import AppAccordion from './AppAccordion';
 const { Configuration, OpenAIApi } = require("openai");
 const {Input,useMediaQuery, Flex, TagLabel, Tag, Textarea, Button, useDisclosure,Modal,ModalOverlay,ModalContent,ModalHeader,ModalCloseButton,Icon,ModalBody,Lorem,ModalFooter, Spinner,Text, Spacer, Box, SimpleGrid, Tooltip, Progress, ChakraProvider, Accordion, AccordionItem, AccordionButton, AccordionIcon, AccordionPanel, UnorderedList, ListItem, Editable, EditablePreview, EditableInput, useEditableControls, ButtonGroup, IconButton, CheckboxIcon, FormErrorMessage, DrawerOverlay, Drawer, DrawerContent, DrawerHeader, DrawerCloseButton, Image, FormControl    } = require("@chakra-ui/react")
+
+export const Context = createContext();
 
 function App() {
   const [prompt, setPrompt] = useState("")
@@ -397,6 +399,11 @@ function App() {
      await sleep(2000)
      setShowWelcomeOneMoreMessage(true)
   }
+
+  useLayoutEffect(()=>{
+    var element = document.getElementById('chatlog');
+    element.scrollTop = element.scrollHeight;
+  },[chatlog, loading, showWelcomeMessage, showWelcomeOneMoreMessage])
   return (
       <>
       <div style={{margin: "",minHeight: "100%"}}>
@@ -708,7 +715,10 @@ function App() {
                         </SimpleGrid>
                       </Box> 
                       <Box display={{base: "block", sm:"none"}} overflowY={"auto"} scrollBehavior={"smooth"} minHeight={"49vh"} maxHeight={"49vh"} marginTop={"2vh"}>
-                        <AppAccordion apps={apps} chosenApps={chosenApps} add={(app)=>{setChosenApps(chosenApps.filter(chosenApp=>chosenApp!==app.name))}} remove={(app)=>{setChosenApps([...chosenApps, app.name])}} />
+                        <Context.Provider value={[apps, chosenApps, (app)=>{setChosenApps([...chosenApps, app.name])}, (app)=>{setChosenApps(chosenApps.filter(chosenApp=>chosenApp!==app.name))} ]}>
+                          <AppAccordion apps={apps} chosenApps={chosenApps} remove={(app)=>{setChosenApps(chosenApps.filter(chosenApp=>chosenApp!==app.name))}} add={(app)=>{setChosenApps([...chosenApps, app.name])}} />
+                        </Context.Provider>
+                        
                       </Box> 
 
                       </>

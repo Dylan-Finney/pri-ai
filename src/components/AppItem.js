@@ -1,7 +1,10 @@
 import { AccordionItem, AccordionButton, Box, Text, AccordionIcon, AccordionPanel, SimpleGrid, Tooltip } from "@chakra-ui/react"
 import AppButton from "./AppButton"
 import { getAppLogo } from "./utils"
+import { Context } from "./App"
+import { useContext } from "react"
 export default function AppItem(props = {apps: [{"name": "test", "tags": ["Social"]}], chosenApps: [] }) {
+  const [, chosenApps, add, remove] = useContext(Context);
     return (
         <AccordionItem marginBottom={"16px"}>
                           {({ isExpanded }) => (
@@ -20,13 +23,13 @@ export default function AppItem(props = {apps: [{"name": "test", "tags": ["Socia
                                         return (
                                           <>
                                           {
-                                            props.chosenApps.includes(app.name) ? (
+                                            chosenApps.includes(app.name) ? (
                                                 <>
-                                                <AppButton name={app.name} source={getAppLogo(app.name)} checked={true} click={()=>{props.remove(app)}}/>
+                                                <AppButton name={app.name} source={getAppLogo(app.name)} checked={true} click={()=>{remove(app)}}/>
                                               </>
                                             ) : (
                                               <>
-                                                <AppButton name={app.name} source={getAppLogo(app.name)} checked={false} click={()=>{props.add(app)}}/>
+                                                <AppButton name={app.name} source={getAppLogo(app.name)} checked={false} click={()=>{add(app)}}/>
                                               </>
                                             )
                                           }
