@@ -30,8 +30,8 @@ export default function ChatResponse(props) {
                     <>
                     </>
                 ) : (
-                    <Box display={"flex"} flexDirection={"row"} backgroundColor={"#f9fafb"} marginTop={"1vh"} marginBottom={"1vh"} paddingTop={"1vh"} paddingBottom={"1vh"} borderRadius={"0px 5px 5px 5px"} marginLeft={{base: "25px",sm:"45px", lg: "47px"}}>
-                    <Text fontSize={"sm"} color={"#215852"} paddingLeft={{base: "2.5vw", sm: "5.5px", lg: "8.5px"}} marginRight={"auto"}>How was this response?</Text>
+                    <Box display={"flex"} flexDirection={"row"} backgroundColor={"#f9fafb"} marginTop={"1vh"} marginBottom={"1vh"} paddingTop={"1vh"} paddingBottom={"1vh"} borderRadius={"0px 5px 5px 5px"} marginLeft={{base: "32px",sm:"45px", lg: "47px"}}>
+                    <Text as={"i"} fontSize={"0.75rem"} color={"#465756"} paddingLeft={{base: "2.5vw", sm: "5.5px", lg: "8.5px"}} marginRight={"auto"}>How was this response?</Text>
                     <Button variant='ghost' height={"fit-content"} width={"fit-content"} paddingLeft={"5px"} paddingRight={"5px"} marginRight={"5px"} marginTop={"auto"} marginBottom={"auto"} minWidth={"0vw"}><FiThumbsUp color={"#107569"}/></Button>
                     <Button variant='ghost' height={"fit-content"} width={"fit-content"} paddingLeft={"5px"} marginTop={"auto"} marginBottom={"auto"} paddingRight={"5px"} minWidth={"0vw"}><FiThumbsDown color={"#107569"}/></Button>
                 </Box>      

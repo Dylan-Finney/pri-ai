@@ -19,7 +19,7 @@ export default function ChatPrompt(props) {
         <Text fontSize={"xs"} color={"#215852"} marginTop={"auto"} marginBottom={"auto"}>{timeToString(props.prompt.time)}</Text>
         </div>
         </Box>
-        <Text fontSize={"sm"} color={"#215852"} paddingLeft={{base: "9.5vw",sm:"50px", lg: "55px"}}paddingRight={"1vw"}>
+        <Text fontSize={"sm"} color={"#2C5E55"} paddingLeft={{base: "9.5vw",sm:"50px", lg: "55px"}}paddingRight={"1vw"}>
         {props.prompt.text}
         </Text>
         </div>
