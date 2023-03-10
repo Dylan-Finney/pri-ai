@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google'
 // import styles from '@/styles/Home.module.css'
 import axios from 'axios'
 import App from '@/components/App'
+import { Container } from '@/components/Toast'
 
 export default function Home() {
   return (
@@ -15,6 +16,7 @@ export default function Home() {
       </Head>
       <main>
         <App/>
+        <Container/>
       </main>
     </>
   )

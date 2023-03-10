@@ -34,7 +34,10 @@ import ChatResponse from './ChatResponse';
 import ChatPrompt from './ChatPrompt';
 
 import OnboardingModal from './Onboarding/OnboardingModal';
-const {Input,useMediaQuery, Flex, TagLabel, Tag, Textarea, Button, useDisclosure,Modal,ModalOverlay,ModalContent,ModalHeader,ModalCloseButton,Icon,ModalBody,Lorem,ModalFooter, Spinner,Text, Spacer, Box, SimpleGrid, Tooltip, Progress, ChakraProvider, Accordion, AccordionItem, AccordionButton, AccordionIcon, AccordionPanel, UnorderedList, ListItem, Editable, EditablePreview, EditableInput, useEditableControls, ButtonGroup, IconButton, CheckboxIcon, FormErrorMessage, DrawerOverlay, Drawer, DrawerContent, DrawerHeader, DrawerCloseButton, Image, FormControl    } = require("@chakra-ui/react")
+const {Input,useMediaQuery, Flex, TagLabel, Tag, Textarea, Button, useDisclosure,Modal,ModalOverlay,ModalContent,ModalHeader,ModalCloseButton,Icon,ModalBody,Lorem,ModalFooter, Spinner,Text, Spacer, Box, SimpleGrid, Tooltip, Progress, ChakraProvider, Accordion, AccordionItem, AccordionButton, AccordionIcon, AccordionPanel, UnorderedList, ListItem, Editable, EditablePreview, EditableInput, useEditableControls, ButtonGroup, IconButton, CheckboxIcon, FormErrorMessage, DrawerOverlay, Drawer, DrawerContent, DrawerHeader, DrawerCloseButton, Image, FormControl, useToast    } = require("@chakra-ui/react")
+import { createStandaloneToast } from '@chakra-ui/toast'
+import { errorToasts } from './Toast';
+
 
 export const Context = createContext();
 
@@ -45,6 +48,7 @@ function App() {
   const [prompt, setPrompt] = useState("")
   const [loading, setLoading] = useState(false)
   const [audio, setAudio] = useState(null);
+  const { ToastContainer, toast } = createStandaloneToast()
 
   useEffect(() => {
     setAudio(new Audio('/sounds/new_message.wav'))
@@ -131,23 +135,6 @@ function App() {
       if (responseAPI.data.response){
         setChatlog([].concat(chatlog,{prompt:{text: prompt, time: promptSent}, response: {text: responseAPI.data.response.text, time: Date.now()}}))
       } 
-      var data
-      switch(questionsUsed){
-        case 0:
-          data = {
-            "newUser": true,
-            "userID": userID, 
-            "prompt": prompt
-          }
-          break
-        default:
-          data = {
-            "newUser": false,
-            "userID": userID, 
-            "prompt": prompt
-          }
-          break
-      }
       setLoading(false)
       setQuestionsUsed(questionsUsed+1)
       setPrompt("")
@@ -168,8 +155,11 @@ function App() {
       
 
     } catch(e){
+      console.log("e",e)
       setPrompt("")
       setLoading(false)
+      errorToasts({error: e.response.data.error})
+      
       return e
     }
   }
@@ -402,6 +392,7 @@ At Prifina, we're committed to empowering people with their personal data to liv
           </div>
         </>
       </div>
+      <ToastContainer />
       </>
   );
 }

@@ -3,7 +3,7 @@ import axios from "axios"
 export default async function handler(req, res) {
     console.log(req.body)
     if (req.method !== 'POST') {
-        res.status(405).send({ message: 'Only POST requests allowed' })
+        res.status(405).send({ error: 'Only POST requests allowed' })
         return
     }
     if (req.body.newUser === true){
@@ -33,7 +33,7 @@ export default async function handler(req, res) {
             return res.status(200).send({ message: 'User created with new prompt', userID: response.data.data.createRegisteredUser.id, exchangeID: response.data.data.createRegisteredUser.exchanges[0].id })
         } catch(e){
             console.log("newUser", e)
-            return res.status(400).send({ message: 'Prompt could not be stored and user created' })
+            return res.status(400).send({ error: 'Prompt could not be stored and user created' })
         }
     } else {
         try {
@@ -70,7 +70,7 @@ export default async function handler(req, res) {
             return res.status(200).send({ message: 'New prompt stored', exchangeID: response.data.data.updateRegisteredUser.exchanges[0].id })
         } catch(e){
             console.log("newPrompt", e)
-            return res.status(400).send({ message: 'Prompt could not be stored' })
+            return res.status(400).send({ error: 'Prompt could not be stored' })
         }
     }
     
