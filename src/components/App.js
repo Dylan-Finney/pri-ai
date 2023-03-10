@@ -125,28 +125,30 @@ function App() {
       })
       if (responseAPI.data.response){
         setChatlog([].concat(chatlog,{prompt:{text: prompt, time: promptSent}, response: {text: responseAPI.data.response.text, time: Date.now()}}))
+        setLoading(false)
+        setQuestionsUsed(questionsUsed+1)
+        setPrompt("")
+        audio.play();
+        try{
+          const responseStore = await axios({
+            method: "POST",
+            url: "/api/save",
+            data: {
+              "newUser": questionsUsed === 0 ? true : false,
+              "userID": userID, 
+              "prompt": prompt
+          }
+          })
+          if (responseStore.data.userID){
+            setUserID(responseStore.data.userID)
+          }
+        } catch(e){
+          console.error("Failure to save response")
+        }
       } 
-      setLoading(false)
-      setQuestionsUsed(questionsUsed+1)
-      setPrompt("")
-      audio.play();
-      const responseStore = await axios({
-        method: "POST",
-        url: "/api/save",
-        data: {
-          "newUser": questionsUsed === 0 ? true : false,
-          "userID": userID, 
-          "prompt": prompt
-      }
-      })
-      if (responseStore.data.userID){
-        setUserID(responseStore.data.userID)
-      }
       return responseAPI
-      
-
     } catch(e){
-      console.log("e",e)
+      console.log("Failure to get response")
       setPrompt("")
       setLoading(false)
       errorToasts({error: e.response.data.error})
@@ -194,8 +196,7 @@ function App() {
             </>
           )
         }
-
-          
+        
 
           <Drawer placement={"left"} isOpen={isSideBarOpen} onClose={onSideBarClose} size={"xs"}>
           <DrawerOverlay />
@@ -258,7 +259,7 @@ function App() {
               <Spacer/>
               <Button marginRight={"1rem"} size='sm' backgroundColor={"#f0fdf9"} color={"#107569"} onClick={()=>{clearChat()}}>Clear chat <RiDeleteBin6Line/></Button>
               <Button marginRight={"1rem"} size='sm' backgroundColor={"#0e9384"} color={"#FFFFFF"} onClick={()=>{window.open("https://join.slack.com/t/libertyequalitydata/shared_invite/zt-ddr4t974-MCzsch4FSeux8DrFQ2atbQ", '_blank').focus();}}>Join the community<CgSlack/></Button>
-              <Button marginRight={"1rem"} size='sm'  color={"#107569"} variant={'ghost'}>Share <Box marginLeft={"5px"} width={"20px"} height={"20px"}><NextImage width={100} height={100} alit="Share Icon" src={share} /></Box></Button>
+              <Button marginRight={"1rem"} size='sm'  color={"#107569"} variant={'ghost'} >Share <Box marginLeft={"5px"} width={"20px"} height={"20px"}><NextImage width={100} height={100} alit="Share Icon" src={share} /></Box></Button>
               </Box>
               <Box display={{base: "flex", sm:"none"}} flexDirection={"row"} width={"100%"} alignItems={"center"}>
                 <Box style={{ width: "32px", height: "33px", display: 'inline-block', filter: "drop-shadow(0px 1px 3px rgba(16, 24, 40, 0.1)) drop-shadow(0px 1px 2px rgba(16, 24, 40, 0.06))" }}>
