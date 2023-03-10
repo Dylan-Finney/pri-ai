@@ -2,21 +2,11 @@
 import { createContext, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import axios from "axios"
 import "@/styles/App.module.css"
-// import AccountCircleIcon from '@mui/icons-material/AccountCircle';
-// import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
-// import ContactSupportIcon from '@mui/icons-material/ContactSupport';
-// import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import { CgSlack } from 'react-icons/cg';
-// import ChakraNextImage from "./Image";
 import NextImage from "next/image";
-import { MdOutlineVerifiedUser,MdCheck,MdSearch } from 'react-icons/md';
-import { BsQuestionOctagon } from 'react-icons/bs';
-import { HiOutlineChatBubbleLeftRight } from 'react-icons/hi2';
-import {FaRegUserCircle} from 'react-icons/fa'; 
 import {TbSend,TbEdit} from 'react-icons/tb'; 
-import {RiCloseCircleFill, RiDeleteBin6Line, RiLoginCircleLine} from 'react-icons/ri'; 
-import {FiExternalLink, FiThumbsUp, FiThumbsDown} from 'react-icons/fi'; 
-import { CountryDropdown, RegionDropdown, CountryRegionData } from 'react-country-region-selector';
+import {RiDeleteBin6Line, RiLoginCircleLine} from 'react-icons/ri'; 
+
 // import US from "../assets/country/US.svg"
 
 const Illustration = "/assets/Illustration.svg"
@@ -37,6 +27,7 @@ import OnboardingModal from './Onboarding/OnboardingModal';
 const {Input,useMediaQuery, Flex, TagLabel, Tag, Textarea, Button, useDisclosure,Modal,ModalOverlay,ModalContent,ModalHeader,ModalCloseButton,Icon,ModalBody,Lorem,ModalFooter, Spinner,Text, Spacer, Box, SimpleGrid, Tooltip, Progress, ChakraProvider, Accordion, AccordionItem, AccordionButton, AccordionIcon, AccordionPanel, UnorderedList, ListItem, Editable, EditablePreview, EditableInput, useEditableControls, ButtonGroup, IconButton, CheckboxIcon, FormErrorMessage, DrawerOverlay, Drawer, DrawerContent, DrawerHeader, DrawerCloseButton, Image, FormControl, useToast    } = require("@chakra-ui/react")
 import { createStandaloneToast } from '@chakra-ui/toast'
 import { errorToasts } from './Toast';
+import { Chatlog } from './Chatlog';
 
 
 export const Context = createContext();
@@ -290,97 +281,98 @@ function App() {
                 </> 
               ) : (
                 <>
-                  {
-                    !onboarding ? (
-                        <Box id="chatlog" flexGrow={33} style={{backgroundColor: "#fcfcfd",whiteSpace: "pre-wrap","overflow-y": "scroll", "scroll-behavior": "smooth", "border-left": "1px solid #eaecf0", "border-top": "1px solid #eaecf0", "display": "flex", "flexDirection": "column"}}>
-                          <div style={{marginTop:"auto"}}/>
-                          {
-                            showWelcomeMessage ? (
-                              <>
-                              <ChatResponse aIName={aIName} selectedAvatar={selectedAvatar} response={{text: `👋 Welcome to the Private Al demo by Prifina!
+                  <Chatlog onboarding={onboarding}>
+                    {
+                      onboarding ? (
+                        <>
+                        <Box style={{ width: "220px", height: "160px"}}>
+                          <NextImage 
+                            src={Illustration}
+                            alt="Illustration"
+                            width={220}
+                            height={100}
+                          />
+                        </Box>
+                        <Text as="b" fontSize='lg'>Finish Setting up your AI</Text>
+                        <Text maxWidth={"38%"} color="#475467">To work properly your AI needs to know more about you. Complete the onboarding to continue.</Text>
+                        <div>
+                          <Button width={"fit-content"} backgroundColor={"#FFFFFF"} border={"1px solid #D0D5DD"} marginRight={"8px"}>Exit Demo</Button>
+                          <Button width={"fit-content"} color={"#FFFFFF"} backgroundColor={"#0E9384"} marginLeft={"8px"} onClick={()=>{onOnboardingOpen()}}><RiLoginCircleLine size={"1.3em"} style={{transform: 'rotate(315deg)' }} />Onboarding</Button>
+                        </div>
+                        </>
+                      ) : (
+                        <>
+                        <div style={{marginTop:"auto"}}/>
+                    {
+                      showWelcomeMessage ? (
+                        <>
+                          <ChatResponse aIName={aIName} selectedAvatar={selectedAvatar} response={{text: `👋 Welcome to the Private Al demo by Prifina!
 This demo is designed to simulate having access to all of your personal data and information available in your private data cloud, along with data from various common applications and services typically used by consumers. This includes your emails, social media accounts, wearables, calendar, smart home devices, and other public data sources. By combining these sources, we're able to provide you with the best possible answers.
 In addition, this demo utilizes application interfaces to interact with your applications and other external services, which means it can not only answer any question you may have, but it can also take any action you ask it to do. 
 We've also customized this demo based on the personalization details you provided, so you can expect more relevant and personalized responses. 
 So, go ahead and ask your first question! We're excited to show you how our Private Al demo can provide you with realistic answers and help simplify your life. `, time: loginTime}} feedback={false}/>
-                              {showWelcomeOneMoreMessage?(
-                                <>
-                                  <ChatResponse aIName={aIName} selectedAvatar={selectedAvatar} response={{text: `☝️Oh, One more thing before you get started. For this Demo, each session is limited 10 questions, you can see your question count in the navigation menu.
-Ok, go ahead and ask your first question! We're excited to show you how our Private AI demo can provide you with realistic answers and help simplify your life.`, time: loginTime}} feedback={false}/>
-                                </>
-                              ) : (
-                                <>
-                                </>
-                              )}
-                              </>
-                            ): (
-                              <></>
-                            )
-                          }
-                          
-                        
-                          {
-                          chatlog.map((exchange, index)=>{
-                            return (
-                              <>
-                                <ChatPrompt name={details.name} prompt={exchange.prompt}/>
-                                
-                                <ChatResponse aIName={aIName} selectedAvatar={selectedAvatar} response={exchange.response}/>
-                              </>
-                          )
-                          })
-                          }
-                          {loading?(
+                          {showWelcomeOneMoreMessage?(
                             <>
-                              <Box backgroundColor={"#FFFFFF"} width={"100%"} alignItems={"center"} justifyContent={"center"} padding={"10px"} display={"flex"}>
-                                <Spacer/>
-                                <Spinner/>
-                                <Spacer/>
-
-                              </Box>
-                              
+                              <ChatResponse aIName={aIName} selectedAvatar={selectedAvatar} response={{text: `☝️Oh, One more thing before you get started. For this Demo, each session is limited 10 questions, you can see your question count in the navigation menu.
+Ok, go ahead and ask your first question! We're excited to show you how our Private AI demo can provide you with realistic answers and help simplify your life.`, time: loginTime}} feedback={false}/>
                             </>
-                          ): (
+                          ) : (
                             <>
                             </>
                           )}
-                          {
-                            questionsUsed >= 10 ? (
-                              <>
-                                <ChatResponse aIName={aIName} selectedAvatar={selectedAvatar} response={{text: `Thank you for trying out our Pri-AI (personal AI) demo! We hope you found it helpful and informative.
+                          </>
+                        ): (
+                          <></>
+                        )
+                      }
+                      
+                    
+                      {
+                      chatlog.map((exchange, index)=>{
+                        return (
+                          <>
+                            <ChatPrompt name={details.name} prompt={exchange.prompt}/>
+                            
+                            <ChatResponse aIName={aIName} selectedAvatar={selectedAvatar} response={exchange.response}/>
+                          </>
+                      )
+                      })
+                      }
+                      {loading?(
+                        <>
+                          <Box backgroundColor={"#FFFFFF"} width={"100%"} alignItems={"center"} justifyContent={"center"} padding={"10px"} display={"flex"}>
+                            <Spacer/>
+                            <Spinner/>
+                            <Spacer/>
+
+                          </Box>
+                          
+                        </>
+                      ): (
+                        <>
+                        </>
+                      )}
+                      {
+                        questionsUsed >= 10 ? (
+                          <>
+                            <ChatResponse aIName={aIName} selectedAvatar={selectedAvatar} response={{text: `Thank you for trying out our Pri-AI (personal AI) demo! We hope you found it helpful and informative.
 If you enjoyed this experience, please share it with your friends and don’t forget to check back for updates!
 Pri-AI is created with 💖 by the Prifina team. 
 At Prifina, we're committed to empowering people with their personal data to live happier and healthier lives. Pri-AI is just one piece of the Prifina puzzle.
 👉 Learn more about Prifina at https://www.prifina.com/
 👉 Get involved while you wait for Pri-AI to launch by joining our Slack communityLiberty.Equality.Data.`,time:chatlog[questionsUsed-1].response.time}} end={true}/>
-                              </>
-                            ) : (
-                              <>
-                              </>
-                            )
-                          }
-                      </Box>
-                    ) : (
-                      <>
-                        <Box  flexGrow={33} id="chatlog" style={{backgroundColor: "#F6FEFC",whiteSpace: "pre-wrap","overflow-y": "scroll", "scroll-behavior": "smooth", "border-left": "1px solid #eaecf0", "border-top": "1px solid #eaecf0", "display": "flex", "flexDirection": "column", justifyContent: "center", "alignItems": "center", "textAlign": "center"}}>
-                        <Box style={{ width: "220px", height: "160px"}}>
-                            <NextImage 
-                              src={Illustration}
-                              alt="Illustration"
-                              width={220}
-                              height={100}
-                            />
-                          </Box>
-                          <Text as="b" fontSize='lg'>Finish Setting up your AI</Text>
-                          <Text maxWidth={"38%"} color="#475467">To work properly your AI needs to know more about you. Complete the onboarding to continue.</Text>
-                          <div>
-                            <Button width={"fit-content"} backgroundColor={"#FFFFFF"} border={"1px solid #D0D5DD"} marginRight={"8px"}>Exit Demo</Button>
-                            <Button width={"fit-content"} color={"#FFFFFF"} backgroundColor={"#0E9384"} marginLeft={"8px"} onClick={()=>{onOnboardingOpen()}}><RiLoginCircleLine size={"1.3em"} style={{transform: 'rotate(315deg)' }} />Onboarding</Button>
-                          </div>
-                        </Box>
-                      </>
+                          </>
+                        ) : (
+                          <>
+                          </>
+                        )
+                      }
+                        </>
+                      )
+                    }
+                  
+                  </Chatlog>
 
-                    )
-                  }
                   <Flex flexGrow={2.5} padding={"10px"} borderTop={"2px solid #eeeff2"} minWidth='max-content' alignItems='center' >
                       <Textarea marginLeft={"3%"} width={"85%"} rows={1} resize={"none"} value={prompt} onChange={(e)=>{setPrompt(e.target.value)}} placeholder='Here is a sample placeholder' onKeyDown={async (event)=>{if(event.key==="Shift"&&!shiftDown){setShiftDown(true)}else if (event.key === "Enter"&&!shiftDown){event.preventDefault;await getResponse()}}} onKeyUp={async (event)=>{if(event.key==="Shift"){setShiftDown(false)}}} isDisabled={loading||onboarding||questionsUsed>=10} autoFocus={true} />
                       <Button marginLeft={"1%"} marginRight={"auto"} backgroundColor={"#0e9384"} paddingLeft={"auto"} paddingRight={"auto"} type={'submit'} onClick={async ()=>{await getResponse()}} isDisabled={loading||onboarding||questionsUsed>=10}><TbSend size={"1.3em"} color={"#FFFFFF"}/></Button>
