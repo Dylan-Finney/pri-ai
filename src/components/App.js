@@ -34,7 +34,6 @@ import ChatResponse from './ChatResponse';
 import ChatPrompt from './ChatPrompt';
 
 import OnboardingModal from './Onboarding/OnboardingModal';
-const { Configuration, OpenAIApi } = require("openai");
 const {Input,useMediaQuery, Flex, TagLabel, Tag, Textarea, Button, useDisclosure,Modal,ModalOverlay,ModalContent,ModalHeader,ModalCloseButton,Icon,ModalBody,Lorem,ModalFooter, Spinner,Text, Spacer, Box, SimpleGrid, Tooltip, Progress, ChakraProvider, Accordion, AccordionItem, AccordionButton, AccordionIcon, AccordionPanel, UnorderedList, ListItem, Editable, EditablePreview, EditableInput, useEditableControls, ButtonGroup, IconButton, CheckboxIcon, FormErrorMessage, DrawerOverlay, Drawer, DrawerContent, DrawerHeader, DrawerCloseButton, Image, FormControl    } = require("@chakra-ui/react")
 
 export const Context = createContext();
@@ -70,6 +69,7 @@ function App() {
   const  {isOpen: isSideBarOpen, onOpen: onSideBarOpen, onClose: onSideBarClose} = useDisclosure()
   const  {isOpen: isOnboardingOpen, onOpen: onOnboardingOpen, onClose: onOnboardingClose} = useDisclosure()
   const [chatlog,setChatlog] = useState([])
+  const [userID, setUserID] = useState("")
   const [section,setSection] = useState("chat")
   const [shiftDown, setShiftDown] = useState(false)
   const [onboarding,setOnboarding] = useState(true)
@@ -131,15 +131,43 @@ function App() {
       if (responseAPI.data.response){
         setChatlog([].concat(chatlog,{prompt:{text: prompt, time: promptSent}, response: {text: responseAPI.data.response.text, time: Date.now()}}))
       } 
+      var data
+      switch(questionsUsed){
+        case 0:
+          data = {
+            "newUser": true,
+            "userID": userID, 
+            "prompt": prompt
+          }
+          break
+        default:
+          data = {
+            "newUser": false,
+            "userID": userID, 
+            "prompt": prompt
+          }
+          break
+      }
+      setLoading(false)
       setQuestionsUsed(questionsUsed+1)
       setPrompt("")
-      setLoading(false)
       audio.play();
+      const responseStore = await axios({
+        method: "POST",
+        url: "/api/save",
+        data: {
+          "newUser": questionsUsed === 0 ? true : false,
+          "userID": userID, 
+          "prompt": prompt
+      }
+      })
+      if (responseStore.data.userID){
+        setUserID(responseStore.data.userID)
+      }
       return responseAPI
       
 
     } catch(e){
-
       setPrompt("")
       setLoading(false)
       return e
@@ -148,23 +176,7 @@ function App() {
   const apps = [{"name": "23andMe", "tags": ["Misc"]},{"name": "Airbnb", "tags": ["Misc"]},{"name": "Amazon", "tags": ["Misc"]},{"name": "Ancestry", "tags": ["Misc"]}, {"name": "Apple Health", "tags": ["Health"]}, {"name": "Bosch", "tags": ["Health"]}, {"name": "Doordash", "tags": ["Misc"]}, {"name": "Evernote", "tags": ["Misc"]}, {"name": "Facebook", "tags": ["Social"]}, {"name": "Fitbit", "tags": ["Health"]}, {"name": "Google Calendar", "tags": ["Misc"]}, {"name": "Google Maps", "tags": ["Transport"]}, {"name": "Google", "tags": ["Misc"]}, {"name": "Instacart", "tags": ["Misc"]}, {"name": "Instagram", "tags": ["Social"]}, {"name": "iTunes", "tags": ["Social"]}, {"name": "Linkedin", "tags": ["Social"]}, {"name": "Lyft", "tags": ["Transport"]}, {"name": "Maps", "tags": ["Transport"]}, {"name": "Medium", "tags": ["Social"]}, {"name": "Netflix", "tags": ["Social"]}, {"name": "Notion", "tags": ["Misc"]}, {"name": "Oura", "tags": ["Health"]}, {"name": "Peloton", "tags": ["Health"]}, {"name": "Polar", "tags": ["Health"]}, {"name": "Prime Video", "tags": ["Social"]}, {"name": "Reddit", "tags": ["Social"]}, {"name": "Runkeeper", "tags": ["Health"]}, {"name": "Snapchat", "tags": ["Social"]}, {"name": "Spotify", "tags": ["Social"]}, {"name": "Strava", "tags": ["Health"]}, {"name": "Suunto", "tags": ["Health"]}, {"name": "Tiktok", "tags": ["Social"]}, {"name": "Tripadvisor", "tags": ["Misc"]}, {"name": "Twitch", "tags": ["Social"]}, {"name": "Twitter", "tags": ["Social"]}, {"name": "Uber Eats", "tags": ["Misc"]}, {"name": "Uber", "tags": ["Transport"]}, {"name": "Waze", "tags": ["Transport"]}, {"name": "Withings", "tags": ["Health"]}, {"name": "Youtube", "tags": ["Social"]}]
   
 
-  const feedbackResponse = async (id, helpful) => {
-    const responseAPI = await axios({
-      method: "POST",
-      url: "/api/feedback",
-      data: {
-        id: id,
-        helpful: helpful
-    }
-    })
-    const updateChatLog = chatlog.map((exchange)=>{
-      if(exchange.response.id === id){
-        return {...exchange, response: {id: id,text: exchange.response.text,helpful: helpful}}
-      } 
-      return exchange
-    })
-    setChatlog(updateChatLog)
-  }
+  
   function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
