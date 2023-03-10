@@ -24,7 +24,7 @@ export default function Train(props){
           />
         </Box>
         <Text as={"b"} fontSize={"2xl"} color={"#101828"}>Train your AI</Text>
-        <Text color={"#475467"}>Data is powers your AI, the more you add the better results you will get. Select the apps you use below to train your AI!<br/>Not selecting any apps will allow the AI to pick its own.</Text>
+        <Text color={"#475467"}>Data is powers your AI, the more you add the better results you will get. Select the apps you use below to train your AI!</Text>
         <Box display={{base: "none", sm:"block"}} height={"fit-content"} overflowY={"auto"} scrollBehavior={"smooth"} minHeight={"38%"} maxHeight={"60%"}  marginBottom={"10px"}>
           <div style={{display: "flex", flexDirection: "row"}}>
             {
