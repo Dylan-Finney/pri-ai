@@ -113,7 +113,7 @@ export default function Sidebar(props) {
               <Box gap={"20px"} display={{base:"flex", sm: "none"}} flexDirection={"column"} marginBottom={"auto"}>
                   <Button size='sm' backgroundColor={"#f0fdf9"} color={"#107569"} marginTop={"1vh"} onClick={()=>{props.clear()}}>Clear chat <RiDeleteBin6Line/></Button>
                   <Button size='sm' backgroundColor={"#0e9384"} color={"#FFFFFF"} onClick={()=>{window.open("https://join.slack.com/t/libertyequalitydata/shared_invite/zt-ddr4t974-MCzsch4FSeux8DrFQ2atbQ", '_blank').focus();}}>Join the community<CgSlack/></Button>
-                  <Button size='sm'  color={"#107569"} variant={'ghost'}>Share <Box marginLeft={"5px"} width={"20px"} height={"20px"}><NextImage width={100} height={100} alit="Share Icon" src={share} /></Box></Button>
+                  <Button size='sm'  color={"#107569"} variant={'ghost'} onClick={()=>{props.share()}}>Share <Box marginLeft={"5px"} width={"20px"} height={"20px"}><NextImage width={100} height={100} alit="Share Icon" src={share} /></Box></Button>
                 </Box>
                 
                 
@@ -133,7 +133,7 @@ export default function Sidebar(props) {
                   />
                 </Box>
                 <Text paddingLeft={"5px"} fontWeight="600">{props.name}</Text>
-                <Box style={{ display: 'inline-block', marginTop: "auto", marginBottom: "auto", marginLeft: "auto"}}>
+                <Box style={{ display: 'inline-block', marginTop: "auto", marginBottom: "auto", marginLeft: "auto"}} cursor={"pointer"} onClick={()=>{window.open("https://beta.prifina.com/priai.html" , "_self")}}>
                   <NextImage
                   src={logout}
                   alt={"logout icon"}

@@ -28,6 +28,7 @@ const {Input,useMediaQuery, Flex, TagLabel, Tag, Textarea, Button, useDisclosure
 import { createStandaloneToast } from '@chakra-ui/toast'
 import { errorToasts } from './Toast';
 import { Chatlog } from './Chatlog';
+import { Sharing } from './Sharing';
 
 
 export const Context = createContext();
@@ -42,7 +43,10 @@ function App() {
   const { ToastContainer, toast } = createStandaloneToast()
 
   useEffect(() => {
-    setAudio(new Audio('/sounds/new_message.wav'))
+    var newAudio = new Audio('/sounds/new_message.wav')
+    newAudio.volume = 0.05
+    setAudio(newAudio)
+    console.log("testaudio")
   // only run once on the first render on the client
   }, [])
   const [details, setDetails] = useState({
@@ -63,6 +67,7 @@ function App() {
   }
   const  {isOpen: isSideBarOpen, onOpen: onSideBarOpen, onClose: onSideBarClose} = useDisclosure()
   const  {isOpen: isOnboardingOpen, onOpen: onOnboardingOpen, onClose: onOnboardingClose} = useDisclosure()
+  const  {isOpen: isSharingOpen, onOpen: onSharingOpen, onClose: onSharingClose} = useDisclosure()
   const [chatlog,setChatlog] = useState([])
   const [userID, setUserID] = useState("")
   const [section,setSection] = useState("chat")
@@ -172,6 +177,9 @@ function App() {
      setShowWelcomeOneMoreMessage(true)
      audio.play();
   }
+  //Load up onboaridng on load
+  const useMountEffect = (fun) => useEffect(fun, [])
+  useMountEffect(() => {onOnboardingOpen()}) 
 
   useLayoutEffect(()=>{
     var element = document.getElementById('chatlog');
@@ -196,13 +204,13 @@ function App() {
             </>
           )
         }
-        
+        <Sharing isOpen={isSharingOpen} onClose={onSharingClose} onOpen={onSharingOpen} isLargerThanSM={isLargerThanSM}/>
 
           <Drawer placement={"left"} isOpen={isSideBarOpen} onClose={onSideBarClose} size={"xs"}>
           <DrawerOverlay />
           <DrawerContent width={"85%"} padding={"16px"}>
             <DrawerCloseButton />
-            <Sidebar section={section} name={details.name} questionsUsed={questionsUsed} changeSection={setSection} clear={clearChat}/>
+            <Sidebar section={section} name={details.name} questionsUsed={questionsUsed} changeSection={setSection} clear={clearChat} share={()=>{onSharingOpen()}}/>
           </DrawerContent>
           </Drawer>
           <div style={{display:"flex", flexDirection:"row", height: "100vh"}}>
@@ -259,7 +267,7 @@ function App() {
               <Spacer/>
               <Button marginRight={"1rem"} size='sm' backgroundColor={"#f0fdf9"} color={"#107569"} onClick={()=>{clearChat()}}>Clear chat <RiDeleteBin6Line/></Button>
               <Button marginRight={"1rem"} size='sm' backgroundColor={"#0e9384"} color={"#FFFFFF"} onClick={()=>{window.open("https://join.slack.com/t/libertyequalitydata/shared_invite/zt-ddr4t974-MCzsch4FSeux8DrFQ2atbQ", '_blank').focus();}}>Join the community<CgSlack/></Button>
-              <Button marginRight={"1rem"} size='sm'  color={"#107569"} variant={'ghost'} >Share <Box marginLeft={"5px"} width={"20px"} height={"20px"}><NextImage width={100} height={100} alit="Share Icon" src={share} /></Box></Button>
+              <Button marginRight={"1rem"} size='sm'  color={"#107569"} variant={'ghost'} onClick={()=>{onSharingOpen()}}>Share <Box marginLeft={"5px"} width={"20px"} height={"20px"}><NextImage width={100} height={100} alit="Share Icon" src={share} /></Box></Button>
               </Box>
               <Box display={{base: "flex", sm:"none"}} flexDirection={"row"} width={"100%"} alignItems={"center"}>
                 <Box style={{ width: "32px", height: "33px", display: 'inline-block', filter: "drop-shadow(0px 1px 3px rgba(16, 24, 40, 0.1)) drop-shadow(0px 1px 2px rgba(16, 24, 40, 0.06))" }}>
@@ -297,7 +305,7 @@ function App() {
                         <Text as="b" fontSize='lg'>Finish Setting up your AI</Text>
                         <Text maxWidth={"38%"} color="#475467">To work properly your AI needs to know more about you. Complete the onboarding to continue.</Text>
                         <div>
-                          <Button width={"fit-content"} backgroundColor={"#FFFFFF"} border={"1px solid #D0D5DD"} marginRight={"8px"}>Exit Demo</Button>
+                          <Button width={"fit-content"} backgroundColor={"#FFFFFF"} border={"1px solid #D0D5DD"} marginRight={"8px"} onClick={()=>{window.open("https://beta.prifina.com/priai.html" , "_self")}}>Exit Demo</Button>
                           <Button width={"fit-content"} color={"#FFFFFF"} backgroundColor={"#0E9384"} marginLeft={"8px"} onClick={()=>{onOnboardingOpen()}}><RiLoginCircleLine size={"1.3em"} style={{transform: 'rotate(315deg)' }} />Onboarding</Button>
                         </div>
                         </>

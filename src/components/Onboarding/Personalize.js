@@ -45,19 +45,19 @@ export default function Personalize(props){
                         <FormControl width={"fit-content"}  isInvalid={details.monthDOB==="" || parseInt(details.monthDOB) > 31 || parseInt(details.monthDOB) < 1 ||(props.failedSubmit && (details.monthDOB===null))}>
                         <div style={{"display": "flex", flexDirection: "column"}}>
                         <Text color={"#344054"} fontSize={"14px"} fontWeight={"500"} >Month</Text>
-                        <Input type={"number"} placeholder="02" width={"52px"} height={"44px"} background={"#FFFFFF"} border={"1px solid #D0D5DD"} boxShadow={"0px 1px 2px rgba(16, 24, 40, 0.05)"} borderRadius={"8px"}  onChange={(e)=>{setDetails({...details, monthDOB: e.target.value})}}></Input>
+                        <Input type={"text"} inputMode="numeric" pattern="[0-9]+" placeholder="02" width={"52px"} height={"44px"} background={"#FFFFFF"} border={"1px solid #D0D5DD"} boxShadow={"0px 1px 2px rgba(16, 24, 40, 0.05)"} borderRadius={"8px"}  onChange={(e)=>{setDetails({...details, monthDOB: e.target.value})}}></Input>
                         </div>
                         </FormControl>
                         <FormControl width={"fit-content"} isInvalid={details.dayDOB==="" || parseInt(details.dayDOB) > 31 || parseInt(details.dayDOB) < 1 || (props.failedSubmit && (details.dayDOB===null))}>
                         <div style={{"display": "flex", flexDirection: "column"}}>
                         <Text color={"#344054"} fontSize={"14px"} fontWeight={"500"} onChange={(e)=>{setDetails({...details, dayDOB: e.target.value})}}>Day</Text>
-                        <Input type={"number"} placeholder="19" width={"52px"} height={"44px"} background={"#FFFFFF"} border={"1px solid #D0D5DD"} boxShadow={"0px 1px 2px rgba(16, 24, 40, 0.05)"} borderRadius={"8px"} onChange={(e)=>{setDetails({...details, dayDOB: e.target.value})}}></Input>
+                        <Input type={"text"} inputMode="numeric" pattern="[0-9]+" placeholder="19" width={"52px"} height={"44px"} background={"#FFFFFF"} border={"1px solid #D0D5DD"} boxShadow={"0px 1px 2px rgba(16, 24, 40, 0.05)"} borderRadius={"8px"} onChange={(e)=>{setDetails({...details, dayDOB: e.target.value})}}></Input>
                         </div>
                         </FormControl>
                         <FormControl width={"fit-content"}  isInvalid={details.yearDOB==="" || parseInt(details.yearDOB) > 2050 || parseInt(details.yearDOB) < 1900 ||(props.failedSubmit && (details.yearDOB===null))}>
                         <div style={{"display": "flex", flexDirection: "column"}}>
                         <Text color={"#344054"} fontSize={"14px"} fontWeight={"500"}  >Year</Text>
-                        <Input type={"number"} placeholder="1985" width={"69px"} height={"44px"} background={"#FFFFFF"} border={"1px solid #D0D5DD"} boxShadow={"0px 1px 2px rgba(16, 24, 40, 0.05)"} borderRadius={"8px"}  onChange={(e)=>{setDetails({...details, yearDOB: e.target.value})}}></Input>
+                        <Input type={"text"} inputMode="numeric" pattern="[0-9]+"  placeholder="1985" width={"69px"} height={"44px"} background={"#FFFFFF"} border={"1px solid #D0D5DD"} boxShadow={"0px 1px 2px rgba(16, 24, 40, 0.05)"} borderRadius={"8px"}  onChange={(e)=>{setDetails({...details, yearDOB: e.target.value})}}></Input>
                         </div>
                         </FormControl>
                         </div>
