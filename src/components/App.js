@@ -184,18 +184,19 @@ function App() {
         url: "/api/chat",
         data: {
           "persona":{
-              "name": details.name,
-              "dob": `${details.monthDOB}-${details.dayDOB}-${details.yearDOB}`,
-              "email": details.email,
-              "job": details.job,
-              "country": details.country,
-              "region": details.region,
+              "name": details.name || "",
+              "dob": `${details.monthDOB || ""}-${details.dayDOB || ""}-${details.yearDOB || ""}`,
+              "email": details.email || "",
+              "job": details.job || "",
+              "country": details.country || "",
+              "region": details.region || "",
           },
           "chatlog": chatlog,
           "prompt": prompt
       }
       })
       if (responseAPI.data.response){
+        //Needs Validation error such that it doesn't break
         await enqueueAudioFile(await speakText(responseAPI.data.response.text, language))
         setChatlog([].concat(chatlog,{prompt:{text: prompt, time: promptSent}, response: {text: responseAPI.data.response.text, time: Date.now()}}))
         setLoading(false)
@@ -452,7 +453,7 @@ We've also customized this demo based on the personalization details you provide
 So, go ahead and ask your first question! We're excited to show you how our Private Al demo can provide you with realistic answers and help simplify your life. `, time: loginTime}} feedback={false}/>
                           {showWelcomeOneMoreMessage?(
                             <>
-                              <ChatResponse aIName={aIName} selectedAvatar={selectedAvatar} response={{text: `☝️Oh, One more thing before you get started. For this Demo, each session is limited 10 questions, you can see your question count in the navigation menu.
+                              <ChatResponse aIName={aIName} selectedAvatar={selectedAvatar} response={{text: `☝️Oh, One more thing before you get started. For this Demo, each session is limited to 10 questions, you can see your question count in the navigation menu.
 Ok, go ahead and ask your first question! We're excited to show you how our Private AI demo can provide you with realistic answers and help simplify your life.`, time: loginTime}} feedback={false}/>
                             </>
                           ) : (
