@@ -10,6 +10,9 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@aws-sdk/client-polly": "^3.290.0",
+    "@aws-sdk/credential-providers": "^3.290.0",
+    "@aws-sdk/polly-request-presigner": "^3.290.0",
     "@chakra-ui/icons": "^2.0.17",
     "@chakra-ui/react": "^2.5.1",
     "@upstash/ratelimit": "^0.3.9",

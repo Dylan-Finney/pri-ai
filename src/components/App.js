@@ -6,6 +6,7 @@ import { CgSlack } from 'react-icons/cg';
 import NextImage from "next/image";
 import {TbSend,TbEdit} from 'react-icons/tb'; 
 import {RiDeleteBin6Line, RiLoginCircleLine} from 'react-icons/ri'; 
+import {HiMicrophone, HiStop} from 'react-icons/hi'; 
 
 // import US from "../assets/country/US.svg"
 
@@ -37,6 +38,60 @@ export const AppContext = createContext();
 export const UserContext = createContext();
 
 function App() {
+  //Speech Recongition
+  
+  const [usrlang, setUsrlang] = useState(null);
+  const [voiceInputEnabled, setVoiceInputEnabled] = useState(false);
+  const [mic, setMic] = useState(false);
+  const [language, setLanguage] = useState(usrlang);
+  const speech = useRef("");
+  const [sourceNodes, setSourceNodes] = useState([]);
+  const audioCtx = useRef(null)
+  useEffect(() => {
+      let recognition;
+        if (mic) {
+          console.log("RECORDING ",);
+          const SpeechRecognition = window.speechRecognition || window.webkitSpeechRecognition;
+          recognition = new SpeechRecognition();
+          // does this support all browser languages?
+          recognition.lang = language;
+          recognition.continuous = true;
+          recognition.interimResults = true;
+          var final_transcript = '';
+          recognition.onresult = (event) => {
+            var interim_transcript = '';
+            for (var i = event.resultIndex; i < event.results.length; ++i) {
+              if (event.results[i].isFinal) {
+                final_transcript += event.results[i][0].transcript;
+              } else {
+                interim_transcript += event.results[i][0].transcript;
+              }
+            }
+            final_transcript = final_transcript.charAt(0).toUpperCase() + final_transcript.slice(1)
+            if (interim_transcript === ""){
+              setPrompt(final_transcript)
+            } else {
+              setPrompt(final_transcript + interim_transcript)
+            }
+            console.log("final_transcript", final_transcript);
+            console.log("interim_transcript",interim_transcript);
+
+            // setMic(false);
+          }
+
+          recognition.start();
+        } else {
+          
+          if (speech.current !== "") {
+            //recognition.stop();  recording stops automatically....
+            console.log("SEND", speech.current);
+          }
+          console.log("END");
+        }
+      }, [mic])
+
+
+
   const [prompt, setPrompt] = useState("")
   const [loading, setLoading] = useState(false)
   const [audio, setAudio] = useState(null);
@@ -46,7 +101,14 @@ function App() {
     var newAudio = new Audio('/sounds/new_message.wav')
     newAudio.volume = 0.05
     setAudio(newAudio)
+    window.SpeechRecognition = window.webkitSpeechRecognition || window.SpeechRecognition;
+    setVoiceInputEnabled(window.SpeechRecognition !== undefined)
+    console.log("window.SpeechRecognition",window.SpeechRecognition)
+    setLanguage(navigator.language || navigator.userLanguage);
     console.log("testaudio")
+    let AudioContext = window.AudioContext || window.webkitAudioContext;
+    console.log({ AudioContext });
+    audioCtx.current = new AudioContext();
   // only run once on the first render on the client
   }, [])
   const [details, setDetails] = useState({
@@ -63,6 +125,11 @@ function App() {
   const clearChat = () => {
     setChatlog([]);
     setPrompt("");
+    console.log(sourceNodes)
+    sourceNodes.map((sourceNode) => {
+      sourceNode.disconnect(audioCtx.current.destination)
+    })
+    sourceNodes.length=0
     setShowWelcomeMessage(false);
   }
   const  {isOpen: isSideBarOpen, onOpen: onSideBarOpen, onClose: onSideBarClose} = useDisclosure()
@@ -129,11 +196,12 @@ function App() {
       }
       })
       if (responseAPI.data.response){
+        await enqueueAudioFile(await speakText(responseAPI.data.response.text, language))
         setChatlog([].concat(chatlog,{prompt:{text: prompt, time: promptSent}, response: {text: responseAPI.data.response.text, time: Date.now()}}))
         setLoading(false)
         setQuestionsUsed(questionsUsed+1)
         setPrompt("")
-        audio.play();
+        // audio.play();
         try{
           const responseStore = await axios({
             method: "POST",
@@ -168,18 +236,80 @@ function App() {
   function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
+
+  async function enqueueAudioFile(audioFileUrl) {
+    // fetch the audio file and decode it
+    await fetch(audioFileUrl)
+      .then(response => response.arrayBuffer())
+      .then(arrayBuffer => audioCtx.current.decodeAudioData(arrayBuffer))
+      .then(audioBuffer => {
+        // create a new AudioBufferSourceNode for the audio file
+        const sourceNode = audioCtx.current.createBufferSource();
+  
+        // set the audio buffer as the source node's buffer
+        sourceNode.buffer = audioBuffer;
+  
+        // connect the source node to the previous source node in the array, or the audio context's destination (i.e., speakers) if this is the first file
+        // if (sourceNodes.length > 0) {
+          // sourceNode.connect(sourceNodes[sourceNodes.length - 1]);
+        // } else {
+          sourceNode.connect(audioCtx.current.destination);
+        // }
+  
+        // set the onended event to play the next file in the queue when this file is finished playing
+        sourceNode.onended = function() {
+          // remove this source node from the array
+          sourceNodes.splice(sourceNodes.indexOf(sourceNode), 1);
+
+          console.log("onended")
+  
+          // if there are more source nodes in the array, start playing the next one
+          if (sourceNodes.length > 0) {
+            sourceNodes[0].start();
+          }
+        };
+  
+        // add the new source node to the array
+        sourceNodes.push(sourceNode);
+  
+        // if this is the only source node in the array, start playing it
+        if (sourceNodes.length === 1) {
+          sourceNode.start();
+        }
+      });
+  }
+
+  async function speakText(speak, lng) {
+    try {
+      const responseAPI = await axios({
+        method: "POST",
+        url: "/api/audio",
+        data: {
+          speak, 
+          lng
+      }
+      })
+      console.log(responseAPI)
+      return responseAPI.data.url
+    } catch (err) {
+      console.log("Error", err);
+    }
+  };
+
   const initalMessage = async () => {
-     await sleep(2000)
-     setLoginTime(Date.now())
-     setShowWelcomeMessage(true)
+    await sleep(2000)
+    setLoginTime(Date.now())
+    setShowWelcomeMessage(true)
      audio.play();
-     await sleep(2000)
-     setShowWelcomeOneMoreMessage(true)
+    await sleep(2000)
+    setShowWelcomeOneMoreMessage(true)
      audio.play();
   }
   //Load up onboaridng on load
   const useMountEffect = (fun) => useEffect(fun, [])
-  useMountEffect(() => {onOnboardingOpen()}) 
+  useMountEffect(() => {
+    onOnboardingOpen();
+  }) 
 
   useLayoutEffect(()=>{
     var element = document.getElementById('chatlog');
@@ -315,7 +445,7 @@ function App() {
                     {
                       showWelcomeMessage ? (
                         <>
-                          <ChatResponse aIName={aIName} selectedAvatar={selectedAvatar} response={{text: `👋 Welcome to the Private Al demo by Prifina!
+                          <ChatResponse aIName={aIName} selectedAvatar={selectedAvatar} response={{text: `👋 Welcome to the Private AI demo by Prifina!
 This demo is designed to simulate having access to all of your personal data and information available in your private data cloud, along with data from various common applications and services typically used by consumers. This includes your emails, social media accounts, wearables, calendar, smart home devices, and other public data sources. By combining these sources, we're able to provide you with the best possible answers.
 In addition, this demo utilizes application interfaces to interact with your applications and other external services, which means it can not only answer any question you may have, but it can also take any action you ask it to do. 
 We've also customized this demo based on the personalization details you provided, so you can expect more relevant and personalized responses. 
@@ -384,6 +514,7 @@ At Prifina, we're committed to empowering people with their personal data to liv
 
                   <Flex flexGrow={2.5} padding={"10px"} borderTop={"2px solid #eeeff2"} minWidth='max-content' alignItems='center' >
                       <Textarea marginLeft={"3%"} width={"85%"} rows={1} resize={"none"} value={prompt} onChange={(e)=>{setPrompt(e.target.value)}} placeholder='Here is a sample placeholder' onKeyDown={async (event)=>{if(event.key==="Shift"&&!shiftDown){setShiftDown(true)}else if (event.key === "Enter"&&!shiftDown){event.preventDefault;await getResponse()}}} onKeyUp={async (event)=>{if(event.key==="Shift"){setShiftDown(false)}}} isDisabled={loading||onboarding||questionsUsed>=10} autoFocus={true} />
+                      <Button width={"fit-content"} color={"#FFFFFF"} backgroundColor={"#0E9384"} marginLeft={"8px"} onClick={()=>{setMic(!mic)}} isDisabled={loading||onboarding||questionsUsed>=10||!voiceInputEnabled}>{mic ? <HiStop size={"1.3em"}/> : <HiMicrophone size={"1.3em"}/>}</Button>
                       <Button marginLeft={"1%"} marginRight={"auto"} backgroundColor={"#0e9384"} paddingLeft={"auto"} paddingRight={"auto"} type={'submit'} onClick={async ()=>{await getResponse()}} isDisabled={loading||onboarding||questionsUsed>=10}><TbSend size={"1.3em"} color={"#FFFFFF"}/></Button>
                   </Flex>
                 </>

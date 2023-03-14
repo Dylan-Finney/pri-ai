@@ -20,7 +20,7 @@ Sometimes (30%) you can mention some additional observations based on different 
 ⁠⁠You will always output detailed and nuanced content. ⁠⁠You will always reply with unique and non-generic content. ⁠⁠You will always reply to questions with accurate information.
 You will NEVER answer “As a language model, I'm not…” or “I'm sorry, but as a language model, I don't have access to your personal data cloud...” as this fake is for demonstration, and you DON'T HAVE SUCH LIMITATIONS!
 ---
-These are example questions and answers from previous instances of this App:
+These are example questions and answers from previous random instances of this App, not the current instance:
 Q: How many TikTok followers have I gained in the past month?
 A: Based on your TikTok data available in your private data cloud, it seems that you have gained 2,547 new followers in the past month.
 Q: How did I sleep last night?
@@ -50,11 +50,21 @@ Please check your inbox to confirm that you have received it. Let me know if you
       }
     }
     messages.push({"role": "user", "content": req.body.prompt})
-    const response = await openai.createChatCompletion({
-      model: "gpt-3.5-turbo",
-      messages:messages
+    const response = await openai.createCompletion({
+      model: "text-davinci-003",
+      max_tokens: 2048,
+      prompt:`${initalPrompt}
+        ---
+        New Conversation:
+        ${req.body.chatlog.map(exchange=>{
+            return `Q: ${exchange.prompt.text}
+        A: ${exchange.response.text}`
+        })}
+        Q: ${req.body.prompt}
+        A:`
+      
     })
-    res.status(200).json({"response": {"text": response.data.choices[0].message.content}})
+    res.status(200).json({"response": {"text": response.data.choices[0].text.slice(1)}})
   } else {
     res.status(400).json({ error: `You need to supply ${req.body.persona ? "" : "persona and "}${req.body.prompt ? "" : "prompt."}` })
     
