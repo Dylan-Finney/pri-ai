@@ -348,7 +348,7 @@ function App() {
             <Sidebar display={{base: "none", sm: "flex"}} section={section} name={details.name} questionsUsed={questionsUsed} changeSection={setSection}/>
             <div style={{flexDirection:"column", minWidth: "80.5%", width: "100%", display: "flex"}}>
 
-            <Box flexGrow={0.5} style={{display:"flex", flexDirection:"row", alignItems: "center", paddingLeft: "1rem", marginTop: "10px", marginBottom: "10px"}}>
+            <Box style={{display:"flex", flexDirection:"row", alignItems: "center", paddingLeft: "1rem", marginTop: "10px", marginBottom: "10px"}}>
               <Box display={{base: "none", sm:"flex"}} width={"100%"} height={"100%"} alignItems={"center"}>
               {
                 selectedAvatar === null || onboarding ? (
@@ -513,7 +513,7 @@ At Prifina, we're committed to empowering people with their personal data to liv
                   
                   </Chatlog>
 
-                  <Flex flexGrow={2.5} padding={"10px"} borderTop={"2px solid #eeeff2"} minWidth='max-content' alignItems='center' >
+                  <Flex padding={"10px"} borderTop={"2px solid #eeeff2"} minWidth='max-content' alignItems='center' >
                       <Textarea marginLeft={"3%"} width={"85%"} rows={1} resize={"none"} value={prompt} onChange={(e)=>{setPrompt(e.target.value)}} placeholder='Here is a sample placeholder' onKeyDown={async (event)=>{if(event.key==="Shift"&&!shiftDown){setShiftDown(true)}else if (event.key === "Enter"&&!shiftDown){event.preventDefault;await getResponse()}}} onKeyUp={async (event)=>{if(event.key==="Shift"){setShiftDown(false)}}} isDisabled={loading||onboarding||questionsUsed>=10} autoFocus={true} />
                       <Button width={"fit-content"} color={"#FFFFFF"} backgroundColor={"#0E9384"} marginLeft={"8px"} onClick={()=>{setMic(!mic)}} isDisabled={loading||onboarding||questionsUsed>=10||!voiceInputEnabled}>{mic ? <HiStop size={"1.3em"}/> : <HiMicrophone size={"1.3em"}/>}</Button>
                       <Button marginLeft={"1%"} marginRight={"auto"} backgroundColor={"#0e9384"} paddingLeft={"auto"} paddingRight={"auto"} type={'submit'} onClick={async ()=>{await getResponse()}} isDisabled={loading||onboarding||questionsUsed>=10}><TbSend size={"1.3em"} color={"#FFFFFF"}/></Button>
