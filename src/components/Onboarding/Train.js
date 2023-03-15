@@ -3,7 +3,7 @@ import { useContext, useState } from "react"
 import {Box, Image, Text, FormControl, Input, SimpleGrid} from "@chakra-ui/react"
 const trainModal = "/assets/train_modal.svg"
 import AppButton from "./AppButton"
-import AppAccordion from "./AppAccordion"
+import AppList from "./AppList"
 import { getAppLogo } from "../utils";
 import { AppContext } from "../App";
 import NextImage from "next/image"
@@ -105,7 +105,7 @@ export default function Train(props){
           </SimpleGrid>
         </Box> 
         <Box display={{base: "block", sm:"none"}} overflowY={"auto"} scrollBehavior={"smooth"} minHeight={"49vh"} maxHeight={"49vh"} marginTop={"2vh"}>
-            <AppAccordion/>
+            <AppList/>
             <Text>Test</Text>
         </Box> 
       </>

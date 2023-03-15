@@ -19,7 +19,7 @@ export default function OnboardingModal(props){
     useEffect(()=>{
         setFailedSubmit(false)
         switch(onboardingStep){
-            case 4:
+            case 2:
                 props.onFinish()
                 break
             default:
@@ -28,24 +28,24 @@ export default function OnboardingModal(props){
     }, [onboardingStep, props])
     return (
         <Modal closeOnOverlayClick={false} motionPreset="slideInBottom" isOpen={props.isOpen} onClose={props.onClose} size={"full"}>
-            <ModalOverlay />
-            <ModalContent style={{borderRadius: "10px", border: "0px solid transparent"}} width={{base: "100%",sm:"85%"}} height={{base: "100%",sm:"5%"}} minHeight={{base: "100%",sm:"98vh"}} marginTop={{base: "0vh",sm:"1vh"}} padding={{base: "16px", sm: "0px"}}>
+            <ModalOverlay backdropFilter='blur(8px)' />
+            <ModalContent style={{borderRadius: "10px", border: "0px solid transparent"}} width={{base: "100%", md: "560px"}} height={{base: "100%", md: "594px"}} marginTop={"auto"} marginBottom={"auto"}>
               <ModalCloseButton onClick={()=>{setOnboardingStep(0); props.onClose();}} />
-              <div style={{display: "flex", flexDirection: "row", "height": "100%"}}>
+              <div style={{display: "flex", flexDirection: "row", height: "100%"}}>
                 {/* Left Screen of Modal */}
-                <OnboardingSidebar onboardingStep={onboardingStep}/>
+                {/* <OnboardingSidebar onboardingStep={onboardingStep}/> */}
                 {/* Right Screen of Modal */}
-                <div style={{backgroundColor:"#FFFFFF", flex: 5, paddingTop: "5vh", paddingLeft: "1vw", display: "flex", flexDirection: "column", paddingRight: "10px", borderTopRightRadius: "10px", borderBottomRightRadius: "10px", border: "10px solid transparent"}}>
+                <div style={{backgroundColor:"#FFFFFF", flex: 5, display: "flex", flexDirection: "column", borderRadius: "10px", border: "10px solid transparent"}}>
                   {
                     onboardingStep === 0 ? (
                       <>
-                        <SetupAI failedSubmit={failedSubmit} />
+                        <Personalize failedSubmit={failedSubmit}/>
                       </>
                     ) : (
                       <></>
                     )
                   }
-                  {
+                  {/* {
                     onboardingStep === 1 ? (
                       <>
                         <Personalize failedSubmit={failedSubmit}/>
@@ -62,12 +62,12 @@ export default function OnboardingModal(props){
                     ) : (
                       <></>
                     )
-                  }
+                  } */}
                   {
-                    onboardingStep === 3 ? (
+                    onboardingStep === 1 ? (
                       <>
-                      <Box overflowY={"auto"} scrollBehavior={"smooth"} minHeight={"70vh"} maxHeight={"70vh"}>
-                      <Box marginBottom={{base: "24px", sm: "0px"}}>
+                      <Box marginLeft={"10px"} marginTop={"15px"} >
+                      <Box width={"48px"}  marginLeft={"-10px"} marginBottom={{base: "0x", sm: "0px"}}>
                         <NextImage
                         src={privacyModal}
                         alt={"Privacy Icon"}
@@ -75,13 +75,19 @@ export default function OnboardingModal(props){
                         height={48}
                         />
                       </Box>
-                      <Text as={"b"} fontSize={"2xl"} color={"#101828"}>Privacy disclaimer</Text>
-                      <Text color={"#475467"} >Please note that this Personal AI chat service demo records each chat session and related details. The purpose of this recording is to improve the quality of our service and for development purposes.<br/> 
-                      By using this demo, you acknowledge and agree to the recording and storage of your conversation history. Furthermore, any details provided or prompts entered hereafter will be sent to and processed by Prifina and OpenAI.<br/> 
-                      We want you to know that any personal information collected will be kept confidential and will not be disclosed to any third party without your consent, except as required by law.<br/> 
-                      If you have any concerns about the collection, use, or storage of your personal information, please do not use this service. If you have any questions or comments about our privacy policy or practices, please feel free to contact us.<br/> 
+                      <Text as={"b"} fontSize={"18px"} fontWeight={"600"} color={"#101828"}>Privacy Disclaimer</Text>
+                      <Text color={"#475467"} fontSize={"14px"} fontWeight={"400"}>How we handle and store your data </Text>
+                      </Box>
+                      <Box marginTop={"10px"} width={"100%"} height={"1px"} backgroundColor={"#EAECF0"}/>
+                      <Box flexGrow={1} maxHeight={"calc(100vh - 269px)"} width={"100%"} overflowY={"auto"}  scrollBehavior={"smooth"}>
+                      
+                      <Text color={"#475467"} marginLeft={"10px"} marginTop={"10px"} marginBottom={"10px"} fontSize={"14px"} fontWeight={"400"}>Please note that this Personal AI chat service demo records each chat session and related details. The purpose of this recording is to improve the quality of our service and for development purposes.<br/> <br/> 
+                      By using this demo, you acknowledge and agree to the recording and storage of your conversation history. Furthermore, any details provided or prompts entered hereafter will be sent to and processed by Prifina and OpenAI.<br/> <br/> 
+                      We want you to know that any personal information collected will be kept confidential and will not be disclosed to any third party without your consent, except as required by law.<br/> <br/> 
+                      If you have any concerns about the collection, use, or storage of your personal information, please do not use this service. If you have any questions or comments about our privacy policy or practices, please feel free to contact us.<br/> <br/> 
                       Thank you for using our Personal AI chat service.</Text>
                       </Box>
+                      
                       
                       </>
                     ) : (
@@ -89,42 +95,41 @@ export default function OnboardingModal(props){
                     )
                   }
                   {
-                    onboardingStep === 3 ? (
+                    onboardingStep === 1 ? (
                       <>
-                        <div style={{"marginTop": "auto", "display": "flex", "flexDirection": "row", "gap": "10px", "marginBottom": "3vh"}}>
+                        <Box width={"100%"} marginTop={"auto"} paddingLeft={"100px"} height={"1px"} backgroundColor={"#EAECF0"}/>
+                        <div style={{"marginTop": "20px","display": "flex", "flexDirection": "row", "gap": "10px", "marginBottom": "3vh"}}>
                           <Button border={"1px solid #D0D5DD"} backgroundColor={"#FFFFFF"} color={"#000000"} onClick={()=>{setOnboardingStep(0);props.onClose();}} width="100%">No Thanks</Button>
                           <Button backgroundColor={"#0E9384"} color={"#FFFFFF"} marginTop={"auto"} marginRight={"10px"}width="100%" onClick={()=>{setOnboardingStep(onboardingStep+1);props.onClose();}}>I'm Ok with this</Button>
                         </div>
                        
                       </>
                     ) : (
-                      <Button marginTop={"auto"} marginRight={"3vw"} marginLeft={"1vw"} marginBottom={"3vh"} onClick={()=>
-                        {
-                          switch(onboardingStep){
-                            case 0:
-                              if (aIName === "" || selectedAvatar === "" || aIName === null || selectedAvatar === null ) {
-                                setFailedSubmit(true)
-                              } else {
-                                setFailedSubmit(false)
-                                setOnboardingStep(onboardingStep+1)
+                      <>
+                        <Box width={"100%"} marginTop={"auto"} paddingLeft={"100px"} height={"1px"} backgroundColor={"#EAECF0"}/>
+                        <div style={{"marginTop": "20px","display": "flex", "flexDirection": "row", "gap": "10px", "marginBottom": "3vh"}}>
+                          <Button border={"1px solid #D0D5DD"} backgroundColor={"#FFFFFF"} color={"#000000"} onClick={()=>{setOnboardingStep(0);props.onClose();}} width="100%">No Thanks</Button>
+                          <Button onClick={()=>
+                            {
+                              switch(onboardingStep){
+                                case 0:
+                                  if ( details.name === "" || details.job === "" || details.email === "" || details.country === "" || details.region === "" || details.name === null || details.job === null || details.email === null || details.country === null || details.region === null ) {
+                                    setFailedSubmit(true)
+                                  } else {
+                                    setFailedSubmit(false)
+                                    setOnboardingStep(onboardingStep+1)
+                                  }
+                                  break
+                                case 1:
+                                  setOnboardingStep(onboardingStep+1)
+                                  break
+                                default:
+                                  break
                               }
-                              break
-                            case 1:
-                              if ( details.name === "" || details.name === null) {
-                                setFailedSubmit(true)
-                              } else {
-                                setFailedSubmit(false)
-                                setOnboardingStep(onboardingStep+1)
-                              }
-                              break
-                            case 2:
-                              setOnboardingStep(onboardingStep+1)
-                              break
-                            default:
-                              break
-                          }
 
-                        }} backgroundColor={"#0E9384"} color={"#FFFFFF"}>Continue</Button>
+                            }} backgroundColor={"#0E9384"} color={"#FFFFFF"} marginTop={"auto"} marginRight={"10px"} width="100%">Continue</Button>
+                          </div>
+                      </>
                     )
                   }
                   {/* **** <- Page Indicator */}

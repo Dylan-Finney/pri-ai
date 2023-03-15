@@ -46,6 +46,7 @@ function App() {
   const [language, setLanguage] = useState(usrlang);
   const speech = useRef("");
   const [sourceNodes, setSourceNodes] = useState([]);
+  const avatars = ["Avatar1.svg", "Avatar2.svg", "Avatar3.svg", "Avatar4.svg", "Avatar5.svg", "Avatar6.svg","Avatar7.svg","Avatar8.svg", "Avatar9.svg", "Avatar10.svg", "Avatar11.svg", "Avatar12.svg"]
   const audioCtx = useRef(null)
   useEffect(() => {
       let recognition;
@@ -326,7 +327,7 @@ function App() {
             <>
               <UserContext.Provider value={[aIName, (name) =>{setAIName(name)}, details, (name) =>{setDetails(name)}, selectedAvatar, (name) =>{setSelectedAvatar(name)}]}>
                 <AppContext.Provider value={[apps, chosenApps, (app)=>{setChosenApps([...chosenApps, app.name])}, (app)=>{setChosenApps(chosenApps.filter(chosenApp=>chosenApp!==app.name))}]}>
-                  <OnboardingModal isOpen={isOnboardingOpen} onClose={onOnboardingClose} onOpen={onOnboardingOpen} onFinish={()=>{setOnboarding(false);initalMessage();}} />
+                  <OnboardingModal isOpen={isOnboardingOpen} onClose={onOnboardingClose} onOpen={onOnboardingOpen} onFinish={()=>{setOnboarding(false);initalMessage();setAIName(`${details.name}'s Personal Assistant`); setSelectedAvatar(avatars[Math.floor(Math.random() * avatars.length)])}} />
                 </AppContext.Provider>
               </UserContext.Provider>
             </>
