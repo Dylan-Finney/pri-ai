@@ -370,7 +370,7 @@ function App() {
             <>
               <UserContext.Provider value={[aIName, (name) =>{setAIName(name)}, details, (name) =>{setDetails(name)}, selectedAvatar, (name) =>{setSelectedAvatar(name)}]}>
                 <AppContext.Provider value={[apps, (apps)=>{setChosenApps(apps)}]}>
-                  <OnboardingModal isOpen={isOnboardingOpen} onClose={onOnboardingClose} onOpen={onOnboardingOpen} onFinish={()=>{setOnboarding(false);initalMessage();setAIName(`${details.name}'s Personal Assistant`); setSelectedAvatar(avatars[Math.floor(Math.random() * avatars.length)])}} />
+                  <OnboardingModal isOpen={isOnboardingOpen} onClose={onOnboardingClose} onOpen={onOnboardingOpen} onFinish={()=>{setOnboarding(false);setAIName(`${details.name}'s Personal Assistant`); setSelectedAvatar(avatars[Math.floor(Math.random() * avatars.length)]);initalMessage();}} />
                 </AppContext.Provider>
               </UserContext.Provider>
             </>
