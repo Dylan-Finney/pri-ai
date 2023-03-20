@@ -24,7 +24,13 @@ export default function AboutItem(props) {
                 </Box>
             </AccordionButton>
             <AccordionPanel pb={4} marginLeft={"27px"} fontSize={"16px"}>
-            <Text color={"#134E48"}>{props.answer}</Text>
+                 {   
+                    props.answer.split("\n").map((answer,i)=>{
+                        return (
+                            <Text color={"#134E48"} key={i} marginBottom={"16px"}>{answer}</Text>
+                        )
+                    })
+                }
             </AccordionPanel>
         </div>
         </>

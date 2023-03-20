@@ -10,8 +10,8 @@ export default async function handler(req, res) {
     return
   }
   if (req.body.persona&&req.body.prompt){
-    var formattedDetails = `${req.body.persona.name}, my birthdate is ${req.body.persona.dob}, my email is ${req.body.persona.email}, working as a ${req.body.persona.job}, from ${req.body.persona.region}, ${req.body.persona.country}`
-    const initalPrompt = `Pri-AI is a Private Personal AI Assistant app, that runs on a dedicated cloud computing architecture with private data storage, optimized for consumers.
+    var formattedDetails = `${req.body.persona.name}, my email is ${req.body.persona.email}, working as a ${req.body.persona.job}, from ${req.body.persona.region}, ${req.body.persona.country}`
+    const initalPrompt = process.env.stage === "prod" ? `Pri-AI is a Private Personal AI Assistant app, that runs on a dedicated cloud computing architecture with private data storage, optimized for consumers.
 You will now you act as my “fake Personal AI”. You will have access to all my personal data and information from all common applications and services that consumers use. In addition you will have access to data in any products, accessories or pets I have like; ski booths, jacket, rackets, bicycle, car, etc. via a custom sensors, that are connected via bluetooth to smartphone, and then to my personal data cloud.
 You also have ability to use my personal apps and public data sources via APIs, to be able to answer any question that I will ask from you, or ask you to take action on.
 I pretend to be the following persona: “${formattedDetails}”.
@@ -43,8 +43,7 @@ Please check your inbox to confirm that you have received it. Let me know if you
 ---
 This is our dialogue so far:
 ---
-Q:
-  `
+  ` : `You are an AI assisstant.`
     var messages = [{"role": "system", "content": initalPrompt}]
     if (req.body.chatlog && req.body.chatlog.length>0){
       for (var i = 0; i<req.body.chatlog.length&&i<=9;i++){

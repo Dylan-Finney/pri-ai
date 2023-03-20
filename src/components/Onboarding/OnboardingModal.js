@@ -5,7 +5,6 @@ import SetupAI from "./SetupAI"
 import OnboardingSidebar from "./OnboardingSidebar"
 import Train from "./Train"
 import Personalize from "./Personalize"
-import { UserContext } from "../App"
 import NextImage from "next/image"
 const privacyModal = "/assets/privacy_modal.svg"
 
@@ -14,8 +13,8 @@ const {Input,useMediaQuery, Flex, TagLabel, Tag, Textarea, Button, useDisclosure
 
 export default function OnboardingModal(props){
     const [onboardingStep, setOnboardingStep] = useState(0)
-    const [failedSubmit, setFailedSubmit] = useState(false)
-    const [aIName, , details, , selectedAvatar] = useContext(UserContext)
+    const [failedSubmit, setFailedSubmit] = useState(null)
+    
     useEffect(()=>{
         setFailedSubmit(false)
         switch(onboardingStep){
@@ -29,9 +28,9 @@ export default function OnboardingModal(props){
     return (
         <Modal closeOnOverlayClick={false} motionPreset="slideInBottom" isOpen={props.isOpen} onClose={props.onClose} size={"full"}>
             <ModalOverlay backdropFilter='blur(8px)' />
-            <ModalContent style={{borderRadius: "10px", border: "0px solid transparent"}} width={{base: "100%", md: "560px"}} height={{base: "100%", md: "594px"}} marginTop={"auto"} marginBottom={"auto"}>
+            <ModalContent style={{borderRadius: "10px", border: "0px solid transparent"}} width={{base: "100%", md: "560px"}} height={{base: "100%", md: "100vh"}} maxHeight={{base: "100%", md: "594px"}} marginTop={"auto"} marginBottom={"auto"}>
               <ModalCloseButton onClick={()=>{setOnboardingStep(0); props.onClose();}} />
-              <div style={{display: "flex", flexDirection: "row", height: "100%"}}>
+              <div style={{display: "flex", flexDirection: "row", height: "100vh"}}>
                 {/* Left Screen of Modal */}
                 {/* <OnboardingSidebar onboardingStep={onboardingStep}/> */}
                 {/* Right Screen of Modal */}
@@ -39,30 +38,12 @@ export default function OnboardingModal(props){
                   {
                     onboardingStep === 0 ? (
                       <>
-                        <Personalize failedSubmit={failedSubmit}/>
+                        <Personalize failedSubmit={failedSubmit} goBack={()=>{setOnboardingStep(0);props.onClose();}} next={()=>{setOnboardingStep(onboardingStep+1)}}/>
                       </>
                     ) : (
                       <></>
                     )
                   }
-                  {/* {
-                    onboardingStep === 1 ? (
-                      <>
-                        <Personalize failedSubmit={failedSubmit}/>
-                      </>
-                    ) : (
-                      <></>
-                    )
-                  }
-                  {
-                    onboardingStep === 2 ? (
-                      <>
-                        <Train />
-                      </>
-                    ) : (
-                      <></>
-                    )
-                  } */}
                   {
                     onboardingStep === 1 ? (
                       <>
@@ -106,29 +87,7 @@ export default function OnboardingModal(props){
                       </>
                     ) : (
                       <>
-                        <Box width={"100%"} marginTop={"auto"} paddingLeft={"100px"} height={"1px"} backgroundColor={"#EAECF0"}/>
-                        <div style={{"marginTop": "20px","display": "flex", "flexDirection": "row", "gap": "10px", "marginBottom": "3vh"}}>
-                          <Button border={"1px solid #D0D5DD"} backgroundColor={"#FFFFFF"} color={"#000000"} onClick={()=>{setOnboardingStep(0);props.onClose();}} width="100%">No Thanks</Button>
-                          <Button onClick={()=>
-                            {
-                              switch(onboardingStep){
-                                case 0:
-                                  if ( details.name === "" || details.job === "" || details.email === "" || details.country === "" || details.region === "" || details.name === null || details.job === null || details.email === null || details.country === null || details.region === null ) {
-                                    setFailedSubmit(true)
-                                  } else {
-                                    setFailedSubmit(false)
-                                    setOnboardingStep(onboardingStep+1)
-                                  }
-                                  break
-                                case 1:
-                                  setOnboardingStep(onboardingStep+1)
-                                  break
-                                default:
-                                  break
-                              }
-
-                            }} backgroundColor={"#0E9384"} color={"#FFFFFF"} marginTop={"auto"} marginRight={"10px"} width="100%">Continue</Button>
-                          </div>
+                       
                       </>
                     )
                   }

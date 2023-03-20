@@ -1,11 +1,24 @@
 import { AccordionItem, AccordionButton, Box, Text, AccordionIcon, AccordionPanel, SimpleGrid, Tooltip } from "@chakra-ui/react"
 import AppButton from "./AppButton"
 import { getAppLogo } from "../utils"
-import { useContext } from "react"
+import { useContext, useState } from "react"
 import { AppContext } from "../App"
+
 export default function AppItem(props = {apps: [{"name": "test", "tags": ["Social"]}], chosenApps: [] }) {
   // const [, chosenApps, add, remove] = useContext(Context);
-  const [ , chosenApps, add, remove, ] = useContext(AppContext);
+  // const [ , chosenApps, add, remove, ] = useContext(AppContext);
+  const add = (name) => {
+    const addedToApps = [...categoryChosenApps, name]
+    props.onChange(addedToApps);
+    setCategoryChosenApps(addedToApps)
+  }
+  const remove = (name) => {
+    const filteredApps = categoryChosenApps.filter(chosenApp=>chosenApp!==name)
+    props.onChange(filteredApps);
+    setCategoryChosenApps(filteredApps)
+  }
+    const [categoryChosenApps, setCategoryChosenApps] = useState([])
+    console.log(props)
     return (
       <>
         <Text marginLeft={"16px"} marginBottom={"16px"} as={"b"} color={"#101828"} fontSize={"16px"}>{props.title}</Text>
@@ -16,13 +29,13 @@ export default function AppItem(props = {apps: [{"name": "test", "tags": ["Socia
                 return (
                   <>
                   {
-                    chosenApps.includes(app.name) ? (
+                    categoryChosenApps.includes(app.name) ? (
                         <>
-                        <AppButton name={app.name} source={getAppLogo(app.name)} checked={true} click={()=>{remove(app)}}/>
+                        <AppButton name={app.name} source={getAppLogo(app.name)} checked={true} click={()=>{remove(app.name)}}/>
                       </>
                     ) : (
                       <>
-                        <AppButton name={app.name} source={getAppLogo(app.name)} checked={false} click={()=>{add(app)}}/>
+                        <AppButton name={app.name} source={getAppLogo(app.name)} checked={false} click={()=>{add(app.name)}}/>
                       </>
                     )
                   }

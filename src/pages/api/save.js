@@ -15,17 +15,26 @@ export default async function handler(req, res) {
                 data: {
                     "operationName":"MyMutation",
                     "query": `
-                    mutation MyMutation($prompt: String = "") {
-                        createRegisteredUser(data: {exchanges: {create: {prompt: $prompt}}}) {
+                    mutation MyMutation($prompt: String = "", $name: String = "", $response: String = "", $country: String = "", $region: String = "", $job: String = "", $email: String = "") {
+                        createRegisteredUser(
+                          data: {exchanges: {create: {prompt: $prompt, response: $response}}, details: {create: {job: $job, name: $name, country: $country, region: $region}}, email: $email}
+                        ) {
                           id
-                          exchanges(last: 1) {
+                          exchanges {
                             id
                           }
                         }
-                      }
+                      }                      
                 `,
                 variables: {
-                    "prompt": req.body.prompt
+                    "prompt": req.body.prompt,
+                    "response": req.body.response,
+                    "name": req.body.details.name,
+                    "country": req.body.details.country,
+                    "region": req.body.details.region,
+                    "job": req.body.details.job,
+                    "email": req.body.details.email
+
                 }
                 },
             })
@@ -44,9 +53,9 @@ export default async function handler(req, res) {
                 data: {
                     "operationName":"MyMutation",
                     "query": `
-                    mutation MyMutation($id: ID = "", $prompt: String = "") {
+                    mutation MyMutation($id: ID = "", $prompt: String = "", $response: String = "") {
                         updateRegisteredUser(
-                          data: {exchanges: {create: {prompt: $prompt}}}
+                          data: {exchanges: {create: {prompt: $prompt, response: $response}}}
                           where: {id: $id}
                         ) {
                           id
@@ -62,7 +71,8 @@ export default async function handler(req, res) {
                 `,
                 variables: {
                     "prompt": req.body.prompt,
-                    "id": req.body.userID
+                    "id": req.body.userID,
+                    "response": req.body.response
                 }
                 },
             })

@@ -24,7 +24,7 @@ export default function AppButton(props) {
                 /* Inside auto layout */
                 "flex": "none",
                 "order": 0,
-                "flex-grow": 0}} onClick={()=>{props.click()}}>
+                "flex-grow": 0}} onClick={()=>{props.click()}} >
                     <Box>
                         <NextImage
                           src={`/assets/apps/${props.source}`}

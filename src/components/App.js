@@ -37,59 +37,76 @@ export const Context = createContext();
 export const AppContext = createContext();
 export const UserContext = createContext();
 
+function PromptInput(props){
+  const [prompt, setPrompt] = useState("")
+  const [mic, setMic] = useState(false);
+  const [shiftDown, setShiftDown] = useState(false)
+  const speech = useRef("");
+  useEffect(() => {
+    let recognition;
+      if (mic) {
+        console.log("RECORDING ",);
+        const SpeechRecognition = window.speechRecognition || window.webkitSpeechRecognition;
+        recognition = new SpeechRecognition();
+        // does this support all browser languages?
+        recognition.lang = props.language;
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        var before = prompt;
+        var final_transcript = '';
+        recognition.onresult = (event) => {
+          var interim_transcript = '';
+          for (var i = event.resultIndex; i < event.results.length; ++i) {
+            if (event.results[i].isFinal) {
+              final_transcript += event.results[i][0].transcript;
+            } else {
+              interim_transcript += event.results[i][0].transcript;
+            }
+          }
+          final_transcript = final_transcript.charAt(0).toUpperCase() + final_transcript.slice(1)
+          if (interim_transcript === ""){
+            setPrompt(`${before}${final_transcript}. `)
+            setMic(false)
+          } else {
+            setPrompt(`${before}${final_transcript}${interim_transcript}`)
+          }
+          console.log("final_transcript", final_transcript);
+          console.log("interim_transcript",interim_transcript);
+
+          // setMic(false);
+        }
+
+        recognition.start();
+      } else {
+        
+        if (speech.current !== "") {
+          recognition.stop();  //recording stops automatically....
+          console.log("SEND", speech.current);
+        }
+        console.log("END");
+      }
+    }, [mic])
+  return (
+    <>
+      <Textarea marginLeft={"3%"} width={"85%"} rows={1} resize={"none"} value={prompt} onChange={(e)=>{setPrompt(e.target.value)}} placeholder='Ex: What is in my calendar for tomorrow?' onKeyDown={async (event)=>{if(event.key==="Shift"&&!shiftDown){setShiftDown(true)}else if (event.key === "Enter"&&!shiftDown){event.preventDefault;setPrompt("");await props.send(prompt)}}} onKeyUp={async (event)=>{if(event.key==="Shift"){setShiftDown(false)}}} isDisabled={props.sendDisabled} autoFocus={true} />
+      <Tooltip textAlign={"center"} label={`${props.voiceDisabled ? "Browser not supported. Try Google Chrome or Microsoft Edge." :  ""}`}>
+        <Button width={"fit-content"} color={"#FFFFFF"} backgroundColor={"#0E9384"} marginLeft={"8px"} onClick={()=>{setMic(!mic)}} isDisabled={props.sendDisabled||props.voiceDisabled}>{mic ? <HiStop size={"1.3em"}/> : <HiMicrophone size={"1.3em"}/>}</Button>
+      </Tooltip>
+      <Button marginLeft={"1%"} marginRight={"auto"} backgroundColor={"#0e9384"} paddingLeft={"auto"} paddingRight={"auto"} type={'submit'} onClick={async ()=>{setPrompt("");await props.send(prompt)}} isDisabled={props.sendDisabled}><TbSend size={"1.3em"} color={"#FFFFFF"}/></Button>
+    </>
+  )
+}
+
 function App() {
   //Speech Recongition
   
   const [usrlang, setUsrlang] = useState(null);
   const [voiceInputEnabled, setVoiceInputEnabled] = useState(false);
-  const [mic, setMic] = useState(false);
   const [language, setLanguage] = useState(usrlang);
-  const speech = useRef("");
   const [sourceNodes, setSourceNodes] = useState([]);
   const avatars = ["Avatar1.svg", "Avatar2.svg", "Avatar3.svg", "Avatar4.svg", "Avatar5.svg", "Avatar6.svg","Avatar7.svg","Avatar8.svg", "Avatar9.svg", "Avatar10.svg", "Avatar11.svg", "Avatar12.svg"]
   const audioCtx = useRef(null)
-  useEffect(() => {
-      let recognition;
-        if (mic) {
-          console.log("RECORDING ",);
-          const SpeechRecognition = window.speechRecognition || window.webkitSpeechRecognition;
-          recognition = new SpeechRecognition();
-          // does this support all browser languages?
-          recognition.lang = language;
-          recognition.continuous = true;
-          recognition.interimResults = true;
-          var final_transcript = '';
-          recognition.onresult = (event) => {
-            var interim_transcript = '';
-            for (var i = event.resultIndex; i < event.results.length; ++i) {
-              if (event.results[i].isFinal) {
-                final_transcript += event.results[i][0].transcript;
-              } else {
-                interim_transcript += event.results[i][0].transcript;
-              }
-            }
-            final_transcript = final_transcript.charAt(0).toUpperCase() + final_transcript.slice(1)
-            if (interim_transcript === ""){
-              setPrompt(final_transcript)
-            } else {
-              setPrompt(final_transcript + interim_transcript)
-            }
-            console.log("final_transcript", final_transcript);
-            console.log("interim_transcript",interim_transcript);
-
-            // setMic(false);
-          }
-
-          recognition.start();
-        } else {
-          
-          if (speech.current !== "") {
-            //recognition.stop();  recording stops automatically....
-            console.log("SEND", speech.current);
-          }
-          console.log("END");
-        }
-      }, [mic])
+  
 
 
 
@@ -114,9 +131,6 @@ function App() {
   }, [])
   const [details, setDetails] = useState({
     name: null,
-    dayDOB: null,
-    monthDOB: null,
-    yearDOB: null,
     country: "United States",
     region: "California",
     job: null,
@@ -136,6 +150,8 @@ function App() {
   const  {isOpen: isSideBarOpen, onOpen: onSideBarOpen, onClose: onSideBarClose} = useDisclosure()
   const  {isOpen: isOnboardingOpen, onOpen: onOnboardingOpen, onClose: onOnboardingClose} = useDisclosure()
   const  {isOpen: isSharingOpen, onOpen: onSharingOpen, onClose: onSharingClose} = useDisclosure()
+  
+  //Example exchange {id: "clfb3uecq3npo0bmrzk3mx114", prompt: {text: "Test Prompt", time: 1679068112}, response: {text: "Test Response", time: 1679068112, helpful: null}}
   const [chatlog,setChatlog] = useState([])
   const [userID, setUserID] = useState("")
   const [section,setSection] = useState("chat")
@@ -175,7 +191,7 @@ function App() {
       </Flex>
     )
   }
-  const getResponse = async () => {
+  const getResponse = async (prompt) => {
     var promptSent = Date.now()
     
     setLoading(true)
@@ -186,7 +202,6 @@ function App() {
         data: {
           "persona":{
               "name": details.name || "",
-              "dob": `${details.monthDOB || ""}-${details.dayDOB || ""}-${details.yearDOB || ""}`,
               "email": details.email || "",
               "job": details.job || "",
               "country": details.country || "",
@@ -199,10 +214,11 @@ function App() {
       if (responseAPI.data.response){
         //Needs Validation error such that it doesn't break
         await enqueueAudioFile(await speakText(responseAPI.data.response.text, language))
-        setChatlog([].concat(chatlog,{prompt:{text: prompt, time: promptSent}, response: {text: responseAPI.data.response.text, time: Date.now()}}))
+        
         setLoading(false)
         setQuestionsUsed(questionsUsed+1)
         setPrompt("")
+        setChatlog([].concat(chatlog,{prompt:{text: prompt, time: promptSent}, response: {text: responseAPI.data.response.text, time: Date.now()}}))
         // audio.play();
         try{
           const responseStore = await axios({
@@ -211,12 +227,15 @@ function App() {
             data: {
               "newUser": questionsUsed === 0 ? true : false,
               "userID": userID, 
-              "prompt": prompt
+              "prompt": prompt,
+              "response": responseAPI.data.response.text,
+              "details": details
           }
           })
           if (responseStore.data.userID){
             setUserID(responseStore.data.userID)
           }
+          setChatlog([].concat(chatlog,{id: responseStore.data.exchangeID, prompt:{text: prompt, time: promptSent}, response: {text: responseAPI.data.response.text, time: Date.now()}}))
         } catch(e){
           console.error("Failure to save response")
         }
@@ -227,12 +246,31 @@ function App() {
       setPrompt("")
       setLoading(false)
       errorToasts({error: e.response.data.error})
-      
       return e
     }
   }
   const apps = [{"name": "23andMe", "tags": ["Misc"]},{"name": "Airbnb", "tags": ["Misc"]},{"name": "Amazon", "tags": ["Misc"]},{"name": "Ancestry", "tags": ["Misc"]}, {"name": "Apple Health", "tags": ["Health"]}, {"name": "Bosch", "tags": ["Health"]}, {"name": "Doordash", "tags": ["Misc"]}, {"name": "Evernote", "tags": ["Misc"]}, {"name": "Facebook", "tags": ["Social"]}, {"name": "Fitbit", "tags": ["Health"]}, {"name": "Google Calendar", "tags": ["Misc"]}, {"name": "Google Maps", "tags": ["Transport"]}, {"name": "Google", "tags": ["Misc"]}, {"name": "Instacart", "tags": ["Misc"]}, {"name": "Instagram", "tags": ["Social"]}, {"name": "iTunes", "tags": ["Social"]}, {"name": "Linkedin", "tags": ["Social"]}, {"name": "Lyft", "tags": ["Transport"]}, {"name": "Maps", "tags": ["Transport"]}, {"name": "Medium", "tags": ["Social"]}, {"name": "Netflix", "tags": ["Social"]}, {"name": "Notion", "tags": ["Misc"]}, {"name": "Oura", "tags": ["Health"]}, {"name": "Peloton", "tags": ["Health"]}, {"name": "Polar", "tags": ["Health"]}, {"name": "Prime Video", "tags": ["Social"]}, {"name": "Reddit", "tags": ["Social"]}, {"name": "Runkeeper", "tags": ["Health"]}, {"name": "Snapchat", "tags": ["Social"]}, {"name": "Spotify", "tags": ["Social"]}, {"name": "Strava", "tags": ["Health"]}, {"name": "Suunto", "tags": ["Health"]}, {"name": "Tiktok", "tags": ["Social"]}, {"name": "Tripadvisor", "tags": ["Misc"]}, {"name": "Twitch", "tags": ["Social"]}, {"name": "Twitter", "tags": ["Social"]}, {"name": "Uber Eats", "tags": ["Misc"]}, {"name": "Uber", "tags": ["Transport"]}, {"name": "Waze", "tags": ["Transport"]}, {"name": "Withings", "tags": ["Health"]}, {"name": "Youtube", "tags": ["Social"]}]
   
+
+  const submitFeedback = async (id, helpful, details, index) => {
+    try {
+      const responseFeedback = await axios({
+        method: "POST",
+        url: "/api/feedback",
+        data: {
+          "id": id,
+          "helpful": helpful,
+          "details": details
+      }
+      })
+      console.log(responseFeedback)
+      let chatlogTemp = [...chatlog]; 
+      chatlogTemp[index] = {prompt:{...chatlogTemp[index].prompt},response:{...chatlogTemp[index].response, helpful}}; 
+      setChatlog([...chatlogTemp]);
+    } catch(e) {
+      console.error("Failure to save feedback")
+    }
+  }
 
   
   function sleep(ms) {
@@ -307,6 +345,11 @@ function App() {
     setShowWelcomeOneMoreMessage(true)
      audio.play();
   }
+
+
+
+
+
   //Load up onboaridng on load
   const useMountEffect = (fun) => useEffect(fun, [])
   useMountEffect(() => {
@@ -326,7 +369,7 @@ function App() {
           onboarding ? (
             <>
               <UserContext.Provider value={[aIName, (name) =>{setAIName(name)}, details, (name) =>{setDetails(name)}, selectedAvatar, (name) =>{setSelectedAvatar(name)}]}>
-                <AppContext.Provider value={[apps, chosenApps, (app)=>{setChosenApps([...chosenApps, app.name])}, (app)=>{setChosenApps(chosenApps.filter(chosenApp=>chosenApp!==app.name))}]}>
+                <AppContext.Provider value={[apps, (apps)=>{setChosenApps(apps)}]}>
                   <OnboardingModal isOpen={isOnboardingOpen} onClose={onOnboardingClose} onOpen={onOnboardingOpen} onFinish={()=>{setOnboarding(false);initalMessage();setAIName(`${details.name}'s Personal Assistant`); setSelectedAvatar(avatars[Math.floor(Math.random() * avatars.length)])}} />
                 </AppContext.Provider>
               </UserContext.Provider>
@@ -474,7 +517,7 @@ Ok, go ahead and ask your first question! We're excited to show you how our Priv
                           <>
                             <ChatPrompt name={details.name} prompt={exchange.prompt}/>
                             
-                            <ChatResponse aIName={aIName} selectedAvatar={selectedAvatar} response={exchange.response}/>
+                            <ChatResponse aIName={aIName} selectedAvatar={selectedAvatar} response={exchange.response} submitFeedback={(helpful, details)=>{submitFeedback(exchange.id, helpful, details, index)}}/>
                           </>
                       )
                       })
@@ -515,9 +558,7 @@ At Prifina, we're committed to empowering people with their personal data to liv
                   </Chatlog>
 
                   <Flex padding={"10px"} borderTop={"2px solid #eeeff2"} minWidth='max-content' alignItems='center' >
-                      <Textarea marginLeft={"3%"} width={"85%"} rows={1} resize={"none"} value={prompt} onChange={(e)=>{setPrompt(e.target.value)}} placeholder='Here is a sample placeholder' onKeyDown={async (event)=>{if(event.key==="Shift"&&!shiftDown){setShiftDown(true)}else if (event.key === "Enter"&&!shiftDown){event.preventDefault;await getResponse()}}} onKeyUp={async (event)=>{if(event.key==="Shift"){setShiftDown(false)}}} isDisabled={loading||onboarding||questionsUsed>=10} autoFocus={true} />
-                      <Button width={"fit-content"} color={"#FFFFFF"} backgroundColor={"#0E9384"} marginLeft={"8px"} onClick={()=>{setMic(!mic)}} isDisabled={loading||onboarding||questionsUsed>=10||!voiceInputEnabled}>{mic ? <HiStop size={"1.3em"}/> : <HiMicrophone size={"1.3em"}/>}</Button>
-                      <Button marginLeft={"1%"} marginRight={"auto"} backgroundColor={"#0e9384"} paddingLeft={"auto"} paddingRight={"auto"} type={'submit'} onClick={async ()=>{await getResponse()}} isDisabled={loading||onboarding||questionsUsed>=10}><TbSend size={"1.3em"} color={"#FFFFFF"}/></Button>
+                      <PromptInput language={language} sendDisabled={loading||onboarding||questionsUsed>=10} voiceDisabled={!voiceInputEnabled} setPrompt={(temp)=>{setPrompt(temp)}} send={async (prompt)=>{await getResponse(prompt)}}/>
                   </Flex>
                 </>
               )

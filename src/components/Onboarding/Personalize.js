@@ -1,24 +1,61 @@
 // import { Context } from "./App"
-import { useContext, useRef } from "react"
-import {Box, Image, Text, FormControl, Input, SimpleGrid, Flex, Accordion, AccordionItem, AccordionIcon, AccordionButton, AccordionPanel} from "@chakra-ui/react"
+import { useContext, useEffect, useRef, useState } from "react"
+import {Box, Image, Text, FormControl, Input, SimpleGrid, Flex, Accordion, AccordionItem, AccordionIcon, AccordionButton, AccordionPanel, Button, Spacer} from "@chakra-ui/react"
 import { getCountryLogo } from "../utils"
 import { CountryDropdown, RegionDropdown, CountryRegionData } from 'react-country-region-selector';
 import { MdOutlineVerifiedUser,MdCheck,MdSearch } from 'react-icons/md';
 import NextImage from "next/image";
-import { UserContext } from "../App";
+import { AppContext, UserContext } from "../App";
 import AppList from "./AppList";
+import { Controller, useForm } from "react-hook-form";
+import validator from 'validator';
+import AppItem from "./AppItem";
 const avatars = ["Avatar1.svg", "Avatar2.svg", "Avatar3.svg", "Avatar4.svg", "Avatar5.svg", "Avatar6.svg","Avatar7.svg","Avatar8.svg", "Avatar9.svg", "Avatar10.svg", "Avatar11.svg", "Avatar12.svg"]
 const logoIcon = "/assets/logo_modal.svg"
 const settingsIcon = "/assets/settings.svg"
 const zapIcon = "/assets/zap.svg"
+
 export default function Personalize(props){
     const [,, details,setDetails] = useContext(UserContext);
-    const nameInput = useRef();
-    const emailInput = useRef();
-    const jobInput = useRef(); 
+    const [ apps, mergeChosenApps ] = useContext(AppContext);
+    const [tempDetails, setTempDetails] = useState({
+      name: null,
+      dayDOB: null,
+      monthDOB: null,
+      yearDOB: null,
+      country: "United States",
+      region: "California",
+      job: null,
+      email: null
+    })
+    const [name, setName] = useState("")
+
+    const validate = () => {
+      if ( details.name === "" || details.job === "" || details.email === "" || details.country === "" || details.region === "" || details.name === null || details.job === null || details.email === null || details.country === null || details.region === null ) {
+        setFailedSubmit(true)
+      } else {
+        setFailedSubmit(false)
+        setOnboardingStep(onboardingStep+1)
+      }
+    }
+    const { register,control, handleSubmit, watch, formState: { errors } } = useForm();
+    const onSubmit = data => {
+      setDetails({...details, "name": data.name, "job": data.job, "email": data.email});
+      mergeChosenApps([...data.apps_social,...data.apps_health,...data.apps_transport,...data.apps_misc])
+      props.next();
+    }
+    
+
+    useEffect(()=>{
+      if (props.isInvalid === false){
+        setDetails(tempDetails);
+      }
+    }, [props])
+
 
     return (
         <>
+        <form style={{height: "100%", display: "contents"}} onSubmit={handleSubmit(onSubmit)}>
         <Flex flexDirection={"column"}>
           <Box marginLeft={"10px"} marginTop={"15px"} >
             <Box width={"48px"}  marginLeft={"-10px"} marginBottom={{base: "0x", sm: "0px"}}>
@@ -33,24 +70,58 @@ export default function Personalize(props){
             <Text color={"#475467"} fontSize={"14px"} fontWeight={"400"}>Give your Pri-AI some basic information about yourself so that it can provide you with a more personalized experience.</Text>
           </Box>
           <Box marginTop={"10px"} width={"100%"} height={"1px"} backgroundColor={"#EAECF0"}/>
-          <Box flexGrow={1} maxHeight={"calc(100vh - 310px)"} width={"100%"} overflowY={"auto"} scrollBehavior={"smooth"}>
+          <Box flexGrow={1} maxHeight={"calc(100vh - 293px)"} width={"100%"} overflowY={"auto"} scrollBehavior={"smooth"}>
           <Flex flexDir={"column"} >
             <Box marginLeft={"10px"}>
-            <FormControl isInvalid={details.name==="" || (props.failedSubmit && details.name === null)}>
-              <Text marginTop={"16px"} color={"#344054"} fontSize={"14px"} fontWeight={"500"} >Full name*</Text>
-              <Input  type={"text"} marginLeft={"1px"} placeholder="Theresa Webb" maxWidth={"calc(100% - 5px)"} height={"40px"} background={"#FFFFFF"} border={"1px solid #D0D5DD"} boxShadow={"0px 1px 2px rgba(16, 24, 40, 0.05)"} borderRadius={"8px"} onChange={(e)=>{setDetails({...details, name: e.target.value})}} ></Input>
-            {/* <FormErrorMessage display={details.name==="" || (failedSubmit && details.name === null)? "block" : "none"}>Please provide name</FormErrorMessage> */}
-            </FormControl>
-            <FormControl isInvalid={details.job==="" || (props.failedSubmit && details.job === null)}>
-              <Text marginTop={"16px"} color={"#344054"} fontSize={"14px"} fontWeight={"500"} >Job title*</Text>
-              <Input type={"text"} marginLeft={"1px"} placeholder="Teacher" maxWidth={"calc(100% - 5px)"} height={"40px"} background={"#FFFFFF"} border={"1px solid #D0D5DD"} boxShadow={"0px 1px 2px rgba(16, 24, 40, 0.05)"} borderRadius={"8px"} onChange={(e)=>{setDetails({...details, job: e.target.value})}}></Input>
-            {/* <FormErrorMessage display={details.job==="" || (failedSubmit && details.job === null)? "block" : "none"}>Please provide job</FormErrorMessage> */}
-            </FormControl>
-            <FormControl isInvalid={details.email==="" || (props.failedSubmit && details.email === null)}>
-              <Text marginTop={"16px"} color={"#344054"} fontSize={"14px"} fontWeight={"500"} >Email address*</Text>
-              <Input type={"email"} marginLeft={"1px"} placeholder="t.webb@example.com" width={"100%"} maxWidth={"calc(100% - 5px)"} height={"40px"} background={"#FFFFFF"} border={"1px solid #D0D5DD"} boxShadow={"0px 1px 2px rgba(16, 24, 40, 0.05)"} borderRadius={"8px"} onChange={(e)=>{setDetails({...details, email: e.target.value})}}></Input>
-            {/* <FormErrorMessage display={details.email==="" || (failedSubmit && details.email === null)? "block" : "none"}>Please provide email</FormErrorMessage> */}
-            </FormControl>
+                <Flex flexDir={"row"} marginTop={"16px"}>
+                <Text color={"#344054"} fontSize={"14px"} fontWeight={"500"} >Full name*</Text>
+                <Spacer/>
+                <Text color={"#cc0000"} fontSize={"14px"} fontWeight={"500"} >{errors.name?.message}</Text>
+                </Flex>
+                <input {...register("name",{
+                  required: "This is required",
+                  maxLength: {
+                    value: 50,
+                    message: "Max Length is 50"
+                  }
+                })} aria-invalid={errors.name?.type === 'required' ? "true" : "false"} placeholder={"Theresa Webb"} style={{marginLeft:"1px", paddingLeft: "0.5rem", width: "100%", maxWidth:"calc(100% - 5px)", height:"40px", backgroundColor:"#FFFFFF", border:`${errors.name ? "2px solid #cc0000" : "1px solid #D0D5DD"}`, boxShadow:"0px 1px 2px rgba(16, 24, 40, 0.05)", borderRadius:"8px"}}/>
+                <Flex flexDir={"row"} marginTop={"16px"}>
+                <Text color={"#344054"} fontSize={"14px"} fontWeight={"500"} >Job title*</Text>
+                <Spacer/>
+                <Text color={"#cc0000"} fontSize={"14px"} fontWeight={"500"} >{errors.job?.message}</Text>
+                </Flex>
+                <input {...register("job",{
+                  required: "This is required",
+                  maxLength: {
+                    value: 50,
+                    message: "Max Length is 50"
+                  }
+                })} aria-invalid={errors.name?.type === 'required' ? "true" : "false"} placeholder={"Teacher"} style={{marginLeft:"1px", paddingLeft: "0.5rem", width: "100%", maxWidth:"calc(100% - 5px)", height:"40px", backgroundColor:"#FFFFFF", border:`${errors.job ? "2px solid #cc0000" : "1px solid #D0D5DD"}`, boxShadow:"0px 1px 2px rgba(16, 24, 40, 0.05)", borderRadius:"8px"}}/>
+                <Flex flexDir={"row"} marginTop={"16px"}>
+                <Text color={"#344054"} fontSize={"14px"} fontWeight={"500"} >Email address*</Text>
+                <Spacer/>
+                <Text color={"#cc0000"} fontSize={"14px"} fontWeight={"500"} >{errors.email?.message}</Text>
+                </Flex>
+                <Controller
+                  control={control}
+                  defaultValue={""}
+                  rules={{
+                    required: "This is required",
+                    maxLength: {
+                      value: 50,
+                      message: "Max Length is 50"
+                    },
+                    validate: {
+                      isEmail: v => validator.isEmail(v) || "Must be in email format"
+                    }
+                  }}
+                  render={({ field: { onChange,value } }) => (
+                    <Input onChange={onChange} value={value} aria-invalid={errors.name?.type === 'required' ? "true" : "false"} placeholder={"t.webb@example.com"} style={{marginLeft:"1px", paddingLeft: "0.5rem", width: "100%", maxWidth:"calc(100% - 5px)", height:"40px", backgroundColor:"#FFFFFF", border:`${errors.email ? "2px solid #cc0000" : "1px solid #D0D5DD"}`, boxShadow:"0px 1px 2px rgba(16, 24, 40, 0.05)", borderRadius:"8px"}} />
+                  )}
+                  name="email"
+                />
+
+              {/* <BasicInfo register={(temp)=>{return register(temp)}} isInvalid={props.isInvalid} details={tempDetails} setDetails={(details)=>{setTempDetails(details)}} onDataChanged={(tempDetails) => console.log(tempDetails)} /> */}
             </Box>
             <Box marginTop={"16px"} width={"90%"} marginLeft={"auto"} marginRight={"auto"} height={"1px"} backgroundColor={"#EAECF0"}/>
             <Accordion variant={"prifina"} marginTop={"16px"} marginBottom={"16px"} allowToggle>
@@ -75,18 +146,18 @@ export default function Personalize(props){
                 <Box marginTop={"16px"} width={"100%"} marginLeft={"auto"} marginRight={"auto"} height={"1px"} backgroundColor={"#EAECF0"}/>
                 <SimpleGrid marginLeft={"10px"} marginTop={"16px"} columns={2} >
                   <div style={{"display": "flex", flexDirection: "column", order: 5, width: "95%"}}>
-                  <FormControl isInvalid={details.country==="" || (props.failedSubmit && details.country === null)}>
+                  <FormControl isInvalid={tempDetails.country==="" || (props.failedSubmit && tempDetails.country === null)}>
                     <Text color={"#344054"} fontSize={"14px"} fontWeight={"500"} >Country</Text>
                     <div>
                       {
-                        details.country === "" || details.country === null ? (
+                        tempDetails.country === "" || tempDetails.country === null ? (
                           <>
                           </>
                         ) : (
                           <Box style={{display: "inline-flex", float: "left", "pointer-events": "none", marginRight: "-40px", marginLeft: "10px", marginTop: "11px"}}>
                             <NextImage
-                              src={`/assets/country/${getCountryLogo(details.country)}`}
-                              alt={`${details.country} Country Logo`}
+                              src={`/assets/country/${getCountryLogo(tempDetails.country)}`}
+                              alt={`${tempDetails.country} Country Logo`}
                               width={20}
                               height={100}
                             />
@@ -97,8 +168,8 @@ export default function Personalize(props){
                     
                     <CountryDropdown 
                       classes='dropdown'
-                      value={details.country}
-                      onChange={(val) => setDetails({...details, country: val})} 
+                      value={tempDetails.country}
+                      onChange={(val) => setTempDetails({...tempDetails, country: val})} 
                       whitelist={["US"]}
                       priorityOptions={["US"]}
                       showDefaultOption
@@ -116,13 +187,13 @@ export default function Personalize(props){
                         "width": "100%",
                         "height": "44px",
 
-                        "color": details.country === "" ? "#667085" : "#1a202c",
+                        "color": tempDetails.country === "" ? "#667085" : "#1a202c",
                         
                         /* Gray/100 */
                         "background": "#F2F4F7",
                         
                         /* Gray/300 */
-                        "border": details.country === "" || (props.failedSubmit && details.country === null ) ?  "1px solid #e43e3e" : "1px solid #D0D5DD",
+                        "border": tempDetails.country === "" || (props.failedSubmit && tempDetails.country === null ) ?  "1px solid #e43e3e" : "1px solid #D0D5DD",
                         
                         /* Shadow/xs */
                         "box-shadow": "0px 1px 2px rgba(16, 24, 40, 0.05)",
@@ -134,11 +205,11 @@ export default function Personalize(props){
                         "align-self": "stretch",
                         "flex-grow": "0"}}/>
                     </div>
-                    {/* <FormErrorMessage display={details.country==="" || (failedSubmit && details.country === null)? "block" : "none"}>Please provide country</FormErrorMessage> */}
+                    {/* <FormErrorMessage display={tempDetails.country==="" || (failedSubmit && tempDetails.country === null)? "block" : "none"}>Please provide country</FormErrorMessage> */}
                   </FormControl>
                   </div>
                   <div style={{"display": "flex", flexDirection: "column", order: 6, width: "95%"}}>
-                  <FormControl isInvalid={details.region==="" || (props.failedSubmit && details.region === null)}>
+                  <FormControl isInvalid={tempDetails.region==="" || (props.failedSubmit && tempDetails.region === null)}>
                   <div>
                   <Text color={"#344054"} fontSize={"14px"} fontWeight={"500"} >State</Text>
                   <MdSearch
@@ -146,9 +217,9 @@ export default function Personalize(props){
                   style={{float: "left", "pointer-events": "none", marginRight: "-40px", marginLeft: "10px", marginTop: "11px"}}
                   />
                   <RegionDropdown
-                  country={details.country}
-                  value={details.region}
-                  onChange={(val) => setDetails({...details, region: val})} 
+                  country={tempDetails.country}
+                  value={tempDetails.region}
+                  onChange={(val) => setTempDetails({...tempDetails, region: val})} 
                   style={{"box-sizing": "border-box",
                       "appearance": "none" ,
 
@@ -163,13 +234,13 @@ export default function Personalize(props){
                       "width": "100%",
                       "height": "44px",
 
-                      "color": details.region === "" ? "#667085" : "#1a202c",
+                      "color": tempDetails.region === "" ? "#667085" : "#1a202c",
                       
                       /* Gray/100 */
                       "background": "#F2F4F7",
                       
                       /* Gray/300 */
-                      "border": details.region === "" || (props.failedSubmit && details.region === null ) ?  "1px solid #e43e3e" : "1px solid #D0D5DD",
+                      "border": tempDetails.region === "" || (props.failedSubmit && tempDetails.region === null ) ?  "1px solid #e43e3e" : "1px solid #D0D5DD",
                       
                       /* Shadow/xs */
                       "box-shadow": "0px 1px 2px rgba(16, 24, 40, 0.05)",
@@ -182,7 +253,7 @@ export default function Personalize(props){
                       "flex-grow": "0"}}
                       />
                   </div>
-                  {/* <FormErrorMessage display={details.region==="" || (failedSubmit && details.region === null)? "block" : "none"}>Please provide region</FormErrorMessage> */}
+                  {/* <FormErrorMessage display={tempDetails.region==="" || (failedSubmit && tempDetails.region === null)? "block" : "none"}>Please provide region</FormErrorMessage> */}
                   </FormControl>
                   </div>
                 </SimpleGrid>
@@ -203,7 +274,50 @@ export default function Personalize(props){
                   <AccordionIcon />
                 </AccordionButton>
                 <AccordionPanel marginTop={"16px"} padding={0}>
-                      <AppList/>
+                        <Controller
+                          control={control}
+                          defaultValue={[]}
+                          render={({ field: { onChange, value} }) => (
+                          <>
+                            <AppItem onChange={onChange} value={value} title={"Social & Streaming"} apps={apps.filter(app=>app.tags.includes("Social"))} />
+                          </>
+                            
+                          )}
+                          name="apps_social"
+                        />
+                        <Controller
+                          control={control}
+                          defaultValue={[]}
+                          render={({ field: { onChange,value } }) => (
+                          <>
+                            <AppItem onChange={onChange} value={value} title={"Health & Fitness"} apps={apps.filter(app=>app.tags.includes("Health"))} />
+                          </>
+                            
+                          )}
+                          name="apps_health"
+                        />
+                        <Controller
+                          control={control}
+                          defaultValue={[]}
+                          render={({ field: { onChange,value } }) => (
+                          <>
+                            <AppItem onChange={onChange} value={value} title={"Transport"} apps={apps.filter(app=>app.tags.includes("Transport"))} />
+                          </>
+                            
+                          )}
+                          name="apps_transport"
+                        />
+                        <Controller
+                          control={control}
+                          defaultValue={[]}
+                          render={({ field: { onChange,value } }) => (
+                          <>
+                            <AppItem onChange={onChange} value={value} title={"Misc"} apps={apps.filter(app=>app.tags.includes("Misc"))}  />
+                          </>
+                            
+                          )}
+                          name="apps_misc"
+                        />
                       </AccordionPanel>
                     </AccordionItem>
                   </Accordion>
@@ -213,6 +327,13 @@ export default function Personalize(props){
           </Flex>
           </Box>
         </Flex>
+        <Box width={"100%"} marginTop={"auto"} paddingLeft={"100px"} height={"1px"} backgroundColor={"#EAECF0"}/>
+        <div style={{"marginTop": "20px","display": "flex", "flexDirection": "row", "gap": "10px", "marginBottom": "3vh"}}>
+          <Button border={"1px solid #D0D5DD"} backgroundColor={"#FFFFFF"} color={"#000000"} onClick={()=>{props.goBack()}} width="100%">No Thanks</Button>
+          <Button type="submit" backgroundColor={"#0E9384"} color={"#FFFFFF"} marginTop={"auto"} marginRight={"10px"} width="100%">Continue</Button>
+            {/* <input type="submit"/> */}
+        </div>
+        </form>
         </>
     )
 }
