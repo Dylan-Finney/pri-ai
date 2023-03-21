@@ -92,7 +92,7 @@ function PromptInput(props){
       <Tooltip textAlign={"center"} label={`${props.voiceDisabled ? "Browser not supported. Try Google Chrome or Microsoft Edge." :  ""}`}>
         <Button width={"fit-content"} color={"#FFFFFF"} backgroundColor={"#0E9384"} marginLeft={"8px"} onClick={()=>{setMic(!mic)}} isDisabled={props.sendDisabled||props.voiceDisabled}>{mic ? <HiStop size={"1.3em"}/> : <HiMicrophone size={"1.3em"}/>}</Button>
       </Tooltip>
-      <Button marginLeft={"1%"} marginRight={"auto"} backgroundColor={"#0e9384"} paddingLeft={"auto"} paddingRight={"auto"} type={'submit'} onClick={async ()=>{setPrompt("");await props.send(prompt)}} isDisabled={props.sendDisabled}><TbSend size={"1.3em"} color={"#FFFFFF"}/></Button>
+      <Button marginLeft={"1%"} marginRight={"auto"} backgroundColor={"#0e9384"} paddingLeft={"auto"} paddingRight={"auto"} type={'submit'} onClick={async ()=>{setPrompt("");await props.send(prompt)}} isDisabled={props.sendDisabled||props.saving}><TbSend size={"1.3em"} color={"#FFFFFF"}/></Button>
     </>
   )
 }
@@ -154,6 +154,7 @@ function App() {
   //Example exchange {id: "clfb3uecq3npo0bmrzk3mx114", prompt: {text: "Test Prompt", time: 1679068112}, response: {text: "Test Response", time: 1679068112, helpful: null}}
   const [chatlog,setChatlog] = useState([])
   const [userID, setUserID] = useState("")
+  const [saving, setSaving] = useState(false)
   const [section,setSection] = useState("chat")
   const [shiftDown, setShiftDown] = useState(false)
   const [onboarding,setOnboarding] = useState(true)
@@ -214,7 +215,7 @@ function App() {
       if (responseAPI.data.response){
         //Needs Validation error such that it doesn't break
         await enqueueAudioFile(await speakText(responseAPI.data.response.text, language))
-        
+        setSaving(true)
         setLoading(false)
         setQuestionsUsed(questionsUsed+1)
         setPrompt("")
@@ -229,7 +230,8 @@ function App() {
               "userID": userID, 
               "prompt": prompt,
               "response": responseAPI.data.response.text,
-              "details": details
+              "details": details,
+              "chosenApps": chosenApps
           }
           })
           if (responseStore.data.userID){
@@ -239,6 +241,7 @@ function App() {
         } catch(e){
           console.error("Failure to save response")
         }
+        setSaving(false)
       } 
       return responseAPI
     } catch(e){
@@ -517,7 +520,7 @@ Ok, go ahead and ask your first question! We're excited to show you how our Priv
                           <>
                             <ChatPrompt name={details.name} prompt={exchange.prompt}/>
                             
-                            <ChatResponse aIName={aIName} selectedAvatar={selectedAvatar} response={exchange.response} submitFeedback={(helpful, details)=>{submitFeedback(exchange.id, helpful, details, index)}}/>
+                            <ChatResponse aIName={aIName} selectedAvatar={selectedAvatar} response={exchange.response} saving={saving} submitFeedback={(helpful, details)=>{submitFeedback(exchange.id, helpful, details, index)}}/>
                           </>
                       )
                       })
@@ -558,7 +561,7 @@ At Prifina, we're committed to empowering people with their personal data to liv
                   </Chatlog>
 
                   <Flex padding={"10px"} borderTop={"2px solid #eeeff2"} minWidth='max-content' alignItems='center' >
-                      <PromptInput language={language} sendDisabled={loading||onboarding||questionsUsed>=10} voiceDisabled={!voiceInputEnabled} setPrompt={(temp)=>{setPrompt(temp)}} send={async (prompt)=>{await getResponse(prompt)}}/>
+                      <PromptInput language={language} sendDisabled={loading||onboarding||questionsUsed>=10} voiceDisabled={!voiceInputEnabled} setPrompt={(temp)=>{setPrompt(temp)}} send={async (prompt)=>{await getResponse(prompt)}} saving={saving}/>
                   </Flex>
                 </>
               )

@@ -82,7 +82,7 @@ export default function ChatResponse(props) {
                         message: "Max Length is 2000"
                     }
                 })}/> */}
-                <Button marginTop={"10px"} type={"submit"} alignSelf={"end"}>Submit feedback</Button>
+                <Button marginTop={"10px"} type={"submit"} isDisabled={props.saving} alignSelf={"end"}>Submit feedback</Button>
                 </form>
                 
                 
