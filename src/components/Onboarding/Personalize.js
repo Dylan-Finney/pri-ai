@@ -81,8 +81,8 @@ export default function Personalize(props){
                 <input {...register("name",{
                   required: "This is required",
                   maxLength: {
-                    value: 50,
-                    message: "Max Length is 50"
+                    value: 100,
+                    message: "Max Length is 100"
                   }
                 })} aria-invalid={errors.name?.type === 'required' ? "true" : "false"} placeholder={"Theresa Webb"} style={{marginLeft:"1px", paddingLeft: "0.5rem", width: "100%", maxWidth:"calc(100% - 5px)", height:"40px", backgroundColor:"#FFFFFF", border:`${errors.name ? "2px solid #cc0000" : "1px solid #D0D5DD"}`, boxShadow:"0px 1px 2px rgba(16, 24, 40, 0.05)", borderRadius:"8px"}}/>
                 <Flex flexDir={"row"} marginTop={"16px"}>
@@ -93,8 +93,8 @@ export default function Personalize(props){
                 <input {...register("job",{
                   required: "This is required",
                   maxLength: {
-                    value: 50,
-                    message: "Max Length is 50"
+                    value: 100,
+                    message: "Max Length is 100"
                   }
                 })} aria-invalid={errors.name?.type === 'required' ? "true" : "false"} placeholder={"Teacher"} style={{marginLeft:"1px", paddingLeft: "0.5rem", width: "100%", maxWidth:"calc(100% - 5px)", height:"40px", backgroundColor:"#FFFFFF", border:`${errors.job ? "2px solid #cc0000" : "1px solid #D0D5DD"}`, boxShadow:"0px 1px 2px rgba(16, 24, 40, 0.05)", borderRadius:"8px"}}/>
                 <Flex flexDir={"row"} marginTop={"16px"}>
@@ -108,8 +108,8 @@ export default function Personalize(props){
                   rules={{
                     required: "This is required",
                     maxLength: {
-                      value: 50,
-                      message: "Max Length is 50"
+                      value: 100,
+                      message: "Max Length is 100"
                     },
                     validate: {
                       isEmail: v => validator.isEmail(v) || "Must be in email format"
