@@ -61,7 +61,7 @@ Try Personal AI: ${betaLink}
 
     const [slidesGroup, setSlidesGroup] = useState(5) 
     useEffect(()=>{
-        switch(props.isLargerThanSM){
+        switch(props.isLargerThanMD){
             case true:
                 setSlidesGroup(5)
                 break

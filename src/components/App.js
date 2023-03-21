@@ -7,6 +7,7 @@ import NextImage from "next/image";
 import {TbSend,TbEdit} from 'react-icons/tb'; 
 import {RiDeleteBin6Line, RiLoginCircleLine} from 'react-icons/ri'; 
 import {HiMicrophone, HiStop} from 'react-icons/hi'; 
+import {GoMute, GoUnmute} from 'react-icons/go'; 
 
 // import US from "../assets/country/US.svg"
 
@@ -106,6 +107,7 @@ function App() {
   const [sourceNodes, setSourceNodes] = useState([]);
   const avatars = ["Avatar1.svg", "Avatar2.svg", "Avatar3.svg", "Avatar4.svg", "Avatar5.svg", "Avatar6.svg","Avatar7.svg","Avatar8.svg", "Avatar9.svg", "Avatar10.svg", "Avatar11.svg", "Avatar12.svg"]
   const audioCtx = useRef(null)
+  const [mute, setMute] = useState(false)
   
 
 
@@ -147,6 +149,23 @@ function App() {
     sourceNodes.length=0
     setShowWelcomeMessage(false);
   }
+
+  useEffect(()=>{
+    if (mute){
+      if(audio !== null)[
+        audio.muted = true
+      ]
+      sourceNodes.map((sourceNode) => {
+        sourceNode.disconnect(audioCtx.current.destination)
+      })
+      sourceNodes.length=0
+
+    } else {
+      if(audio !== null)[
+        audio.muted = false
+      ]
+    }
+  }, [mute])
   const  {isOpen: isSideBarOpen, onOpen: onSideBarOpen, onClose: onSideBarClose} = useDisclosure()
   const  {isOpen: isOnboardingOpen, onOpen: onOnboardingOpen, onClose: onOnboardingClose} = useDisclosure()
   const  {isOpen: isSharingOpen, onOpen: onSharingOpen, onClose: onSharingClose} = useDisclosure()
@@ -165,14 +184,14 @@ function App() {
   const [chosenApps, setChosenApps] = useState([])
   const [questionsUsed, setQuestionsUsed] = useState(0)
   const [loginTime, setLoginTime] = useState(Date.now())
-  const [isLargerThanSM] = useMediaQuery("(min-width: 30em)");
+  const [isLargerThanMD] = useMediaQuery("(min-width: 48em)");
   
   useEffect(() => {
     // close the Drawer when screen size is smaller than md
-    if (isLargerThanSM) {
+    if (isLargerThanMD) {
       onSideBarClose()
     }
-  }, [isLargerThanSM, onSideBarClose]);
+  }, [isLargerThanMD, onSideBarClose]);
   function EditableControls() {
     const {
       isEditing,
@@ -214,7 +233,14 @@ function App() {
       })
       if (responseAPI.data.response){
         //Needs Validation error such that it doesn't break
-        await enqueueAudioFile(await speakText(responseAPI.data.response.text, language))
+        try {
+          if (!mute){
+            await enqueueAudioFile(await speakText(responseAPI.data.response.text, language))
+          }
+        } catch(e){
+
+        }
+        
         setSaving(true)
         setLoading(false)
         setQuestionsUsed(questionsUsed+1)
@@ -282,7 +308,8 @@ function App() {
 
   async function enqueueAudioFile(audioFileUrl) {
     // fetch the audio file and decode it
-    await fetch(audioFileUrl)
+    if (!mute){
+      await fetch(audioFileUrl)
       .then(response => response.arrayBuffer())
       .then(arrayBuffer => audioCtx.current.decodeAudioData(arrayBuffer))
       .then(audioBuffer => {
@@ -320,20 +347,24 @@ function App() {
           sourceNode.start();
         }
       });
+    }
+    
   }
 
   async function speakText(speak, lng) {
     try {
-      const responseAPI = await axios({
-        method: "POST",
-        url: "/api/audio",
-        data: {
-          speak, 
-          lng
+      if (!mute) {
+        const responseAPI = await axios({
+          method: "POST",
+          url: "/api/audio",
+          data: {
+            speak, 
+            lng
+        }
+        })
+        console.log(responseAPI)
+        return responseAPI.data.url
       }
-      })
-      console.log(responseAPI)
-      return responseAPI.data.url
     } catch (err) {
       console.log("Error", err);
     }
@@ -343,11 +374,12 @@ function App() {
     await sleep(2000)
     setLoginTime(Date.now())
     setShowWelcomeMessage(true)
-     audio.play();
+    audio.play();
     await sleep(2000)
     setShowWelcomeOneMoreMessage(true)
-     audio.play();
+    audio.play();
   }
+  
 
 
 
@@ -382,21 +414,21 @@ function App() {
             </>
           )
         }
-        <Sharing isOpen={isSharingOpen} onClose={onSharingClose} onOpen={onSharingOpen} isLargerThanSM={isLargerThanSM}/>
+        <Sharing isOpen={isSharingOpen} onClose={onSharingClose} onOpen={onSharingOpen} isLargerThanMD={isLargerThanMD}/>
 
           <Drawer placement={"left"} isOpen={isSideBarOpen} onClose={onSideBarClose} size={"xs"}>
           <DrawerOverlay />
           <DrawerContent width={"85%"} padding={"16px"}>
             <DrawerCloseButton />
-            <Sidebar section={section} name={details.name} questionsUsed={questionsUsed} changeSection={setSection} clear={clearChat} share={()=>{onSharingOpen()}}/>
+            <Sidebar section={section} name={details.name} questionsUsed={questionsUsed} changeSection={setSection} clear={clearChat} share={()=>{onSharingOpen()}} mute={mute} setMute={()=>{setMute(!mute)}}/>
           </DrawerContent>
           </Drawer>
           <div style={{display:"flex", flexDirection:"row", height: "100vh"}}>
-            <Sidebar display={{base: "none", sm: "flex"}} section={section} name={details.name} questionsUsed={questionsUsed} changeSection={setSection}/>
+            <Sidebar display={{base: "none", md: "flex"}} section={section} name={details.name} questionsUsed={questionsUsed} changeSection={setSection}/>
             <div style={{flexDirection:"column", minWidth: "80.5%", width: "100%", display: "flex"}}>
 
             <Box style={{display:"flex", flexDirection:"row", alignItems: "center", paddingLeft: "1rem", marginTop: "10px", marginBottom: "10px"}}>
-              <Box display={{base: "none", sm:"flex"}} width={"100%"} height={"100%"} alignItems={"center"}>
+              <Box display={{base: "none", md:"flex"}} width={"100%"} height={"100%"} alignItems={"center"}>
               {
                 selectedAvatar === null || onboarding ? (
                   <>
@@ -443,11 +475,12 @@ function App() {
               
               
               <Spacer/>
-              <Button marginRight={"1rem"} size='sm' backgroundColor={"#f0fdf9"} color={"#107569"} onClick={()=>{clearChat()}}>Clear chat <RiDeleteBin6Line/></Button>
-              <Button marginRight={"1rem"} size='sm' backgroundColor={"#0e9384"} color={"#FFFFFF"} onClick={()=>{window.open("https://join.slack.com/t/libertyequalitydata/shared_invite/zt-ddr4t974-MCzsch4FSeux8DrFQ2atbQ", '_blank').focus();}}>Join the community<CgSlack/></Button>
-              <Button marginRight={"1rem"} size='sm'  color={"#107569"} variant={'ghost'} onClick={()=>{onSharingOpen()}}>Share <Box marginLeft={"5px"} width={"20px"} height={"20px"}><NextImage width={100} height={100} alit="Share Icon" src={share} /></Box></Button>
+              <Button marginRight={"1rem"} size='sm' backgroundColor={"#f0fdf9"} color={"#107569"} onClick={()=>{setMute(!mute)}}>{mute ? <>Unmute <Box marginLeft={"5px"}><GoMute size={16}/></Box></> : <>Mute <Box marginLeft={"5px"}><GoUnmute size={16}/></Box></>}</Button>
+              <Button marginRight={"1rem"} size='sm' backgroundColor={"#f0fdf9"} color={"#107569"} onClick={()=>{clearChat()}}>Clear chat <Box marginLeft={"5px"}><RiDeleteBin6Line size={16}/></Box></Button>
+              <Button marginRight={"1rem"} size='sm' backgroundColor={"#0e9384"} color={"#FFFFFF"} width={"fit-content"} minWidth={"152px"} onClick={()=>{window.open("https://join.slack.com/t/libertyequalitydata/shared_invite/zt-ddr4t974-MCzsch4FSeux8DrFQ2atbQ", '_blank').focus();}}><Text>Join the community</Text><Box marginLeft={"5px"}><CgSlack size={16}/></Box></Button>
+              <Button marginRight={"1rem"} size='sm'  color={"#107569"} variant={'ghost'} onClick={()=>{onSharingOpen()}}>Share <Box marginLeft={"5px"} minWidth={"16px"} width={"20px"} height={"20px"}><NextImage width={100} height={100} alt="Share Icon" src={share} /></Box></Button>
               </Box>
-              <Box display={{base: "flex", sm:"none"}} flexDirection={"row"} width={"100%"} alignItems={"center"}>
+              <Box display={{base: "flex", md:"none"}} flexDirection={"row"} width={"100%"} alignItems={"center"}>
                 <Box style={{ width: "32px", height: "33px", display: 'inline-block', filter: "drop-shadow(0px 1px 3px rgba(16, 24, 40, 0.1)) drop-shadow(0px 1px 2px rgba(16, 24, 40, 0.06))" }}>
                       <NextImage 
                         src={logo}

@@ -18,7 +18,6 @@ export default function AppItem(props = {apps: [{"name": "test", "tags": ["Socia
     setCategoryChosenApps(filteredApps)
   }
     const [categoryChosenApps, setCategoryChosenApps] = useState([])
-    console.log(props)
     return (
       <>
         <Text marginLeft={"16px"} marginBottom={"16px"} as={"b"} color={"#101828"} fontSize={"16px"}>{props.title}</Text>
