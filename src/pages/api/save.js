@@ -15,9 +15,9 @@ export default async function handler(req, res) {
                 data: {
                     "operationName":"MyMutation",
                     "query": `
-                    mutation MyMutation($prompt: String = "", $name: String = "", $response: String = "", $country: String = "", $region: String = "", $job: String = "", $email: String = "", $chosenApps: [String!] = "") {
+                    mutation MyMutation($prompt: String = "", $name: String = "", $response: String = "", $country: String = "", $region: String = "", $job: String = "", $email: String = "", $chosenApps: [String!] = "", $category: String = "") {
                         createRegisteredUser(
-                          data: {exchanges: {create: {prompt: $prompt, response: $response}}, details: {create: {job: $job, name: $name, country: $country, region: $region}}, email: $email, chosenApps: $chosenApps}
+                          data: {exchanges: {create: {prompt: $prompt, response: $response, category: $category}}, details: {create: {job: $job, name: $name, country: $country, region: $region}}, email: $email, chosenApps: $chosenApps}
                         ) {
                           id
                           exchanges {
@@ -34,7 +34,8 @@ export default async function handler(req, res) {
                     "region": req.body.details.region,
                     "job": req.body.details.job,
                     "email": req.body.details.email,
-                    "chosenApps": req.body.chosenApps
+                    "chosenApps": req.body.chosenApps,
+                    "category": req.body.category
 
                 }
                 },

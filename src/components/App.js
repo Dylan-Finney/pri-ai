@@ -46,7 +46,7 @@ function PromptInput(props){
   useEffect(() => {
     let recognition;
       if (mic) {
-        console.log("RECORDING ",);
+        // console.log("RECORDING ",);
         const SpeechRecognition = window.speechRecognition || window.webkitSpeechRecognition;
         recognition = new SpeechRecognition();
         // does this support all browser languages?
@@ -71,8 +71,8 @@ function PromptInput(props){
           } else {
             setPrompt(`${before}${final_transcript}${interim_transcript}`)
           }
-          console.log("final_transcript", final_transcript);
-          console.log("interim_transcript",interim_transcript);
+          // console.log("final_transcript", final_transcript);
+          // console.log("interim_transcript",interim_transcript);
 
           // setMic(false);
         }
@@ -82,9 +82,7 @@ function PromptInput(props){
         
         if (speech.current !== "") {
           recognition.stop();  //recording stops automatically....
-          console.log("SEND", speech.current);
         }
-        console.log("END");
       }
     }, [mic])
   return (
@@ -123,11 +121,8 @@ function App() {
     setAudio(newAudio)
     window.SpeechRecognition = window.webkitSpeechRecognition || window.SpeechRecognition;
     setVoiceInputEnabled(window.SpeechRecognition !== undefined)
-    console.log("window.SpeechRecognition",window.SpeechRecognition)
     setLanguage(navigator.language || navigator.userLanguage);
-    console.log("testaudio")
     let AudioContext = window.AudioContext || window.webkitAudioContext;
-    console.log({ AudioContext });
     audioCtx.current = new AudioContext();
   // only run once on the first render on the client
   }, [])
@@ -142,7 +137,6 @@ function App() {
   const clearChat = () => {
     setChatlog([]);
     setPrompt("");
-    console.log(sourceNodes)
     sourceNodes.map((sourceNode) => {
       sourceNode.disconnect(audioCtx.current.destination)
     })
@@ -216,21 +210,30 @@ function App() {
     
     setLoading(true)
     try{
-      const responseAPI = await axios({
-        method: "POST",
-        url: "/api/chat",
-        data: {
-          "persona":{
-              "name": details.name || "",
-              "email": details.email || "",
-              "job": details.job || "",
-              "country": details.country || "",
-              "region": details.region || "",
-          },
-          "chatlog": chatlog,
-          "prompt": prompt
-      }
-      })
+      const [responseAPI, responseCategory] = await Promise.all([
+        axios({
+          method: "POST",
+          url: "/api/chat",
+          data: {
+            "persona":{
+                "name": details.name || "",
+                "email": details.email || "",
+                "job": details.job || "",
+                "country": details.country || "",
+                "region": details.region || "",
+            },
+            "chatlog": chatlog,
+            "prompt": prompt
+        }
+        }),
+        axios({
+          method: "POST",
+          url: "/api/categorize",
+          data: {
+            "prompt": prompt
+        }
+        }),
+      ])
       if (responseAPI.data.response){
         //Needs Validation error such that it doesn't break
         try {
@@ -257,7 +260,8 @@ function App() {
               "prompt": prompt,
               "response": responseAPI.data.response.text,
               "details": details,
-              "chosenApps": chosenApps
+              "chosenApps": chosenApps,
+              "category": responseCategory.data.response.text
           }
           })
           if (responseStore.data.userID){
@@ -292,7 +296,6 @@ function App() {
           "details": details
       }
       })
-      console.log(responseFeedback)
       let chatlogTemp = [...chatlog]; 
       chatlogTemp[index] = {prompt:{...chatlogTemp[index].prompt},response:{...chatlogTemp[index].response, helpful}}; 
       setChatlog([...chatlogTemp]);
@@ -331,7 +334,7 @@ function App() {
           // remove this source node from the array
           sourceNodes.splice(sourceNodes.indexOf(sourceNode), 1);
 
-          console.log("onended")
+          // console.log("onended")
   
           // if there are more source nodes in the array, start playing the next one
           if (sourceNodes.length > 0) {
@@ -362,11 +365,10 @@ function App() {
             lng
         }
         })
-        console.log(responseAPI)
         return responseAPI.data.url
       }
     } catch (err) {
-      console.log("Error", err);
+      console.error("Can't get TTS");
     }
   };
 

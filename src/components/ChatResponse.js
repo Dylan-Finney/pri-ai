@@ -41,7 +41,6 @@ export default function ChatResponse(props) {
     const [helpful, setHelpful] = useState(null)
     const { register,control, handleSubmit, watch, reset, formState: { errors } } = useForm();
     const onSubmit = data => {
-        console.log(data);
         props.submitFeedback(helpful,data.feedbackDetails)
         onFeedbackClose();
       }
