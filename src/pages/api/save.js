@@ -55,9 +55,9 @@ export default async function handler(req, res) {
                 data: {
                     "operationName":"MyMutation",
                     "query": `
-                    mutation MyMutation($id: ID = "", $prompt: String = "", $response: String = "") {
+                    mutation MyMutation($id: ID = "", $prompt: String = "", $response: String = "", $category: String = "") {
                         updateRegisteredUser(
-                          data: {exchanges: {create: {prompt: $prompt, response: $response}}}
+                          data: {exchanges: {create: {prompt: $prompt, response: $response, category: $category}}}
                           where: {id: $id}
                         ) {
                           id
@@ -74,7 +74,8 @@ export default async function handler(req, res) {
                 variables: {
                     "prompt": req.body.prompt,
                     "id": req.body.userID,
-                    "response": req.body.response
+                    "response": req.body.response,
+                    "category": req.body.category
                 }
                 },
             })
