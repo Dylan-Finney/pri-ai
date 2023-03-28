@@ -10,6 +10,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.299.0",
     "@aws-sdk/client-polly": "^3.290.0",
     "@aws-sdk/credential-providers": "^3.290.0",
     "@aws-sdk/polly-request-presigner": "^3.290.0",
@@ -32,6 +33,7 @@
     "react-share": "^4.4.1",
     "sharp": "^0.31.3",
     "swiper": "^9.1.0",
+    "uuid": "^9.0.0",
     "validator": "^13.9.0"
   },
   "devDependencies": {

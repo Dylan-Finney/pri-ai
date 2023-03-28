@@ -8,6 +8,7 @@ import {TbSend,TbEdit} from 'react-icons/tb';
 import {RiDeleteBin6Line, RiLoginCircleLine} from 'react-icons/ri'; 
 import {HiMicrophone, HiStop} from 'react-icons/hi'; 
 import {GoMute, GoUnmute} from 'react-icons/go'; 
+const { DynamoDBClient, ListTablesCommand } = require("@aws-sdk/client-dynamodb");
 
 // import US from "../assets/country/US.svg"
 
@@ -256,6 +257,7 @@ function App() {
             url: "/api/save",
             data: {
               "newUser": questionsUsed === 0 ? true : false,
+              "questionsUsed": questionsUsed,
               "userID": userID, 
               "prompt": prompt,
               "response": responseAPI.data.response.text,
@@ -267,7 +269,7 @@ function App() {
           if (responseStore.data.userID){
             setUserID(responseStore.data.userID)
           }
-          setChatlog([].concat(chatlog,{id: responseStore.data.exchangeID, prompt:{text: prompt, time: promptSent}, response: {text: responseAPI.data.response.text, time: Date.now()}}))
+          setChatlog([].concat(chatlog,{id: questionsUsed, prompt:{text: prompt, time: promptSent}, response: {text: responseAPI.data.response.text, time: Date.now()}}))
         } catch(e){
           console.error("Failure to save response")
         }
@@ -292,6 +294,7 @@ function App() {
         url: "/api/feedback",
         data: {
           "id": id,
+          "userID": userID, 
           "helpful": helpful,
           "details": details
       }
