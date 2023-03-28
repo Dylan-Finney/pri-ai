@@ -11,7 +11,7 @@ export default async function handler(req, res) {
         res.status(405).send({ error: 'Only POST requests allowed' })
         return
     }
-    const time = (new Date().getTime()/1000).toString()
+    const time = (Math.floor(new Date().getTime()/1000)).toString()
     if (req.body.newUser === true){
       const userID = uuidv4()
       
