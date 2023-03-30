@@ -69,6 +69,7 @@ function PromptInput(props){
           if (interim_transcript === ""){
             setPrompt(`${before}${final_transcript}. `)
             setMic(false)
+            recognition.stop();
           } else {
             setPrompt(`${before}${final_transcript}${interim_transcript}`)
           }
