@@ -40,9 +40,6 @@ Just a quick reminder to pick up some milk on your way back home today. Don't fo
 Best regards,
 Pri-AI
 Please check your inbox to confirm that you have received it. Let me know if you need any further assistance.
----
-This is our dialogue so far:
----
   ` : `You are an AI assisstant.`
     var messages = [{"role": "system", "content": initalPrompt}]
     if (req.body.chatlog && req.body.chatlog.length>0){
