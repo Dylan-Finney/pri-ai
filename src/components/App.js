@@ -254,8 +254,9 @@ function App() {
         done = doneReading
         const chunkValue = decoder.decode(value)
         answer = answer + chunkValue
-        setChatlog([].concat(chatlog,{prompt:{text: prompt, time: promptSent}, response: {text: answer, time: responseReceived}}))
+        
       }
+      setChatlog([].concat(chatlog,{prompt:{text: prompt, time: promptSent}, response: {text: answer, time: responseReceived}}))
       setLoading(false)
       setQuestionsUsed(questionsUsed+1)
       setPrompt("")
