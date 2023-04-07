@@ -207,16 +207,18 @@ function App() {
       </Flex>
     )
   }
+
   const getResponse = async (prompt) => {
     var promptSent = Date.now()
-    
     setLoading(true)
-    try{
-      const [responseAPI, responseCategory] = await Promise.all([
-        axios({
+    try {
+      const [response, responseCategory] = await Promise.all([
+        fetch("/api/chat", {
           method: "POST",
-          url: "/api/chat",
-          data: {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
             "persona":{
                 "name": details.name || "",
                 "email": details.email || "",
@@ -226,7 +228,7 @@ function App() {
             },
             "chatlog": chatlog,
             "prompt": prompt
-        }
+        })
         }),
         axios({
           method: "POST",
@@ -236,55 +238,68 @@ function App() {
         }
         }),
       ])
-      if (responseAPI.data.response){
-        //Needs Validation error such that it doesn't break
-        try {
-          if (!mute){
-            await enqueueAudioFile(await speakText(responseAPI.data.response.text, language))
-          }
-        } catch(e){
+    
+      const data = response.body
+      if (!data) {
+        return
+      }
+      const reader = data.getReader()
+      const decoder = new TextDecoder()
+      let done = false
+      var answer = ""
+  
+      const responseReceived = Date.now()
+      while (!done) {
+        const { value, done: doneReading } = await reader.read()
+        done = doneReading
+        const chunkValue = decoder.decode(value)
+        answer = answer + chunkValue
+        setChatlog([].concat(chatlog,{prompt:{text: prompt, time: promptSent}, response: {text: answer, time: responseReceived}}))
+      }
+      setLoading(false)
+      setQuestionsUsed(questionsUsed+1)
+      setPrompt("")
+      setSaving(true)
+      try {
+        if (!mute){
+          await enqueueAudioFile(await speakText(answer, language))
+        }
+      } catch(e){
 
+      }
+      try{
+        const responseStore = await axios({
+          method: "POST",
+          url: "/api/save",
+          data: {
+            "newUser": questionsUsed === 0 ? true : false,
+            "questionsUsed": questionsUsed,
+            "userID": userID, 
+            "prompt": prompt,
+            "response": answer,
+            "details": details,
+            "chosenApps": chosenApps,
+            "category": responseCategory.data.response.text
         }
-        
-        setSaving(true)
-        setLoading(false)
-        setQuestionsUsed(questionsUsed+1)
-        setPrompt("")
-        setChatlog([].concat(chatlog,{prompt:{text: prompt, time: promptSent}, response: {text: responseAPI.data.response.text, time: Date.now()}}))
-        // audio.play();
-        try{
-          const responseStore = await axios({
-            method: "POST",
-            url: "/api/save",
-            data: {
-              "newUser": questionsUsed === 0 ? true : false,
-              "questionsUsed": questionsUsed,
-              "userID": userID, 
-              "prompt": prompt,
-              "response": responseAPI.data.response.text,
-              "details": details,
-              "chosenApps": chosenApps,
-              "category": responseCategory.data.response.text
-          }
-          })
-          if (responseStore.data.userID){
-            setUserID(responseStore.data.userID)
-          }
-          setChatlog([].concat(chatlog,{id: questionsUsed, prompt:{text: prompt, time: promptSent}, response: {text: responseAPI.data.response.text, time: Date.now()}}))
-        } catch(e){
-          console.error("Failure to save response")
+        })
+        if (responseStore.data.userID){
+          setUserID(responseStore.data.userID)
         }
-        setSaving(false)
-      } 
-      return responseAPI
-    } catch(e){
-      console.log("Failure to get response")
+        setChatlog([].concat(chatlog,{id: questionsUsed, prompt:{text: prompt, time: promptSent}, response: {text: answer, time: responseReceived}}))
+      } catch(e){
+        console.error("Failure to save response")
+      }
+      setSaving(false)
+    } catch(e) {
       setPrompt("")
       setLoading(false)
-      errorToasts({error: e.response.data.error})
-      return e
+      errorToasts({error: "Unable to get response"})
     }
+      
+
+    
   }
+  
   const apps = [{"name": "23andMe", "tags": ["Misc"]},{"name": "Airbnb", "tags": ["Misc"]},{"name": "Amazon", "tags": ["Misc"]},{"name": "Ancestry", "tags": ["Misc"]}, {"name": "Apple Health", "tags": ["Health"]}, {"name": "Bosch", "tags": ["Health"]}, {"name": "Doordash", "tags": ["Misc"]}, {"name": "Evernote", "tags": ["Misc"]}, {"name": "Facebook", "tags": ["Social"]}, {"name": "Fitbit", "tags": ["Health"]}, {"name": "Google Calendar", "tags": ["Misc"]}, {"name": "Google Maps", "tags": ["Transport"]}, {"name": "Google", "tags": ["Misc"]}, {"name": "Instacart", "tags": ["Misc"]}, {"name": "Instagram", "tags": ["Social"]}, {"name": "iTunes", "tags": ["Social"]}, {"name": "Linkedin", "tags": ["Social"]}, {"name": "Lyft", "tags": ["Transport"]}, {"name": "Maps", "tags": ["Transport"]}, {"name": "Medium", "tags": ["Social"]}, {"name": "Netflix", "tags": ["Social"]}, {"name": "Notion", "tags": ["Misc"]}, {"name": "Oura", "tags": ["Health"]}, {"name": "Peloton", "tags": ["Health"]}, {"name": "Polar", "tags": ["Health"]}, {"name": "Prime Video", "tags": ["Social"]}, {"name": "Reddit", "tags": ["Social"]}, {"name": "Runkeeper", "tags": ["Health"]}, {"name": "Snapchat", "tags": ["Social"]}, {"name": "Spotify", "tags": ["Social"]}, {"name": "Strava", "tags": ["Health"]}, {"name": "Suunto", "tags": ["Health"]}, {"name": "Tiktok", "tags": ["Social"]}, {"name": "Tripadvisor", "tags": ["Misc"]}, {"name": "Twitch", "tags": ["Social"]}, {"name": "Twitter", "tags": ["Social"]}, {"name": "Uber Eats", "tags": ["Misc"]}, {"name": "Uber", "tags": ["Transport"]}, {"name": "Waze", "tags": ["Transport"]}, {"name": "Withings", "tags": ["Health"]}, {"name": "Youtube", "tags": ["Social"]}]
   
 
@@ -349,11 +364,11 @@ function App() {
         // add the new source node to the array
         sourceNodes.push(sourceNode);
   
-        // if this is the only source node in the array, start playing it
+       // if this is the only source node in the array, start playing it
         if (sourceNodes.length === 1) {
           sourceNode.start();
         }
-      });
+      }); 
     }
     
   }

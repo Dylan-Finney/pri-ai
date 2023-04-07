@@ -1,16 +1,16 @@
-const { Configuration, OpenAIApi } = require("openai");
-const configuration = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-const openai = new OpenAIApi(configuration);
-export default async function handler(req, res) {
-  console.log(req.body)
+import { OpenAIStream } from "../../utils/OpenAIStream"
+
+export const config = {
+  runtime: "edge"
+}
+
+const handler = async req => {
+  const { persona, prompt, chatlog } = (await req.json())
   if (req.method !== 'POST') {
-    res.status(405).send({ error: 'Only POST requests allowed' })
-    return
+    return new Response( 'Only POST requests allowed', { status: 405, statusText: "Method Fail" })
   }
-  if (req.body.persona&&req.body.prompt){
-    var formattedDetails = `${req.body.persona.name}, my email is ${req.body.persona.email}, working as a ${req.body.persona.job}, from ${req.body.persona.region}, ${req.body.persona.country}`
+  if (persona&&prompt){
+    var formattedDetails = `${persona.name}, my email is ${persona.email}, working as a ${persona.job}, from ${persona.region}, ${persona.country}`
     const initalPrompt = process.env.STAGE === "prod" ? `Pri-AI is a Private Personal AI Assistant app, that runs on a dedicated cloud computing architecture with private data storage, optimized for consumers.
 You will now you act as my “fake Personal AI”. You will have access to all my personal data and information from all common applications and services that consumers use. In addition you will have access to data in any products, accessories or pets I have like; ski booths, jacket, rackets, bicycle, car, etc. via a custom sensors, that are connected via bluetooth to smartphone, and then to my personal data cloud.
 You also have ability to use my personal apps and public data sources via APIs, to be able to answer any question that I will ask from you, or ask you to take action on.
@@ -41,32 +41,37 @@ Best regards,
 Pri-AI
 Please check your inbox to confirm that you have received it. Let me know if you need any further assistance.
   ` : `You are an AI assisstant.`
-    var messages = [{"role": "system", "content": initalPrompt}]
-    if (req.body.chatlog && req.body.chatlog.length>0){
-      for (var i = 0; i<req.body.chatlog.length&&i<=9;i++){
-        messages.push({"role": "user", "content": req.body.chatlog[i].prompt.text})
-        messages.push({"role": "system", "content": req.body.chatlog[i].response.text})
-      }
-    }
-    messages.push({"role": "user", "content": req.body.prompt})
-    const response = await openai.createCompletion({
-      model: "text-davinci-003",
-      max_tokens: 2048,
-      prompt:`${initalPrompt}
+
+
+
+  const payload = {
+    model: "text-davinci-003",
+    prompt:`${initalPrompt}
         ---
         New Conversation:
-        ${req.body.chatlog.map(exchange=>{
+        ${chatlog.map(exchange=>{
             return `Q: ${exchange.prompt.text}
         A: ${exchange.response.text}`
         })}
-        Q: ${req.body.prompt}
-        A:`
-      
-    })
-    res.status(200).json({"response": {"text": response.data.choices[0].text.slice(1)}})
-  } else {
-    res.status(400).json({ error: `You need to supply ${req.body.persona ? "" : "persona and "}${req.body.prompt ? "" : "prompt."}` })
-    
+        Q: ${prompt}
+        A:`,
+    temperature: 0.7,
+    top_p: 1,
+    frequency_penalty: 0,
+    presence_penalty: 0,
+    max_tokens: 800,
+    stream: true,
+    n: 1
   }
+
+    const stream = await OpenAIStream(payload)
+    
+    return new Response(stream)
+  } else {
+    return new Response( `You need to supply ${req.body.persona ? "" : "persona and "}${req.body.prompt ? "" : "prompt."}`, { status: 400, statusText: "Parameter Fail" })
+  }
+
   
 }
+
+export default handler
