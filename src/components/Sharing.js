@@ -73,7 +73,7 @@ Try Personal AI: ${betaLink}
           >
             {shareOptions.map((share, index) => {
               return (
-                <SwiperSlide kye={index} className={styles.swiperslide}>
+                <SwiperSlide key={index} className={styles.swiperslide}>
                   <Flex
                     flexDir={"column"}
                     alignItems={"center"}
