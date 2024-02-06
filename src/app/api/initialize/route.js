@@ -85,8 +85,8 @@ export async function POST(req) {
             const newAvatar =
               avatars[Math.floor(Math.random() * avatars.length)];
             const newName = `${user.username}'s Pri-AI`;
-            setSelectedAvatar(newAvatar);
-            setAIName(newName);
+            // setSelectedAvatar(newAvatar);
+            // setAIName(newName);
             avatar = newAvatar;
             name = newName;
             ddb.updateItem(
