@@ -71,9 +71,9 @@ Try Personal AI: ${betaLink}
             modules={[Navigation]}
             navigation
           >
-            {shareOptions.map((share) => {
+            {shareOptions.map((share, index) => {
               return (
-                <SwiperSlide className={styles.swiperslide}>
+                <SwiperSlide kye={index} className={styles.swiperslide}>
                   <Flex
                     flexDir={"column"}
                     alignItems={"center"}

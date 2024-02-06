@@ -11,7 +11,7 @@ import {
   Flex,
 } from "@chakra-ui/react";
 import { FiThumbsUp, FiThumbsDown } from "react-icons/fi";
-import { ChatIcon } from "./ChatIcon";
+// import { ChatIcon } from "./ChatIcon";
 import { CgSlack } from "react-icons/cg";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -152,7 +152,7 @@ export default function ChatResponse(props) {
             }}
           />
         )}
-        {props.end === false && (
+        {/* {props.end === false && (
           <Box
             marginLeft={{ base: "25px", sm: "45px", lg: "47px" }}
             gap={"10px"}
@@ -184,7 +184,7 @@ export default function ChatResponse(props) {
               <CgSlack color={"#FFFFFF"} size={"22px"} />
             </Button>
           </Box>
-        )}
+        )} */}
       </MessageContainer>
     </>
   );
