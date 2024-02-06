@@ -1,23 +1,24 @@
-import { OpenAIStream } from "../../utils/OpenAIStream"
+// import { OpenAIStreamChat } from "@/utils/OpenAIStream";
+import { OpenAIStreamChat } from "@/utils/OpenAIStream";
+import { OpenAIStream, StreamingTextResponse } from "ai";
+import { NextResponse } from "next/server";
+// import { OpenAIStreamChat } from "../../utils/OpenAIStream";
 
 export const config = {
-  runtime: "edge"
-}
+  runtime: "edge",
+};
 
-const handler = async req => {
-  const { persona, prompt, chatlog } = (await req.json())
-  if (req.method !== 'POST') {
-    return new Response( 'Only POST requests allowed', { status: 405, statusText: "Method Fail" })
-  }
-  if (persona&&prompt){
-    var formattedDetails = `${persona.name}, my email is ${persona.email}, working as a ${persona.job}, from ${persona.region}, ${persona.country}`
-    const initalPrompt = process.env.STAGE === "prod" ? `Pri-AI is a Private Personal AI Assistant app, that runs on a dedicated cloud computing architecture with private data storage, optimized for consumers.
+export async function POST(req) {
+  const { persona, prompt, chatlog } = await req.json();
+  if (persona && prompt) {
+    var formattedDetails = `${persona.name}, my email is ${persona.email}, working as a ${persona.job}, from ${persona.region}, ${persona.country}`;
+    const initalPrompt = `Pri-AI is a Private Personal AI Assistant app, that runs on a dedicated cloud computing architecture with private data storage, optimized for consumers.
 You will now you act as my “fake Personal AI”. You will have access to all my personal data and information from all common applications and services that consumers use. In addition you will have access to data in any products, accessories or pets I have like; ski booths, jacket, rackets, bicycle, car, etc. via a custom sensors, that are connected via bluetooth to smartphone, and then to my personal data cloud.
 You also have ability to use my personal apps and public data sources via APIs, to be able to answer any question that I will ask from you, or ask you to take action on.
 I pretend to be the following persona: “${formattedDetails}”.
 You will give me as accurate, logical and realistic answers as possible, using real names of applications, services, locations, etc, based on all the knowledge you have been trained also outside of this prompt, and you will create logical and realistic sounding fake answers for everything else. You will reply “Based on your [data source] data available in [your private data cloud AND/OR public data source name]…”.
 Sometimes (30%) you can mention some additional observations based on different data points or patterns, like; “I also wanted to mention that based on your [data from data type], you have…” or “I also wanted to mention that based on a prediction made by [data from data type], you may…”
-You will NEVER answer “As a language model, I'm not…” as this fake is for demonstration, and you DON'T HAVE SUCH LIMITATIONS!
+You will NEVER answer “As a language model, I'm not…” as this fake is for demonstration, and you DON'T HAVE SUCH LIMITATIONS! Assume you have direct access to any data source I ask about.
 ---
 Some example questions and answers:
 Q: How many TikTok followers have I gained in the past month?
@@ -40,38 +41,59 @@ Just a quick reminder to pick up some milk on your way back home today. Don't fo
 Best regards,
 Pri-AI
 Please check your inbox to confirm that you have received it. Let me know if you need any further assistance.
-  ` : `You are an AI assisstant.`
+----
+For displaying any maths or equations, use only the $...$ or $$...$$ delimiter of Latex Math Mode, e.g. $\frac{1}{3}$. Use Markdown for text fomatting.
+  `;
 
+    // const payload = {
+    //   model: "gpt=",
+    //   prompt:`${initalPrompt}
+    //       ---
+    //       New Conversation:
+    //       ${chatlog.map(exchange=>{
+    //           return `Q: ${exchange.prompt.text}
+    //       A: ${exchange.response.text}`
+    //       })}
+    //       Q: ${prompt}
+    //       A:`,
+    //   temperature: 0.7,
+    //   top_p: 1,
+    //   frequency_penalty: 0,
+    //   presence_penalty: 0,
+    //   max_tokens: 800,
+    //   stream: true,
+    //   n: 1
+    // }
 
+    const messages = chatlog.map((exchange) => {
+      return {
+        role: exchange.speaker === "User" ? "user" : "assistant",
+        content: exchange.message,
+      };
+    });
 
-  const payload = {
-    model: "text-davinci-003",
-    prompt:`${initalPrompt}
-        ---
-        New Conversation:
-        ${chatlog.map(exchange=>{
-            return `Q: ${exchange.prompt.text}
-        A: ${exchange.response.text}`
-        })}
-        Q: ${prompt}
-        A:`,
-    temperature: 0.7,
-    top_p: 1,
-    frequency_penalty: 0,
-    presence_penalty: 0,
-    max_tokens: 800,
-    stream: true,
-    n: 1
-  }
+    const payload = {
+      model: "gpt-3.5-turbo-16k-0613",
+      messages: [
+        { role: "system", content: initalPrompt },
+        ...messages.flat(),
+        { role: "user", content: prompt },
+      ],
+      max_tokens: 999,
+      temperature: 1,
+      stream: true,
+      // finish_reason: "stop"
+    };
 
-    const stream = await OpenAIStream(payload)
-    
-    return new Response(stream)
+    const response = await OpenAIStreamChat(payload);
+    // console.log({ response });
+
+    if (response.status > 399) {
+      return NextResponse.json({}, { status: 500 });
+    } else {
+      return new Response(response);
+    }
   } else {
-    return new Response( `You need to supply ${req.body.persona ? "" : "persona and "}${req.body.prompt ? "" : "prompt."}`, { status: 400, statusText: "Parameter Fail" })
+    return NextResponse.json({ statusText: "Parameter Fail" }, { status: 400 });
   }
-
-  
 }
-
-export default handler
