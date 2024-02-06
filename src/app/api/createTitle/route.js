@@ -3,10 +3,7 @@ import { OpenAIStream, StreamingTextResponse } from "ai";
 import { NextResponse } from "next/server";
 // import { OpenAIStreamChat } from "../../utils/OpenAIStream";
 
-export const config = {
-  runtime: "edge",
-};
-
+export const runtime = "edge";
 export async function POST(req) {
   const { prompt, aiResponse } = await req.json();
 
