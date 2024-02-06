@@ -8,7 +8,9 @@ import App from "@/components/App";
 // import { Container } from "@/components/Toast";
 
 export const metadata = {
-  title: "My Page Title",
+  title: "Pri-AI",
+  description:
+    "Meet Pri-AI, your natural language AI assistant, built into your personal data.",
 };
 
 export default function Page() {
