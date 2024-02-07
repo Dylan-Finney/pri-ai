@@ -80,6 +80,7 @@ function App() {
     email: null,
   });
   const [onboarding, setOnboarding] = useState(true);
+  const [initializing, setInitializing] = useState(false);
 
   useEffect(() => {
     const checkIfLoggedIn = async () => {
@@ -88,6 +89,7 @@ function App() {
           var user = await getCurrentUser();
           // console.log({ user });
           setLoggedIn(true);
+          setInitializing(true);
           setDetails({
             ...details,
             name: user.username,
@@ -108,6 +110,7 @@ function App() {
           setConversations(response.data.threads);
           setSelectedAvatar(response.data.avatar);
           setAIName(response.data.name);
+          setInitializing(false);
           initalMessage();
         }
       } catch (e) {
@@ -649,6 +652,7 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
                 }}
                 onboarding={onboarding}
                 activeConvo={conversationID}
+                initializing={initializing}
               />
             </DrawerContent>
           </Drawer>
@@ -667,6 +671,7 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
               changeConversation={changeConversation}
               onboarding={onboarding}
               activeConvo={conversationID}
+              initializing={initializing}
             />
             <div
               style={{
@@ -687,6 +692,7 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
                 clearChat={clearChat}
                 onSharingOpen={onSharingOpen}
                 userID={userID}
+                initializing={initializing}
               />
               {section === sections.ABOUT ? (
                 <>
@@ -716,47 +722,65 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
                             />
                           </>
                         )}
-                        <Skeleton
-                          flex={!fetchingConversation ? 0 : 1}
-                          isLoaded={!fetchingConversation}
-                        >
-                          {chatlog?.map((message, index) => {
-                            return (
+                        {fetchingConversation === true ? (
+                          <>
+                            {Array.from({ length: 10 }, (_, index) => (
                               <>
-                                {message.speaker === "User" ? (
-                                  <ChatPrompt
-                                    name={details.name}
-                                    text={message.message}
-                                    time={message.time}
-                                  />
-                                ) : (
-                                  <ChatResponse
-                                    aIName={aIName}
-                                    selectedAvatar={selectedAvatar}
-                                    text={message.message}
-                                    time={message.time}
-                                    saving={saving}
-                                    submitFeedback={(helpful, details) => {
-                                      submitFeedback(
-                                        message.id,
-                                        helpful,
-                                        details,
-                                        index
-                                      );
-                                    }}
-                                    feedback={
-                                      index < chatlog.length - 1 ||
-                                      (!loading && index === chatlog.length - 1)
-                                    }
-                                    generating={
-                                      loading && index === chatlog.length - 1
-                                    }
-                                  />
-                                )}
+                                <Skeleton
+                                  height={"100px"}
+                                  mb={1}
+                                  speed={0.85}
+                                />
+                                <Skeleton
+                                  height={"100px"}
+                                  speed={0.95}
+                                  mb={1}
+                                />
                               </>
-                            );
-                          })}
-                        </Skeleton>
+                            ))}
+                          </>
+                        ) : (
+                          <>
+                            {chatlog?.map((message, index) => {
+                              return (
+                                <>
+                                  {message.speaker === "User" ? (
+                                    <ChatPrompt
+                                      name={details.name}
+                                      text={message.message}
+                                      time={message.time}
+                                    />
+                                  ) : (
+                                    <ChatResponse
+                                      aIName={aIName}
+                                      selectedAvatar={selectedAvatar}
+                                      text={message.message}
+                                      time={message.time}
+                                      saving={saving}
+                                      submitFeedback={(helpful, details) => {
+                                        submitFeedback(
+                                          message.id,
+                                          helpful,
+                                          details,
+                                          index
+                                        );
+                                      }}
+                                      feedback={
+                                        index < chatlog.length - 1 ||
+                                        (!loading &&
+                                          index === chatlog.length - 1)
+                                      }
+                                      generating={
+                                        loading && index === chatlog.length - 1
+                                      }
+                                    />
+                                  )}
+                                </>
+                              );
+                            })}
+                          </>
+                        )}
+
                         {loading && <LoadingAnimation />}
                       </>
                     )}

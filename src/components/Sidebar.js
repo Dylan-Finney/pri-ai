@@ -1,4 +1,4 @@
-import { Box, Input, Text } from "@chakra-ui/react";
+import { Box, Input, Skeleton, SkeletonText, Text } from "@chakra-ui/react";
 import { useState } from "react";
 import ThreadGroupDivider from "./Sidebar/ThreadGroupDivider";
 import ThreadGroupTitle from "./Sidebar/ThreadGroupTitle";
@@ -8,6 +8,10 @@ import LogoHeader from "./Sidebar/LogoHeader";
 import SearchThreadsInput from "./Sidebar/SearchThreadsInput";
 import UserCorner from "./Sidebar/UserCorner";
 import sections from "@/utils/sections";
+
+const SkeletonThread = () => {
+  return <SkeletonText skeletonHeight={"6"} noOfLines={1} mb={3} />;
+};
 
 export default function Sidebar(props) {
   const [searchValue, setSearchValue] = useState("");
@@ -67,76 +71,91 @@ export default function Sidebar(props) {
               }}
             />
             <Box flex={1} overflowY={"scroll"}>
-              {conversations
-                .sort((a, b) => b.lastMessage - a.lastMessage)
-                .filter((convo) =>
-                  convo.title.toLowerCase().includes(searchValue.toLowerCase())
-                )
-                .map((conversation, index) => {
-                  const start = index === 0;
+              {props.initializing === true ? (
+                <>
+                  {Array.from({ length: 30 }, (_, index) => (
+                    <SkeletonThread />
+                  ))}
+                </>
+              ) : (
+                <>
+                  {conversations
+                    .sort((a, b) => b.lastMessage - a.lastMessage)
+                    .filter((convo) =>
+                      convo.title
+                        .toLowerCase()
+                        .includes(searchValue.toLowerCase())
+                    )
+                    .map((conversation, index) => {
+                      const start = index === 0;
 
-                  const grouping = (date) => {
-                    const now = new Date();
-                    const today = new Date(
-                      now.getFullYear(),
-                      now.getMonth(),
-                      now.getDate()
-                    );
-                    const thisWeek = new Date(
-                      now.getFullYear(),
-                      now.getMonth(),
-                      now.getDate() - now.getDay()
-                    );
-                    const lastWeek = new Date(
-                      thisWeek.getFullYear(),
-                      thisWeek.getMonth(),
-                      thisWeek.getDate() - 7
-                    );
-                    const thisMonth = new Date(
-                      now.getFullYear(),
-                      now.getMonth(),
-                      1
-                    );
-                    if (date >= today) {
-                      return groupsEnum.TODAY;
-                    } else if (date >= thisWeek) {
-                      return groupsEnum.THIS_WEEK;
-                    } else if (date >= lastWeek) {
-                      return groupsEnum.LAST_WEEK;
-                    } else if (date >= thisMonth) {
-                      return groupsEnum.THIS_MONTH;
-                    } else {
-                      return groupsEnum.OLDER;
-                    }
-                  };
-                  const group = grouping(conversation.lastMessage);
-                  const lastGroup =
-                    !start && grouping(conversations[index - 1].lastMessage);
+                      const grouping = (date) => {
+                        const now = new Date();
+                        const today = new Date(
+                          now.getFullYear(),
+                          now.getMonth(),
+                          now.getDate()
+                        );
+                        const thisWeek = new Date(
+                          now.getFullYear(),
+                          now.getMonth(),
+                          now.getDate() - now.getDay()
+                        );
+                        const lastWeek = new Date(
+                          thisWeek.getFullYear(),
+                          thisWeek.getMonth(),
+                          thisWeek.getDate() - 7
+                        );
+                        const thisMonth = new Date(
+                          now.getFullYear(),
+                          now.getMonth(),
+                          1
+                        );
+                        if (date >= today) {
+                          return groupsEnum.TODAY;
+                        } else if (date >= thisWeek) {
+                          return groupsEnum.THIS_WEEK;
+                        } else if (date >= lastWeek) {
+                          return groupsEnum.LAST_WEEK;
+                        } else if (date >= thisMonth) {
+                          return groupsEnum.THIS_MONTH;
+                        } else {
+                          return groupsEnum.OLDER;
+                        }
+                      };
+                      const group = grouping(conversation.lastMessage);
+                      const lastGroup =
+                        !start &&
+                        grouping(conversations[index - 1].lastMessage);
 
-                  const lastThread = index === conversations.length - 1;
-                  const startOfNewGroup = !start && group !== lastGroup;
-                  const displayGroupTitle = start || group !== lastGroup;
-                  const active = props.activeConvo === conversation.id;
+                      const lastThread = index === conversations.length - 1;
+                      const startOfNewGroup = !start && group !== lastGroup;
+                      const displayGroupTitle = start || group !== lastGroup;
+                      const active = props.activeConvo === conversation.id;
 
-                  return (
-                    <>
-                      {startOfNewGroup && <ThreadGroupDivider />}
-                      {displayGroupTitle && (
-                        <ThreadGroupTitle title={groupsEnumToString[group]} />
-                      )}
-                      <Thread
-                        onClick={() => {
-                          if (!props.disabledClick && !active) {
-                            props.changeSection(sections.CHAT);
-                            props.changeConversation(conversation.id);
-                          }
-                        }}
-                        active={active}
-                        title={conversation.title}
-                      />
-                    </>
-                  );
-                })}
+                      return (
+                        <>
+                          {startOfNewGroup && <ThreadGroupDivider />}
+                          {displayGroupTitle && (
+                            <ThreadGroupTitle
+                              title={groupsEnumToString[group]}
+                            />
+                          )}
+                          <Thread
+                            onClick={() => {
+                              if (!props.disabledClick && !active) {
+                                props.changeSection(sections.CHAT);
+                                props.changeConversation(conversation.id);
+                              }
+                            }}
+                            active={active}
+                            title={conversation.title}
+                          />
+                        </>
+                      );
+                    })}
+                </>
+              )}
             </Box>
           </>
         )}

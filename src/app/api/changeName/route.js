@@ -55,6 +55,7 @@ export async function POST(req) {
               // });
               // setConversations(threads);
             }
+            resolve(200);
           }
         );
       });

@@ -9,6 +9,8 @@ import {
   Flex,
   IconButton,
   Input,
+  SkeletonCircle,
+  SkeletonText,
   Spacer,
   Text,
   useEditableControls,
@@ -37,6 +39,7 @@ const Header = ({
   clearChat,
   onSharingOpen,
   userID,
+  initializing,
 }) => {
   const [customAIName, setCustomAIName] = useState(aIName || "");
 
@@ -91,73 +94,94 @@ const Header = ({
           <></>
         ) : (
           <>
-            <div
-              style={{
-                flex: "none",
-                order: "0",
-                flexGrow: "0",
-                position: "relative",
-              }}
-            >
-              <Box style={{ width: "40px", height: "40px" }}>
-                <NextImage
-                  src={`/assets/avatar/${selectedAvatar}`}
-                  alt="Avatar"
-                  width={100}
-                  height={100}
+            {initializing === true ? (
+              <>
+                <SkeletonCircle width={"40px"} height={"40px"} />
+                <SkeletonText
+                  skeletonHeight={"8"}
+                  noOfLines={1}
+                  maxWidth={"30%"}
+                  minWidth={"20%"}
+                  marginLeft={"0.5rem"}
+                  transitionDelay={20}
+                  marginRight={"0.5rem"}
                 />
-              </Box>
-              <div
-                style={{
-                  background: "#12B76A",
-                  border: "2.5px solid #FFFFFF",
-                  borderRadius: "10px",
-                  width: "15px",
-                  height: "15px",
-                  position: "absolute",
-                  right: "0px",
-                  bottom: "0px",
-                }}
-              />
-            </div>
-            <Editable
-              textAlign="center"
-              alignItems="center"
-              display={"flex"}
-              flexDirection={"row"}
-              defaultValue={aIName}
-              // value={aIName || ""}
+              </>
+            ) : (
+              <>
+                <div
+                  style={{
+                    flex: "none",
+                    order: "0",
+                    flexGrow: "0",
+                    position: "relative",
+                  }}
+                >
+                  <Box style={{ width: "40px", height: "40px" }}>
+                    <NextImage
+                      src={`/assets/avatar/${selectedAvatar}`}
+                      alt="Avatar"
+                      width={100}
+                      height={100}
+                    />
+                  </Box>
+                  <div
+                    style={{
+                      background: "#12B76A",
+                      border: "2.5px solid #FFFFFF",
+                      borderRadius: "10px",
+                      width: "15px",
+                      height: "15px",
+                      position: "absolute",
+                      right: "0px",
+                      bottom: "0px",
+                    }}
+                  />
+                </div>
+                <Editable
+                  textAlign="center"
+                  alignItems="center"
+                  display={"flex"}
+                  flexDirection={"row"}
+                  defaultValue={aIName}
+                  // value={aIName || ""}
 
-              onSubmit={async (newValue) => {
-                setAIName(newValue);
-                try {
-                  await getCurrentUser();
-                  axios({
-                    method: "POST",
-                    url: "/api/changeName",
-                    data: { newName: newValue },
-                  });
-                } catch (e) {}
-              }}
-              as={"b"}
-              marginLeft={"0.5rem"}
-              marginRight={"0.5rem"}
-              isPreviewFocusable={false}
-              submitOnBlur={false}
-              onChange={(nextValue) => {
-                setCustomAIName(nextValue);
-              }}
-              value={customAIName}
-            >
-              <EditablePreview width={"fit-content"} marginRight={"0.5rem"} />
-              {/* Here is the custom input */}
-              <Input
-                as={EditableInput}
-                width={"fit-content"}
-                marginRight={"0.5rem"}
-              />
-              <EditableControls />
-            </Editable>
+                  onSubmit={async (newValue) => {
+                    setAIName(newValue);
+                    try {
+                      await getCurrentUser();
+                      axios({
+                        method: "POST",
+                        url: "/api/changeName",
+                        data: { newName: newValue },
+                      });
+                    } catch (e) {}
+                  }}
+                  as={"b"}
+                  marginLeft={"0.5rem"}
+                  marginRight={"0.5rem"}
+                  isPreviewFocusable={false}
+                  submitOnBlur={false}
+                  onChange={(nextValue) => {
+                    setCustomAIName(nextValue);
+                  }}
+                  value={customAIName}
+                >
+                  <EditablePreview
+                    width={"fit-content"}
+                    marginRight={"0.5rem"}
+                  />
+                  {/* Here is the custom input */}
+                  <Input
+                    as={EditableInput}
+                    width={"fit-content"}
+                    marginRight={"0.5rem"}
+                  />
+                  <EditableControls />
+                </Editable>
+              </>
+            )}
+
             {/* <Text as="b" borderRadius={"25px"} paddingLeft={"1rem"} paddingRight={"1rem"} height={"fit-content"} paddingBottom={"0rem"} color={"#027948"} backgroundColor={"#ecfdf3"}><span style={{height: "5px",  width: "5px","background-color": "#12b76a","border-radius": "50%", display: "inline-block", marginBottom: "3px"}}/> Online</Text> */}
           </>
         )}
