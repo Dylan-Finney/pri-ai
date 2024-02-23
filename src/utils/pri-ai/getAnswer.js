@@ -230,7 +230,7 @@ const makeRequest = async (requestOptions, url) => {
   try {
     //requestResponse = await fetchWithTimeout(`${url}/generate`, requestOptions);
     requestResponse = await fetchWithTimeout(
-      `${NEXT_PUBLIC_MIDDLEWARE_API_URL}generate`,
+      `${process.env.NEXT_PUBLIC_MIDDLEWARE_API_URL}generate`,
       requestOptions
     );
   } catch (err) {

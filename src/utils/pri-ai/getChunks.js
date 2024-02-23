@@ -39,7 +39,7 @@ export const getData = async (
       debug: debugOption,
     };
     response = await fetchWithTimeout(
-      `${NEXT_PUBLIC_MIDDLEWARE_API_URL}detect`,
+      `${process.env.NEXT_PUBLIC_MIDDLEWARE_API_URL}detect`,
       {
         method: "POST",
         timeout: 10000,
@@ -114,9 +114,9 @@ export const getData = async (
     };
 
     //  console.log(requestBody);
-    //requestResponse = await fetch(`${NEXT_PUBLIC_MIDDLEWARE_API_URL}get-chunks`, requestOptions);
+    //requestResponse = await fetch(`${process.env.NEXT_PUBLIC_MIDDLEWARE_API_URL}get-chunks`, requestOptions);
     requestResponse = await fetchWithTimeout(
-      `${NEXT_PUBLIC_MIDDLEWARE_API_URL}get-chunks`,
+      `${process.env.NEXT_PUBLIC_MIDDLEWARE_API_URL}get-chunks`,
       {
         method: "POST",
         timeout: 15000,
