@@ -1,0 +1,1 @@
+const fullCallRegex = /@(\w+)\[(\d+)\]/;

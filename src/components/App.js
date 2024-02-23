@@ -1,5 +1,7 @@
 "use client";
 /* eslint-disable react/no-unescaped-entities */
+import "@/styles/App.module.css";
+import axios from "axios";
 import {
   createContext,
   useEffect,
@@ -7,24 +9,45 @@ import {
   useRef,
   useState,
 } from "react";
-import axios from "axios";
-import "@/styles/App.module.css";
-import NextImage from "next/image";
-import { TbSend } from "react-icons/tb";
-import { RiLoginCircleLine } from "react-icons/ri";
-import { HiMicrophone, HiStop } from "react-icons/hi";
 const {
   DynamoDBClient,
   ListTablesCommand,
 } = require("@aws-sdk/client-dynamodb");
-import getConfig from "next/config";
 
-import Sidebar from "./Sidebar";
 import About from "./About";
-import ChatResponse from "./ChatResponse";
 import ChatPrompt from "./ChatPrompt";
+import ChatResponse from "./ChatResponse";
+import Sidebar from "./Sidebar";
 
+import { useVectorStore } from "@/store/zustand";
+import { generateUniqueId } from "@/utils";
+import { agentsDemo2, agentsProd2 } from "@/utils/agents";
+import { apps, avatars } from "@/utils/constants";
+import { enqueueAudioFile } from "@/utils/enqueueAudioFile";
+import {
+  aiAnswer,
+  getHistory,
+  updateUsedTokens,
+} from "@/utils/pri-ai/getAnswer";
+import { getData } from "@/utils/pri-ai/getChunks";
+import { handleIndex } from "@/utils/pri-ai/handleIndex";
+import sections from "@/utils/sections";
+import { streamIn } from "@/utils/streamIn";
+import { createStandaloneToast } from "@chakra-ui/toast";
+import { getCurrentUser } from "aws-amplify/auth";
+import { v4 as uuidv4 } from "uuid";
+import { useShallow } from "zustand/react/shallow";
+import AgentsDrawer from "./AgentsDrawer/AgentsDrawer";
+import { Chatlog } from "./Chatlog";
+import Header from "./Header";
+import LoadingAnimation from "./LoadingAnimation";
+import LoginModal from "./LogInModal";
 import OnboardingModal from "./Onboarding/OnboardingModal";
+import OnboardingPlaceholder from "./Onboarding/OnboardingPlaceholder";
+import PromptInput from "./PromptInput";
+import { Sharing } from "./Sharing";
+import { Container, errorToasts } from "./Toast";
+import UploadModal from "./UploadModal/UploadModal";
 
 // const { serverRuntimeConfig } = getConfig();
 // console.log({ serverRuntimeConfig });
@@ -43,25 +66,11 @@ const {
   DrawerCloseButton,
   Skeleton,
 } = require("@chakra-ui/react");
-import { createStandaloneToast } from "@chakra-ui/toast";
-import { Container, errorToasts } from "./Toast";
-import { Chatlog } from "./Chatlog";
-import { Sharing } from "./Sharing";
-import LoginModal from "./LogInModal";
-import { getCurrentUser } from "aws-amplify/auth";
-import { enqueueAudioFile } from "@/utils/enqueueAudioFile";
-import sections from "@/utils/sections";
-import { streamIn } from "@/utils/streamIn";
-import { apps, avatars } from "@/utils/constants";
-import LoadingAnimation from "./LoadingAnimation";
-import Header from "./Header";
-import { v4 as uuidv4 } from "uuid";
-import OnboardingPlaceholder from "./Onboarding/OnboardingPlaceholder";
-import PromptInput from "./PromptInput";
 export const Context = createContext();
 
 export const AppContext = createContext();
 export const UserContext = createContext();
+
 // var AWS = require("aws-sdk");
 // AWS.config.update({
 //   region: process.env.AWS_REGION,
@@ -70,6 +79,369 @@ export const UserContext = createContext();
 // });
 
 function App() {
+  const EVALS = {
+    appStorage: "prifina-expert",
+    defaultScoreLimit: 0.2,
+    contentLng: "en",
+  };
+  let sessionID = "";
+  let url = "http://localhost:3000/api/";
+  const languageRef = useRef("en");
+  const debugOption = false;
+  const indexOption = "dylan-test2";
+  const lastGoodAnswer = useRef({});
+  const functionContent = useRef();
+  const currentTopic = useRef("topic-0");
+  const topicList = useRef(["topic-0"]);
+  const models = useRef({
+    "gpt-3.5-turbo": 3000,
+    "gpt-3.5-turbo-1106": 15000,
+  });
+  const defaultModel = useRef("gpt-3.5-turbo-1106");
+  const summary = useRef("");
+  const currentIndex = useRef(indexOption);
+  let defaultScoreLimit = EVALS.defaultScoreLimit;
+  const { getLastItem, getItems, insert, semanticSearch } = useVectorStore(
+    useShallow((state) => ({
+      getLastItem: state.getLastItem,
+      getItems: state.getItems,
+      insert: state.insert,
+      semanticSearch: state.semanticSearch,
+    }))
+  );
+
+  const scoreLimit = useRef(defaultScoreLimit);
+
+  // const demoMode = {
+  //   PRIAI: 0,
+  //   GPT: 1,
+  // };
+
+  const [demoMode, setDemoMode] = useState(true);
+
+  if (typeof window !== "undefined") {
+    //console.log("WINDOW ", window.location.origin);
+    // url = window.location.origin + (window.location.port === "" ? "" : ":" + window.location.port) + "/api/v1";
+    url = window.location.origin + "/api";
+    // Perform localStorage action
+
+    const wisdomStorage = localStorage.getItem(EVALS.appStorage);
+    let wisdom = {};
+    if (wisdomStorage !== null) {
+      wisdom = JSON.parse(wisdomStorage);
+    }
+
+    if (wisdom?.session === undefined) {
+      sessionID = generateUniqueId();
+      wisdom["session"] = sessionID;
+      localStorage.setItem(EVALS.appStorage, JSON.stringify(wisdom));
+    }
+    sessionID = wisdom.session;
+  }
+
+  const getAnswer = async (
+    chunks,
+    scores,
+    followUp,
+    aggregate,
+    newInput,
+    entryType,
+    langCode,
+    tokens,
+    contentInput = "",
+    prompt,
+    indexQuery
+  ) => {
+    try {
+      console.log("BEGIN getAnswer INSIDE");
+      let entry = prompt.entry.trim();
+      if (entry === "") {
+        return;
+      }
+      if (entryType === 1 && !entry.endsWith("?")) {
+        entry += "?";
+      }
+      if (entryType === -1 && !entry.endsWith(".") && !entry.endsWith("!")) {
+        entry += ".";
+      }
+      // const chatId = uniqueId.current;
+      let followUpUpdate = followUp;
+      // history content....
+      // const lastEntry = getLastItem();
+      const lastEntry = lastGoodAnswer.current;
+      console.log("BEGIN QUERY");
+      const queryResult = await semanticSearch({
+        text: entry,
+        score: 0.3,
+        topK: 5,
+      });
+      console.log("QUERY RESULT ", queryResult);
+      let historyContent = [];
+      if (queryResult.length > 0) {
+        const sessionItems = getItems();
+
+        currentTopic.current = queryResult[0].item.metadata.topic;
+        const maxTokens = models.current[defaultModel.current];
+        if (tokens < maxTokens - 2000) {
+          historyContent = getHistory(
+            tokens,
+            maxTokens - 1000,
+            queryResult,
+            sessionItems,
+            currentTopic.current
+          );
+        }
+      } else {
+        const topic = `topic-${topicList.current.length}`;
+        topicList.current.push(topic);
+        currentTopic.current = topic;
+        if (!lastGoodAnswer.current.followUp) {
+          followUpUpdate = false;
+        }
+      }
+      const results = await aiAnswer({
+        url,
+        lastEntry,
+        aggregate,
+        followUp: followUpUpdate,
+        statement: entry,
+        llm: defaultModel.current,
+        history: historyContent,
+        chunks,
+        summary: summary.current,
+        chatId: generateUniqueId(),
+        currentIndex: indexQuery,
+        session: sessionID,
+      });
+
+      if (results?.error) {
+        errorToasts({ error: results.error.message || results.error.name });
+        console.error(results?.error);
+        return;
+      }
+
+      console.log("GET ANSWER END RESULTS  ", results);
+      // const msgIndex = messageList.length - 1;
+
+      // answer has html tags like this <br/>
+      const responseReceivedTime = Date.now();
+      const cleanedAnswer = results.answer
+        .replace(/<br\/>/g, "\n")
+        .replace(/<\/?[^>]+(>|$)/g, " ")
+        .trim();
+
+      const avgScore =
+        scores.reduce((total, score) => total + score, 0) / scores.length || 0;
+      // const formattedScore = avgScore > 0 ? avgScore.toFixed(2) : avgScore;
+
+      if (avgScore >= scoreLimit.current + 0.1) {
+        //0.3
+        lastGoodAnswer.current = {
+          answer: cleanedAnswer,
+          aggregate,
+          statement: entry,
+          followUp: followUpUpdate,
+          entryType,
+        };
+      } else {
+        lastGoodAnswer.current = {};
+      }
+      setChatlog(
+        [].concat(chatlog, [
+          {
+            message: prompt.entry,
+            time: prompt.promptSent,
+            speaker: "User",
+          },
+          {
+            message: cleanedAnswer,
+            time: responseReceivedTime,
+            speaker: "PriAI",
+          },
+        ])
+      );
+
+      updateUsedTokens({
+        url,
+        finish_reason: results.finish_reason,
+        currentIndex: indexQuery,
+        llm: defaultModel.current,
+        statement: entry,
+        session: sessionID,
+        answer: results.answer,
+        score: avgScore,
+        tokens: results.tokens,
+      }).then((updateRes) => {
+        //console.log("UPDATE USED TOKENS IN VECTOR ", updateRes);
+        //console.log("UPDATE USED TOKENS IN VECTOR ", updateRes.response);
+        console.log("UPDATE USED TOKENS IN VECTOR ", updateRes.tokens);
+
+        // add Q/A into vector
+        insert({
+          text: `${entry} ${cleanedAnswer}`,
+          metadata: {
+            entry,
+            answer: cleanedAnswer,
+            tokens: updateRes.tokens,
+            topic: currentTopic.current,
+          },
+        });
+      });
+
+      if (conversationID === -1) {
+        await saveConversation({
+          prompt: prompt.entry,
+          answer: cleanedAnswer,
+          promptSent: prompt.promptSent,
+          responseReceivedTime,
+        });
+      } else {
+        await appendConversation({
+          prompt: prompt.entry,
+          answer: cleanedAnswer,
+          promptSent: prompt.promptSent,
+          responseReceivedTime,
+        });
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const getAgent = (entry) => {
+    var regexAgent = entry.match(/@\[(\w+)\]\((\d+)\)/);
+    const agents = demoMode ? agentsDemo2 : agentsProd2;
+    if (regexAgent === null) {
+      const regexAllPossAgents = entry.match(/@(\w+)/g);
+      console.log(regexAllPossAgents);
+      if (regexAllPossAgents !== null) {
+        for (var i = 0; i <= regexAllPossAgents.length - 1; i++) {
+          const agentIndex = agents.findIndex(
+            (e) => e.call === regexAllPossAgents[i].substring(1)
+          );
+          if (agentIndex > -1) {
+            regexAgent = [, regexAllPossAgents[i].substring(1), agentIndex];
+            break;
+          }
+        }
+      }
+    }
+    return regexAgent;
+  };
+
+  const setNewIndex = (entry) => {
+    var indexQuery = indexOption;
+    var usedAgent = {
+      index: -1,
+      call: "",
+    };
+    const regexAgent = getAgent(entry);
+    if (
+      regexAgent !== null &&
+      agentsProd2[regexAgent[2]].call === regexAgent[1]
+    ) {
+      usedAgent = {
+        index: regexAgent[2],
+        call: regexAgent[1],
+      };
+      indexQuery = handleIndex(agentsProd2[regexAgent[2]].index, userID);
+    } else {
+      indexQuery = `user_index_${userID}`;
+    }
+    return {
+      indexQuery,
+      usedAgent,
+    };
+  };
+
+  const clearPromptOfMentionsData = (prompt) => {
+    return prompt.replace(/@\[([^\]]+)\]\(\d+\)/g, "@$1");
+  };
+
+  const getChunks = async (entry) => {
+    setLoading(true);
+    console.log("GET CHUNKS ", sessionID, url, debugOption, indexOption, entry);
+    var promptSent = Date.now();
+    const { indexQuery, usedAgent } = setNewIndex(entry);
+
+    entry = clearPromptOfMentionsData(entry);
+
+    setChatlog(
+      [].concat(chatlog, {
+        message: entry,
+        time: promptSent,
+        speaker: "User",
+      })
+    );
+
+    const {
+      error: dataError,
+      chunks,
+      scores,
+      functions,
+      confidence,
+      tokens,
+      searchAggregation,
+      followUp,
+      entryType,
+      langCode,
+      newInput,
+    } = await getData(
+      entry,
+      lastGoodAnswer.current,
+      {
+        sessionID,
+        scoreLimit: scoreLimit.current,
+        contentLng: EVALS.contentLng,
+      },
+      indexQuery,
+      debugOption
+    );
+
+    console.log({
+      dataError,
+      chunks,
+      scores,
+      functions,
+      confidence,
+      tokens,
+      searchAggregation,
+      followUp,
+      entryType,
+      langCode,
+      newInput,
+    });
+    if (dataError) {
+      errorToasts({ error: dataError.message || dataError.name });
+      console.error(dataError.name || dataError.message, dataError.cause.info);
+      return;
+    }
+
+    console.log("FINAL CHUNKS ", chunks, confidence);
+    console.log("BEGIN GET ANSWER ");
+
+    await getAnswer(
+      chunks,
+      scores,
+      followUp,
+      searchAggregation,
+      newInput,
+      entryType,
+      langCode,
+      tokens,
+      "",
+      {
+        promptSent,
+        entry,
+      },
+      indexQuery
+    );
+    console.log("END GET ANSWER ");
+    setLoading(false);
+  };
+
+  const [indexToUpload, setIndexToUpload] = useState("");
+
   //Speech Recongition
   const [loggedIn, setLoggedIn] = useState(false);
   const [details, setDetails] = useState({
@@ -80,16 +452,17 @@ function App() {
     email: null,
   });
   const [onboarding, setOnboarding] = useState(true);
-  const [initializing, setInitializing] = useState(false);
+  const [initializing, setInitializing] = useState(true);
 
   useEffect(() => {
     const checkIfLoggedIn = async () => {
       try {
         if (!loggedIn) {
+          setInitializing(true);
           var user = await getCurrentUser();
           // console.log({ user });
           setLoggedIn(true);
-          setInitializing(true);
+          setDemoMode(false);
           setDetails({
             ...details,
             name: user.username,
@@ -110,12 +483,14 @@ function App() {
           setConversations(response.data.threads);
           setSelectedAvatar(response.data.avatar);
           setAIName(response.data.name);
-          setInitializing(false);
+
           initalMessage();
         }
       } catch (e) {
         console.error(e);
+        setDemoMode(true);
       }
+      setInitializing(false);
     };
     checkIfLoggedIn();
   }, [onboarding]);
@@ -128,14 +503,13 @@ function App() {
   const audioCtx = useRef(null);
   const [mute, setMute] = useState(false);
 
-  const [prompt, setPrompt] = useState("");
   const welcomeMessageText = `👋 Welcome to PriAI's demo mode by Prifina!
 Demo mode is designed to simulate having access to all of your personal data and information available in your private data cloud, along with data from various common applications and services typically used by consumers. This includes your emails, social media accounts, wearables, calendar, smart home devices, and other public data sources. By combining these sources, we're able to provide you with the best possible answers.
 The full details on the abilities of Pri-AI can be found here in the help sheet. Keep in mind, demo mode does not have access to any of your data the real mode may have, nor any data not explicitly told. 
 
 🤝 I am your Personal Assistant. Think of me as your very own personal AI-powered butler, available 24/7 to assist you. If you are unsure how to use me, ask me how can I help you.`;
   const [loading, setLoading] = useState(false);
-  const [audio, setAudio] = useState(null);
+  const [scrollToAgent, setScrollToAgent] = useState(undefined);
   const { ToastContainer, toast } = createStandaloneToast();
 
   useEffect(() => {
@@ -153,7 +527,6 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
 
   const clearChat = () => {
     setChatlog([]);
-    setPrompt("");
     sourceNodes.map((sourceNode) => {
       sourceNode.disconnect(audioCtx.current.destination);
     });
@@ -163,13 +536,10 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
 
   useEffect(() => {
     if (mute) {
-      if (audio !== null) [(audio.muted = true)];
       sourceNodes.map((sourceNode) => {
         sourceNode.disconnect(audioCtx.current.destination);
       });
       sourceNodes.length = 0;
-    } else {
-      if (audio !== null) [(audio.muted = false)];
     }
   }, [mute]);
   const {
@@ -193,24 +563,32 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
     onClose: onSharingClose,
   } = useDisclosure();
 
+  const {
+    isOpen: isDrawerOpen,
+    onOpen: onDrawerOpen,
+    onClose: onDrawerClose,
+  } = useDisclosure();
+
+  const {
+    isOpen: isUploadOpen,
+    onOpen: onUploadOpen,
+    onClose: onUploadClose,
+  } = useDisclosure();
+
   //Example exchange {id: "clfb3uecq3npo0bmrzk3mx114", prompt: {text: "Test Prompt", time: 1679068112}, response: {text: "Test Response", time: 1679068112, helpful: null}}
   const [chatlog, setChatlog] = useState([]);
   const [userID, setUserID] = useState("");
   const [saving, setSaving] = useState(false);
   const [section, setSection] = useState("chat");
-  const [shiftDown, setShiftDown] = useState(false);
   const [fetchingConversation, setFetchingConversation] = useState(false);
   const [selectedAvatar, setSelectedAvatar] = useState(null);
   const [showWelcomeMessage, setShowWelcomeMessage] = useState(false);
-  const [showWelcomeOneMoreMessage, setShowWelcomeOneMoreMessage] =
-    useState(false);
   const [aIName, setAIName] = useState(null);
   const [chosenApps, setChosenApps] = useState([]);
   const [questionsUsed, setQuestionsUsed] = useState(0);
   const [loginTime, setLoginTime] = useState(Date.now());
   const [isLargerThanMD] = useMediaQuery("(min-width: 48em)");
-  const date4 = new Date(Date.now());
-  date4.setDate(date4.getDate() - 8);
+
   const [conversations, setConversations] = useState([]);
 
   const [conversationIndex, setConversationIndex] = useState(-1);
@@ -354,8 +732,6 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
     );
   };
 
-  const storeConversation = () => {};
-
   const fetchAnswers = async (prompt, promptSent) => {
     const fetchPromises = [];
     fetchPromises[0] = fetch(loggedIn ? "/api/chatFull" : "/api/chatDemo", {
@@ -374,6 +750,7 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
         },
         chatlog: chatlog,
         prompt: prompt,
+        agent: getAgent(prompt),
       }),
     });
     fetchPromises[1] = axios({
@@ -400,9 +777,11 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
     return { answer, responseReceivedTime };
   };
 
-  const getResponse = async (prompt) => {
+  const getResponse = async (promptOriginal) => {
     var promptSent = Date.now();
     setLoading(true);
+
+    const prompt = clearPromptOfMentionsData(promptOriginal);
     try {
       setChatlog(
         [].concat(chatlog, {
@@ -418,7 +797,6 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
       );
       // console.log("DONE");
       setQuestionsUsed(questionsUsed + 1);
-      setPrompt("");
       setSaving(true);
       if (conversationID === -1) {
         await saveConversation({
@@ -472,7 +850,6 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
       setSaving(false);
     } catch (e) {
       console.error("General getResponse Error", e);
-      setPrompt("");
       setLoading(false);
       errorToasts({ error: "Unable to get response" });
     }
@@ -530,6 +907,7 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
       setChatlog([]);
       setConversationIndex(newID);
       setConversationID(newID);
+      lastGoodAnswer.current = {};
     } else {
       if (loggedIn) {
         setChatlog([]);
@@ -544,12 +922,67 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
         setConversationID(newID);
         setChatlog(response.data.allMessages);
         setFetchingConversation(false);
+        console.log(response.data.allMessages);
+        var userMessageIndex = -1;
+        var aiMessageIndex = -1;
+        for (
+          var index = response.data.allMessages.length - 1;
+          (aiMessageIndex < 0 || userMessageIndex < 0) && index >= 0;
+          index--
+        ) {
+          if (response.data.allMessages[index].speaker === "User") {
+            userMessageIndex = index;
+          } else if (response.data.allMessages[index].speaker !== "User") {
+            aiMessageIndex = index;
+          }
+        }
+        lastGoodAnswer.current = {
+          answer:
+            aiMessageIndex >= 0
+              ? response.data.allMessages[aiMessageIndex].message
+              : "",
+          aggregate: false,
+          statement:
+            userMessageIndex >= 0
+              ? response.data.allMessages[userMessageIndex].message
+              : "",
+          followUp: false,
+          entryType: 1,
+        };
       } else {
         const newIndex = conversations.findIndex((convo) => convo.id === newID);
         if (newIndex > -1) {
           setChatlog(conversations[newIndex].chatlog);
           setConversationIndex(newID);
           setConversationID(newID);
+          var userMessageIndex = -1;
+          var aiMessageIndex = -1;
+          for (
+            var index = conversations[newIndex].chatlog.length - 1;
+            (aiMessageIndex < 0 || userMessageIndex < 0) && index >= 0;
+            index--
+          ) {
+            if (conversations[newIndex].chatlog[index].speaker === "User") {
+              userMessageIndex = index;
+            } else if (
+              conversations[newIndex].chatlog[index].speaker !== "User"
+            ) {
+              aiMessageIndex = index;
+            }
+          }
+          lastGoodAnswer.current = {
+            answer:
+              aiMessageIndex >= 0
+                ? response.data.allMessages[aiMessageIndex].message
+                : "",
+            aggregate: false,
+            statement:
+              userMessageIndex >= 0
+                ? response.data.allMessages[userMessageIndex].message
+                : "",
+            followUp: false,
+            entryType: 1,
+          };
         } else {
           console.error("Couldn't find index");
         }
@@ -560,7 +993,7 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
   useLayoutEffect(() => {
     var element = document.getElementById("chatlog");
     element.scrollTop = element.scrollHeight;
-  }, [chatlog, loading, showWelcomeMessage, showWelcomeOneMoreMessage]);
+  }, [chatlog, loading, showWelcomeMessage]);
   return (
     <>
       <div style={{ margin: "" }}>
@@ -596,7 +1029,9 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
                         avatars[Math.floor(Math.random() * avatars.length)]
                       );
                       initalMessage();
+                      setFetchingConversation(false);
                     }}
+                    initializing={initializing}
                   />
                 </AppContext.Provider>
               </UserContext.Provider>
@@ -682,6 +1117,10 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
               }}
             >
               <Header
+                mode={demoMode}
+                changeMode={() => {
+                  setDemoMode(!demoMode);
+                }}
                 selectedAvatar={selectedAvatar}
                 onboarding={onboarding}
                 aIName={aIName}
@@ -692,6 +1131,7 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
                 clearChat={clearChat}
                 onSharingOpen={onSharingOpen}
                 userID={userID}
+                loggedIn={loggedIn}
                 initializing={initializing}
               />
               {section === sections.ABOUT ? (
@@ -727,11 +1167,13 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
                             {Array.from({ length: 10 }, (_, index) => (
                               <>
                                 <Skeleton
+                                  key={index * 2}
                                   height={"100px"}
                                   mb={1}
                                   speed={0.85}
                                 />
                                 <Skeleton
+                                  key={index * 2 + 1}
                                   height={"100px"}
                                   speed={0.95}
                                   mb={1}
@@ -743,7 +1185,7 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
                           <>
                             {chatlog?.map((message, index) => {
                               return (
-                                <>
+                                <Box key={index}>
                                   {message.speaker === "User" ? (
                                     <ChatPrompt
                                       name={details.name}
@@ -775,7 +1217,7 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
                                       }
                                     />
                                   )}
-                                </>
+                                </Box>
                               );
                             })}
                           </>
@@ -788,6 +1230,7 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
 
                   <PromptInput
                     language={language}
+                    demoMode={demoMode}
                     sendDisabled={
                       loading ||
                       onboarding ||
@@ -795,13 +1238,42 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
                       fetchingConversation
                     }
                     voiceDisabled={!voiceInputEnabled}
-                    setPrompt={(temp) => {
-                      setPrompt(temp);
-                    }}
                     send={async (prompt) => {
-                      await getResponse(prompt);
+                      if (demoMode === true) {
+                        await getResponse(prompt);
+                      } else {
+                        await getChunks(prompt.trim());
+                      }
+
+                      //
                     }}
                     saving={saving}
+                    openDrawer={(index = undefined) => {
+                      setScrollToAgent(index);
+                      onDrawerOpen();
+                    }}
+                  />
+                  <AgentsDrawer
+                    demoMode={demoMode}
+                    onClose={onDrawerClose}
+                    isOpen={isDrawerOpen}
+                    scrollToAgent={scrollToAgent}
+                    onLogInOpen={onLogInOpen}
+                    openUploadModal={(index) => {
+                      setIndexToUpload(index);
+                      onUploadOpen();
+                    }}
+                    setIndexToUpload={setIndexToUpload}
+                  />
+                  <UploadModal
+                    isOpen={isUploadOpen}
+                    onClose={() => {
+                      setIndexToUpload("");
+                      onUploadClose();
+                    }}
+                    onOpen={onUploadOpen}
+                    userID={userID}
+                    index={indexToUpload}
                   />
                   {/* </Flex> */}
                 </>

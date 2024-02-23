@@ -40,6 +40,9 @@ const Header = ({
   onSharingOpen,
   userID,
   initializing,
+  mode,
+  changeMode,
+  loggedIn = false,
 }) => {
   const [customAIName, setCustomAIName] = useState(aIName || "");
 
@@ -188,6 +191,20 @@ const Header = ({
         {/* <Text marginLeft={"0.5rem"} as='b'>{aIName}</Text><TbEdit size="1.5em"style={{ display: 'inline-block' }}/> */}
 
         <Spacer />
+        {loggedIn && (
+          <Button
+            marginRight={"1rem"}
+            size="sm"
+            backgroundColor={"#f0fdf9"}
+            color={"#107569"}
+            onClick={() => {
+              changeMode();
+            }}
+          >
+            {mode ? `GPT MODE` : `PRI AI MODE`}
+          </Button>
+        )}
+
         <Button
           marginRight={"1rem"}
           size="sm"

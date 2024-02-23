@@ -166,6 +166,9 @@ export async function POST(req) {
       return NextResponse.json({ statusText: "Auth Fail" }, { status: 400 });
     }
   } catch (e) {
-    return NextResponse.json({ statusText: "Auth Fail" }, { status: 400 });
+    return NextResponse.json(
+      { statusText: "Auth Fail or Error" },
+      { status: 400 }
+    );
   }
 }

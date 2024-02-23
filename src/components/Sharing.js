@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 
-import { Swiper, SwiperSlide } from "swiper/react";
-import { Navigation } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
+import { Navigation } from "swiper/modules";
+import { Swiper, SwiperSlide } from "swiper/react";
 import styles from "../styles/Sharing.module.css";
 import LinkCopy from "./Sharing/LinkCopy";
 import shareOptions from "./Sharing/ShareOptions";

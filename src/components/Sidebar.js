@@ -1,13 +1,13 @@
-import { Box, Input, Skeleton, SkeletonText, Text } from "@chakra-ui/react";
+import sections from "@/utils/sections";
+import { Box, SkeletonText } from "@chakra-ui/react";
 import { useState } from "react";
+import LogoHeader from "./Sidebar/LogoHeader";
+import NewChatButton from "./Sidebar/NewChatButton";
+import SearchThreadsInput from "./Sidebar/SearchThreadsInput";
+import Thread from "./Sidebar/Thread";
 import ThreadGroupDivider from "./Sidebar/ThreadGroupDivider";
 import ThreadGroupTitle from "./Sidebar/ThreadGroupTitle";
-import Thread from "./Sidebar/Thread";
-import NewChatButton from "./Sidebar/NewChatButton";
-import LogoHeader from "./Sidebar/LogoHeader";
-import SearchThreadsInput from "./Sidebar/SearchThreadsInput";
 import UserCorner from "./Sidebar/UserCorner";
-import sections from "@/utils/sections";
 
 const SkeletonThread = () => {
   return <SkeletonText skeletonHeight={"6"} noOfLines={1} mb={3} />;
@@ -74,7 +74,7 @@ export default function Sidebar(props) {
               {props.initializing === true ? (
                 <>
                   {Array.from({ length: 30 }, (_, index) => (
-                    <SkeletonThread />
+                    <SkeletonThread key={index} />
                   ))}
                 </>
               ) : (
@@ -134,7 +134,7 @@ export default function Sidebar(props) {
                       const active = props.activeConvo === conversation.id;
 
                       return (
-                        <>
+                        <Box key={index}>
                           {startOfNewGroup && <ThreadGroupDivider />}
                           {displayGroupTitle && (
                             <ThreadGroupTitle
@@ -151,7 +151,7 @@ export default function Sidebar(props) {
                             active={active}
                             title={conversation.title}
                           />
-                        </>
+                        </Box>
                       );
                     })}
                 </>

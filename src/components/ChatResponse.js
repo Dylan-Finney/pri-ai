@@ -1,25 +1,22 @@
 import {
-  Box,
-  Image,
-  Text,
   Button,
-  useDisclosure,
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalCloseButton,
   Flex,
+  Modal,
+  ModalCloseButton,
+  ModalContent,
+  ModalOverlay,
+  Text,
+  useDisclosure,
 } from "@chakra-ui/react";
-import { FiThumbsUp, FiThumbsDown } from "react-icons/fi";
+import { FiThumbsDown, FiThumbsUp } from "react-icons/fi";
 // import { ChatIcon } from "./ChatIcon";
-import { CgSlack } from "react-icons/cg";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import FeedbackInput from "./Message/Feedback/FeedbackInput";
+import FeedbackSection from "./Message/Feedback/FeedbackSection";
 import MessageContainer from "./Message/MessageContainer";
 import MessageHeader from "./Message/MessageHeader";
 import ResponseText from "./Message/ResponseText";
-import FeedbackSection from "./Message/Feedback/FeedbackSection";
-import FeedbackInput from "./Message/Feedback/FeedbackInput";
 
 export default function ChatResponse(props) {
   const {

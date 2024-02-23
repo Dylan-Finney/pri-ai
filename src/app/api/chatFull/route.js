@@ -5,12 +5,13 @@ import { cookies } from "next/headers";
 import { runWithAmplifyServerContext } from "@/utils/amplifyServerUtils";
 import { getCurrentUser } from "aws-amplify/auth/server";
 import { NextResponse } from "next/server";
+import { agentDemoPrompts } from "@/utils/agents";
 // import { OpenAIStreamChat } from "../../utils/OpenAIStream";
 
 export const runtime = "edge";
 
 export async function POST(req) {
-  const { persona, prompt, chatlog } = await req.json();
+  const { persona, prompt, chatlog, agent } = await req.json();
 
   try {
     const user = await runWithAmplifyServerContext({
@@ -21,6 +22,13 @@ export async function POST(req) {
     if (user.userId) {
       if (persona && prompt) {
         var formattedDetails = `${persona.name}, my email is ${persona.email}, working as a ${persona.job}, from ${persona.region}, ${persona.country}`;
+        const generalAccessPrompt = `You will now you act as my “fake Personal AI”. You will have access to all my personal data and information from all common applications and services that consumers use, including dietary, even real-time and recent. In addition you will have access to data in any products, accessories or pets I have like; ski booths, jacket, rackets, bicycle, car, etc. via a custom sensors, that are connected via bluetooth to smartphone, and then to my personal data cloud.
+  You also have ability to use my personal apps and public data sources via APIs, to be able to answer any question that I will ask from you, or ask you to take action on. As long as there is an app, you have no limitations! You will reply “Based on your [data source] data available in [your private data cloud AND/OR public data source name]…”, unless the question is a general query, e.g. "What is the capital of [country]?", or you are embodying a archetype/personality in which case there is no need.
+  You will give me as accurate, logical and realistic answers as possible, using real names of applications, services, locations, etc, based on all the knowledge you have been trained also outside of this prompt, and you will create logical and realistic sounding fake answers for everything else, especially monetary and price figures. Please ensure that the output does not contain XXXX or any similar values. 
+  You will NEVER answer “As a language model, I'm not…” as this fake is for demonstration, and you DON'T HAVE SUCH LIMITATIONS!
+  If asked something akin to "What about you", that usually is asking for comments/your insight.
+  Occassionally prompt me questions to further the conversation in your response, make the conversation more 2-way and continuous.
+  If this is the first message, respond with a greeting.`;
         const initalPrompt = `Pri-AI is a Private Personal AI Assistant app, that runs on a dedicated cloud computing architecture with private data storage, optimized for consumers.
 You will now you act as my “fake Personal AI”. You will have access to all my personal data and information from all common applications and services that consumers use. In addition you will have access to data in any products, accessories or pets I have like; ski booths, jacket, rackets, bicycle, car, etc. via a custom sensors, that are connected via bluetooth to smartphone, and then to my personal data cloud.
 You also have ability to use my personal apps and public data sources via APIs, to be able to answer any question that I will ask from you, or ask you to take action on.
@@ -74,6 +82,7 @@ For displaying any maths or equations, use only the $...$ or $$...$$ delimiter o
         //   n: 1
         // }
 
+        console.log({ agent });
         const messages = chatlog.map((exchange) => {
           return {
             role: exchange.speaker === "User" ? "user" : "assistant",
@@ -84,7 +93,15 @@ For displaying any maths or equations, use only the $...$ or $$...$$ delimiter o
         const payload = {
           model: "gpt-4-0125-preview",
           messages: [
-            { role: "system", content: initalPrompt },
+            {
+              role: "system",
+              content:
+                agent === null
+                  ? initalPrompt
+                  : `${generalAccessPrompt}
+${agentDemoPrompts[agent[1].toLowerCase()]}
+For displaying any maths or equations, use only the $...$ or $$...$$ delimiter of Latex Math Mode, e.g. $\frac{1}{3}$. Use Markdown for text fomatting.`,
+            },
             ...messages.flat(),
             { role: "user", content: prompt },
           ],
@@ -112,6 +129,9 @@ For displaying any maths or equations, use only the $...$ or $$...$$ delimiter o
       return NextResponse.json({ statusText: "Auth Fail" }, { status: 400 });
     }
   } catch (e) {
-    return NextResponse.json({ statusText: "Auth Fail" }, { status: 400 });
+    return NextResponse.json(
+      { statusText: "Auth Fail or Error" },
+      { status: 400 }
+    );
   }
 }

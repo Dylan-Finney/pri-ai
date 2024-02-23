@@ -13,6 +13,7 @@
     "@aws-amplify/adapter-nextjs": "^1.0.13",
     "@aws-sdk/client-dynamodb": "^3.501.0",
     "@aws-sdk/client-polly": "^3.501.0",
+    "@aws-sdk/client-s3": "^3.515.0",
     "@aws-sdk/credential-providers": "^3.501.0",
     "@aws-sdk/polly-request-presigner": "^3.501.0",
     "@chakra-ui/icons": "^2.1.1",
@@ -31,6 +32,7 @@
     "eventsource-parser": "^1.1.1",
     "framer-motion": "^11.0.3",
     "fuse.js": "^7.0.0",
+    "gpt-tokens": "^1.2.0",
     "next": "14.1.0",
     "openai": "^4.26.0",
     "openai-edge": "^1.2.2",
@@ -42,6 +44,7 @@
     "react-hook-form": "^7.49.3",
     "react-icons": "^5.0.1",
     "react-markdown": "^9.0.1",
+    "react-mentions": "^4.4.10",
     "react-qr-code": "^2.0.12",
     "react-share": "^5.0.3",
     "rehype-katex": "^7.0.0",
@@ -50,7 +53,8 @@
     "sharp": "^0.33.2",
     "swiper": "^11.0.5",
     "uuid": "^9.0.1",
-    "validator": "^13.11.0"
+    "validator": "^13.11.0",
+    "zustand": "^4.5.0"
   },
   "devDependencies": {
     "@svgr/webpack": "^8.1.0"

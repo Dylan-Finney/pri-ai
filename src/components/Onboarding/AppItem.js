@@ -1,17 +1,7 @@
-import {
-  AccordionItem,
-  AccordionButton,
-  Box,
-  Text,
-  AccordionIcon,
-  AccordionPanel,
-  SimpleGrid,
-  Tooltip,
-} from "@chakra-ui/react";
-import AppButton from "./AppButton";
+import { Box, SimpleGrid, Text } from "@chakra-ui/react";
+import { useState } from "react";
 import { getAppLogo } from "../utils";
-import { useContext, useState } from "react";
-import { AppContext } from "../App";
+import AppButton from "./AppButton";
 
 export default function AppItem(
   props = {
