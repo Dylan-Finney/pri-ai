@@ -15,53 +15,15 @@ import QRCode from "react-qr-code";
 const dataCloudIcon = "/assets/data-cloud.svg";
 const {
   Input,
-  useMediaQuery,
   Flex,
-  TagLabel,
-  Tag,
-  Textarea,
   Button,
-  useDisclosure,
   Modal,
   ModalOverlay,
   ModalContent,
-  ModalHeader,
   ModalCloseButton,
-  Icon,
   ModalBody,
-  Lorem,
-  ModalFooter,
-  Spinner,
   Text,
-  Spacer,
   Box,
-  SimpleGrid,
-  Tooltip,
-  Progress,
-  ChakraProvider,
-  Accordion,
-  AccordionItem,
-  AccordionButton,
-  AccordionIcon,
-  AccordionPanel,
-  UnorderedList,
-  ListItem,
-  Editable,
-  EditablePreview,
-  EditableInput,
-  useEditableControls,
-  ButtonGroup,
-  IconButton,
-  CheckboxIcon,
-  FormErrorMessage,
-  DrawerOverlay,
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerCloseButton,
-  Image,
-  FormControl,
-  InputGroup,
 } = require("@chakra-ui/react");
 
 const VerificationInput = ({ error, changeAuthCode }) => {
@@ -76,11 +38,27 @@ const VerificationInput = ({ error, changeAuthCode }) => {
   ];
 
   const handleChange = (index, value) => {
+    console.log({ value });
     const newInputValues = [...inputValues];
-    newInputValues[index] = value;
-    if (newInputValues[index].length < 2 && /^\d?$/.test(value)) {
+    // newInputValues[index] = value;
+    if (value.length < 2 && /^\d?$/.test(value)) {
+      newInputValues[index] = value;
       setInputValues(newInputValues);
       changeAuthCode(newInputValues.join(""));
+    } else if (value.length === 2 && /^\d+$/.test(value)) {
+      console.log("DO");
+      console.log(inputValues[index + 1]);
+      console.log(`${inputValues[index + 1]}${value}`.length === 1);
+      console.log(value.slice(-1));
+      if (
+        `${inputValues[index + 1]}${value.slice(1)}`.length === 1 &&
+        /^\d?$/.test(value.slice(-1))
+      ) {
+        newInputValues[index + 1] = value.slice(-1);
+        inputRefs[index + 1].current.focus();
+        setInputValues(newInputValues);
+        changeAuthCode(newInputValues.join(""));
+      }
     }
 
     if (value.length === 1 && index < inputRefs.length - 1) {
@@ -99,8 +77,21 @@ const VerificationInput = ({ error, changeAuthCode }) => {
             key={index}
             ref={inputRefs[index]}
             inputMode="numeric"
-            maxLength={1}
+            maxLength={2}
             value={value}
+            onKeyDown={(event) => {
+              if (
+                event.key === "Backspace" &&
+                inputValues[index] === "" &&
+                index > 0
+              ) {
+                const newInputValues = [...inputValues];
+                newInputValues[index - 1] = "";
+                setInputValues(newInputValues);
+                changeAuthCode(newInputValues.join(""));
+                inputRefs[index - 1].current.focus();
+              }
+            }}
             onChange={(e) => handleChange(index, e.target.value)}
           />
         ))}
