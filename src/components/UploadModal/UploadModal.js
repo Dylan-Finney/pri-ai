@@ -68,7 +68,6 @@ export default function UploadModal({ isOpen, onClose, userID, index }) {
     }
     setSource("");
     setContent("");
-    setSelectedFiles([]);
     onClose();
   };
 
@@ -79,6 +78,7 @@ export default function UploadModal({ isOpen, onClose, userID, index }) {
   const handleContentChange = (e) => {
     setContent(e.target.value);
   };
+
   return (
     <Modal
       closeOnOverlayClick={false}
@@ -143,7 +143,11 @@ export default function UploadModal({ isOpen, onClose, userID, index }) {
           >
             Add Files
           </Button>
-          <Button isLoading={isLoading} onClick={handleSave}>
+          <Button
+            isDisabled={(content === "" || source === "") && files === null}
+            isLoading={isLoading}
+            onClick={handleSave}
+          >
             Upload
           </Button>
         </ModalBody>
