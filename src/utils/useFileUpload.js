@@ -84,5 +84,9 @@ export const useFileUpload = () => {
     }
   };
 
-  return React.useMemo(() => [files, uploadFile], [files]);
+  const resetFiles = () => {
+    setFiles(null);
+  };
+
+  return React.useMemo(() => [files, uploadFile, resetFiles], [files]);
 };

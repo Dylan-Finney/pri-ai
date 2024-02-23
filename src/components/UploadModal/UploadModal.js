@@ -29,7 +29,7 @@ export default function UploadModal({ isOpen, onClose, userID, index }) {
   useEffect(() => {
     setID(handleIndex(index, userID));
   }, [index]);
-  const [files, setSelectedFiles] = useFileUpload();
+  const [files, setSelectedFiles, resetFiles] = useFileUpload();
   const { isLoading, addFiles } = useUploadFile([]);
   const targetLanguage = useRef([]);
   const metaTagInput = useRef([]);
@@ -78,6 +78,10 @@ export default function UploadModal({ isOpen, onClose, userID, index }) {
   const handleContentChange = (e) => {
     setContent(e.target.value);
   };
+
+  useEffect(() => {
+    resetFiles();
+  }, [isOpen]);
 
   return (
     <Modal
