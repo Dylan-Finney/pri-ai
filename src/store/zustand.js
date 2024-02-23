@@ -8,7 +8,7 @@ export const useVectorStore = create((set, get) => ({
 
   featureExtraction: async (txt) => {
     //const url = 'http://localhost:3330/api/v1/extract-feature';
-    const url = `${NEXT_PUBLIC_MIDDLEWARE_API_URL}extract-feature`;
+    const url = `${process.env.NEXT_PUBLIC_MIDDLEWARE_API_URL}extract-feature`;
 
     const cleanedText = txt.map((s) =>
       s.replace(/ {2,}/g, "").replace(/\n/g, " ")
