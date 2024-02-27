@@ -1,5 +1,5 @@
-import { Box, Text } from "@chakra-ui/react";
-import NextImage from "next/image";
+import { Box, Text, Image } from "@chakra-ui/react";
+// import NextImage from "next/image";
 const external = "/assets/external.svg";
 
 const SidebarItem = ({
@@ -43,7 +43,7 @@ const SidebarItem = ({
             flexShrink: "0",
           }}
         >
-          <NextImage src={image} alt={altText} width={23} height={23} />
+          <Image src={image} alt={altText} htmlWidth={23} htmlHeight={23} />
         </Box>
       )}
 
@@ -68,11 +68,11 @@ const SidebarItem = ({
             flexShrink: "0",
           }}
         >
-          <NextImage
+          <Image
             src={external}
             alt={"external icon"}
-            width={18}
-            height={17}
+            htmlWidth={18}
+            htmlHeight={17}
           />
         </Box>
       )}

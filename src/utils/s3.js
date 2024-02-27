@@ -17,8 +17,8 @@ import { generateUniqueId, encode } from ".";
 //dotenv.config()
 //import { TranslateClient, TranslateTextCommand } from "@aws-sdk/client-translate"; // ES Modules import
 
-//process.env.AWS_ACCESS_KEY_ID = process.env.MY_ACCESS_KEY;
-//process.env.AWS_SECRET_ACCESS_KEY = process.env.MY_SECRET_KEY;
+//process.env.REACT_APP_AWS_ACCESS_KEY_ID = process.env.REACT_APP_MY_ACCESS_KEY;
+//process.env.REACT_APP_AWS_SECRET_ACCESS_KEY = process.env.REACT_APP_MY_SECRET_KEY;
 /* 
   const accessKeyId: string | undefined = process.env[ENV_KEY];
   const secretAccessKey: string | undefined = process.env[ENV_SECRET];
@@ -27,10 +27,10 @@ import { generateUniqueId, encode } from ".";
  */
 const config = {
   credentials: {
-    accessKeyId: process.env.MY_ACCESS_KEY,
-    secretAccessKey: process.env.MY_SECRET_KEY,
+    accessKeyId: process.env.REACT_APP_MY_ACCESS_KEY,
+    secretAccessKey: process.env.REACT_APP_MY_SECRET_KEY,
   },
-  region: process.env.MY_REGION,
+  region: process.env.REACT_APP_MY_REGION,
 };
 
 console.log(config);
@@ -42,7 +42,7 @@ const uploadFile = async (files, id, source) => {
   // const [isLoading, setIsLoading] = useState(files ? (files.length > 0) : null);
   /* 
     const params = {
-      Bucket: process.env.AI_BUCKET,
+      Bucket: process.env.REACT_APP_AI_BUCKET,
       Key: `${file.name}`,
       Body: file,
       Metadata: {
@@ -52,7 +52,7 @@ const uploadFile = async (files, id, source) => {
     };
     console.log("S3 PARAMS ", params); */
   const params = {
-    Bucket: process.env.AI_BUCKET,
+    Bucket: process.env.REACT_APP_AI_BUCKET,
   };
   console.log("S3 PARAMS ", params);
   // console.log("S3  ", s3Client);
@@ -79,7 +79,7 @@ const uploadFile = async (files, id, source) => {
 //export default uploadFile;
 
 export const DeleteS3Object = (key) => {
-  const params = { Bucket: process.env.AI_BUCKET, Key: key };
+  const params = { Bucket: process.env.REACT_APP_AI_BUCKET, Key: key };
   console.log("S3 PARAMS ", params);
   return s3Client.send(new DeleteObjectCommand(params));
 };
@@ -104,7 +104,7 @@ export const useUploadSummaryFile = () => {
     setError(null);
     const uploaded = summaryFiles.map((f) => {
       let params = {
-        Bucket: process.env.AI_BUCKET,
+        Bucket: process.env.REACT_APP_AI_BUCKET,
         Metadata: {
           id: metaData.current.id,
         },
@@ -141,12 +141,12 @@ export const useListS3Files = (prefix) => {
   useEffect(() => {
     //console.log("USELIST ", s3KeyPrefix);
     if (s3KeyPrefix !== "") {
-      //!effectCalled.current || s3KeyPrefix !== process.env.NEXT_PUBLIC_USER_ID
+      //!effectCalled.current || s3KeyPrefix !== process.env.REACT_APP_USER_ID
       effectCalled.current = true;
       setIsLoading(true);
       setError(null);
       const params = {
-        Bucket: process.env.AI_BUCKET,
+        Bucket: process.env.REACT_APP_AI_BUCKET,
         Prefix: `${s3KeyPrefix}/doc-data`,
       };
 
@@ -161,7 +161,7 @@ export const useListS3Files = (prefix) => {
             objInfo.push({ Key: obj.Key });
             return s3Client.send(
               new HeadObjectCommand({
-                Bucket: process.env.AI_BUCKET,
+                Bucket: process.env.REACT_APP_AI_BUCKET,
                 Key: obj.Key,
               })
             );
@@ -220,7 +220,7 @@ const useUploadFile = (files) => {
     setError(null);
     const uploaded = uploadFiles.map((f) => {
       let params = {
-        Bucket: process.env.AI_BUCKET,
+        Bucket: process.env.REACT_APP_AI_BUCKET,
         ContentType: f?.type || "text/plain",
         Metadata: {
           id: metaData.current.id,
@@ -276,7 +276,7 @@ const useUploadFile = (files) => {
     /* 
     if (uploadFiles && uploadFiles.length > 0) {
       const params = {
-        Bucket: process.env.AI_BUCKET,
+        Bucket: process.env.REACT_APP_AI_BUCKET,
         Key: `${generateUniqueId()}.txt`,
         Body: uploadFiles[0].content,
         Metadata: {

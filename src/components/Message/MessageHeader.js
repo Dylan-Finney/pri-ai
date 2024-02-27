@@ -1,5 +1,5 @@
 import { Box, Text } from "@chakra-ui/react";
-import NextImage from "next/image";
+import { Image } from "@chakra-ui/react";
 import { timeToString } from "../utils";
 const MessageAvatar = ({ avatar }) => {
   return (
@@ -9,11 +9,11 @@ const MessageAvatar = ({ avatar }) => {
       position={"relative"}
       bottom={{ base: "6px", sm: "0px", md: "-7px" }}
     >
-      <NextImage
+      <Image
         src={`/assets/avatar/${avatar}`}
         alt="Avatar"
-        width={40}
-        height={40}
+        htmlWidth={40}
+        htmlHeight={40}
       />
     </Box>
   );

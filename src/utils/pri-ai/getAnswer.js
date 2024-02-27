@@ -1,4 +1,5 @@
 import { fetchWithTimeout } from "..";
+import { updateUsedTokensBackend } from "../backend/updateUsedTokens";
 
 // import { fetchWithTimeout } from "@/utils";
 function customDeserialize(str) {
@@ -179,14 +180,7 @@ export const getHistory = (
 
 export const updateUsedTokens = async ({ url, ...opts }) => {
   // proxy api, which outputs info to app logs.
-  const tokens = await fetch(`${url}/updateUsedTokens`, {
-    method: "POST",
-    headers: new Headers({
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    }),
-    body: JSON.stringify(opts),
-  });
+  const tokens = await updateUsedTokensBackend(opts);
 
   let tokendata = {};
   if (tokens.ok) {
@@ -230,7 +224,7 @@ const makeRequest = async (requestOptions, url) => {
   try {
     //requestResponse = await fetchWithTimeout(`${url}/generate`, requestOptions);
     requestResponse = await fetchWithTimeout(
-      `${process.env.NEXT_PUBLIC_MIDDLEWARE_API_URL}generate`,
+      `${process.env.REACT_APP_MIDDLEWARE_API_URL}generate`,
       requestOptions
     );
   } catch (err) {
@@ -297,7 +291,7 @@ export const aiAnswer = async ({ url, ...opts }) => {
 
   let requestResponse = undefined;
   try {
-    requestResponse = await fetchWithTimeout(`${process.env.MIDDLEWARE_API_URL}generate`, requestOptions);
+    requestResponse = await fetchWithTimeout(`${process.env.REACT_APP_MIDDLEWARE_API_URL}generate`, requestOptions);
   } catch (err) {
     console.log("OPENAI ERROR ", err);
     console.error(err);

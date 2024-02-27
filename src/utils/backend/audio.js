@@ -1,8 +1,8 @@
 import { fromCognitoIdentityPool } from "@aws-sdk/credential-providers";
 import { PollyClient } from "@aws-sdk/client-polly";
 import { getSynthesizeSpeechUrl } from "@aws-sdk/polly-request-presigner";
-import voices from "@/components/utils/Voices";
-import { NextResponse } from "next/server";
+// import voices from "@/components/utils/Voices";
+import voices from "../voices";
 
 const pollyClient = new PollyClient({
   region: "eu-west-1",
@@ -13,10 +13,9 @@ const pollyClient = new PollyClient({
   }),
 });
 
-export async function POST(req) {
+export async function getAudioURL({ speak, lng = "en-US" }) {
   // console.log(await req.json());
-  const { speak, lng } = await req.json();
-  if (speak && lng) {
+  if (speak) {
     try {
       const voice = voices[lng] || null;
       if (voice) {
@@ -42,16 +41,13 @@ export async function POST(req) {
           params: speechParams,
         });
         // console.log(url);
-        return NextResponse.json({ url }, { status: 200 });
+        return url;
       }
     } catch (err) {
       // console.log("Error", err);
-      return NextResponse.json({ error: "Error" }, { status: 400 });
+      console.error("TTS Error", err);
     }
   } else {
-    return NextResponse.json(
-      { error: "Missing Speak or Language" },
-      { status: 400 }
-    );
+    console.error("Needs text for TTS");
   }
 }

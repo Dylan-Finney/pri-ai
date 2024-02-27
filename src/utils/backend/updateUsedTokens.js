@@ -1,8 +1,8 @@
-import { NextResponse } from "next/server";
+// import { NextResponse } from "next/server";
 import { GPTTokens } from "gpt-tokens";
 
-export async function POST(req) {
-  const body = await req.json();
+export async function updateUsedTokensBackend(body) {
+  //   const body = await req.json();
   const {
     session,
     statement,
@@ -47,8 +47,5 @@ export async function POST(req) {
     console.log(`###_FINISH= ${finish_reason}`);
   }
 
-  return NextResponse.json(
-    { tokens: usageInfo?.usedTokens || 0 },
-    { status: 200 }
-  );
+  return usageInfo?.usedTokens || 0;
 }

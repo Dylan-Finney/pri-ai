@@ -1,5 +1,5 @@
 /* eslint-disable react/no-unescaped-entities */
-import NextImage from "next/image";
+import { Image } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import PageIndicator from "./PageIndicator";
 import Personalize from "./Personalize";
@@ -90,11 +90,11 @@ export default function OnboardingModal(props) {
                     marginLeft={"-10px"}
                     marginBottom={{ base: "0x", sm: "0px" }}
                   >
-                    <NextImage
+                    <Image
                       src={privacyModal}
                       alt={"Privacy Icon"}
-                      width={48}
-                      height={48}
+                      htmlWidth={48}
+                      htmlHeight={48}
                     />
                   </Box>
                   <Text

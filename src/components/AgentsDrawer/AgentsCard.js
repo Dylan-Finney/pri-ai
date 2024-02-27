@@ -1,8 +1,10 @@
-import { useFileUpload } from "@/utils/useFileUpload";
+// import { useFileUpload } from "../utils/";
+import { useFileUpload } from "../../utils/useFileUpload";
 import { Box, Button, Flex, Text } from "@chakra-ui/react";
 import axios from "axios";
-import Image from "next/image";
+import { Image } from "@chakra-ui/react";
 import { useEffect, useRef, useState } from "react";
+import { changeAgentDetails } from "../../utils/backend/changeAgentDetails";
 
 const AgentsCard = ({
   url,
@@ -76,9 +78,9 @@ const AgentsCard = ({
               onError={() => {
                 setImageError(true);
               }}
-              layout={"fill"}
+              boxSize={84}
               borderRadius={"10px"}
-              objectFit={"contain"}
+              objectFit="cover"
               alt={`Picture of ${title}`}
               style={{ maxWidth: "unset" }}
             />
@@ -125,13 +127,9 @@ const AgentsCard = ({
                 );
                 if (title !== newTitle) {
                   setTitleButtonLoading(true);
-                  await axios({
-                    method: "POST",
-                    url: "/api/changeAgentDetails",
-                    data: {
-                      agentID,
-                      name: newTitle,
-                    },
+                  await changeAgentDetails({
+                    agentID,
+                    name: newTitle,
                   });
                   changeDetails({ newTitle, newURL: url });
                   setTitleButtonLoading(false);
@@ -156,19 +154,15 @@ const AgentsCard = ({
                       reader.onload = async () => {
                         try {
                           const splitName = name.split(".");
-                          const response = await axios({
-                            method: "POST",
-                            url: "/api/changeAgentDetails",
-                            data: {
-                              agentID,
-                              imageEncoded: reader.result,
-                              type: splitName[splitName.length - 1],
-                              contentType: file.type,
-                            },
+                          const value = await changeAgentDetails({
+                            agentID,
+                            imageEncoded: reader.result,
+                            type: splitName[splitName.length - 1],
+                            contentType: file.type,
                           });
                           changeDetails({
                             newTitle: title,
-                            newURL: response.data.signedUrl,
+                            newURL: value,
                           });
                           setImageButtonLoading(false);
                         } catch (error) {

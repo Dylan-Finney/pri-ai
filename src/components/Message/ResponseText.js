@@ -4,7 +4,7 @@ import rehypeKatex from "rehype-katex";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 // import styles from "../../styles/Message.module.css";
-import styles from "@/styles/Message.module.css";
+import styles from "../../styles/Message.module.css";
 import "katex/dist/katex.min.css";
 const ResponseText = ({ text, generating = false }) => {
   // console.log(styles.message);

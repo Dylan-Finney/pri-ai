@@ -1,6 +1,6 @@
 /* eslint-disable react/no-unescaped-entities */
 
-import HOTP from "@/utils/HOTP";
+import HOTP from "../utils/HOTP";
 import {
   autoSignIn,
   confirmSignIn,
@@ -8,7 +8,7 @@ import {
   signIn,
   signUp,
 } from "aws-amplify/auth";
-import NextImage from "next/image";
+import { Image } from "@chakra-ui/react";
 import { useEffect, useRef, useState } from "react";
 import QRCode from "react-qr-code";
 
@@ -503,11 +503,11 @@ export default function LoginModal({ isOpen, onClose, onOpen, logInSuccess }) {
               marginLeft={{ base: "10px", md: "400px" }}
               marginRight={{ base: "10px", md: "400px" }}
             >
-              <NextImage
+              <Image
                 src={dataCloudIcon}
                 alt={`Settings Button`}
-                width={150}
-                height={150}
+                htmlWidth={150}
+                htmlHeight={150}
               />
               <HeadingText
                 text={
@@ -631,12 +631,11 @@ export default function LoginModal({ isOpen, onClose, onOpen, logInSuccess }) {
                 // alignSelf={"center"}
                 flex={1}
               >
-                <NextImage
+                <Image
                   src={dataCloudIcon}
                   alt={`Settings Button`}
-                  width={300}
-                  // style={{ justifySelf: "center" }}
-                  height={300}
+                  htmlWidth={300}
+                  htmlHeight={300}
                 />
               </Flex>
               <Flex

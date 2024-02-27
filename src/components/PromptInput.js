@@ -1,7 +1,7 @@
-import { HelpIcon } from "@/assets/HelpIcon";
-import { agentsDemo2, agentsProd2 } from "@/utils/agents";
+import { HelpIcon } from "../assets/HelpIcon";
+import { agentsDemo2, agentsProd2 } from "../utils/agents";
 import { Box, Button, Flex, Text, Tooltip } from "@chakra-ui/react";
-import NextImage from "next/image";
+import { Image } from "@chakra-ui/react";
 import { useEffect, useRef, useState } from "react";
 import { HiMicrophone, HiStop } from "react-icons/hi";
 import { TbSend } from "react-icons/tb";
@@ -172,12 +172,12 @@ function PromptInput(props) {
                     //   onClickAgent(agent);
                     // }}
                   >
-                    <NextImage
+                    <Image
                       src={`/assets/agents/${image}`}
-                      width={50}
-                      height={50}
+                      htmlWidth={50}
+                      htmlHeight={50}
                       alt={`Picture of the ${suggestion.data}`}
-                    ></NextImage>
+                    ></Image>
                     <Box
                       position={"absolute"}
                       zIndex={2}
@@ -203,18 +203,18 @@ function PromptInput(props) {
                     <span style={{ fontWeight: 600 }}>- by {company}</span>
                   )}
                 </Text>
-                <NextImage
+                <Image
                   onClick={(e) => {
                     e.stopPropagation();
                     console.log("TEST");
                     props.openDrawer(index);
                   }}
                   src={`/assets/details_menu.svg`}
-                  width={25}
-                  height={25}
+                  htmlWidth={25}
+                  htmlHeight={25}
                   alt={`Picture of the`}
                   style={{ marginLeft: "auto" }}
-                ></NextImage>
+                ></Image>
               </Flex>
             );
           }}

@@ -5,9 +5,9 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 var AWS = require("aws-sdk");
 AWS.config.update({
-  region: process.env.AWS_REGION,
-  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  region: process.env.REACT_APP_AWS_REGION,
+  accessKeyId: process.env.REACT_APP_AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.REACT_APP_AWS_SECRET_ACCESS_KEY,
 });
 
 var ddb = new AWS.DynamoDB({ apiVersion: "2012-08-10" });
@@ -20,7 +20,7 @@ const getMessagesParams = (userID) => {
     },
     KeyConditionExpression: "userID = :s",
     // ProjectionExpression: "Episode, Title, Subtitle",
-    TableName: process.env.AWS_AGENTS_TABLE_NAME,
+    TableName: process.env.REACT_APP_AWS_AGENTS_TABLE_NAME,
   };
 };
 export async function POST(req) {
@@ -39,7 +39,7 @@ export async function POST(req) {
         const statusPutName = await new Promise(async (resolve, reject) => {
           try {
             var params = {
-              TableName: process.env.AWS_THREADS_TABLE_NAME,
+              TableName: process.env.REACT_APP_AWS_THREADS_TABLE_NAME,
               Item: {
                 userID: { S: user.userId },
                 agentID: { S: agentID.toString() },
@@ -81,7 +81,7 @@ export async function POST(req) {
           try {
             s3.putObject(
               {
-                Bucket: process.env.AWS_IMAGES_BUCKET,
+                Bucket: process.env.REACT_APP_AWS_IMAGES_BUCKET,
                 Key: `${user.userId}/${agentID}`,
                 Body: binaryData,
                 //   ContentEncoding: "base64",
@@ -94,7 +94,7 @@ export async function POST(req) {
                   resolve(2001);
                 } else {
                   signedUrl = s3.getSignedUrl("getObject", {
-                    Bucket: process.env.AWS_IMAGES_BUCKET,
+                    Bucket: process.env.REACT_APP_AWS_IMAGES_BUCKET,
                     Key: `${user.userId}/${agentID}`,
                     Expires: 3600, // Link expires in 1 hour
                   });

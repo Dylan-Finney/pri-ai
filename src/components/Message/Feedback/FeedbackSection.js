@@ -1,4 +1,11 @@
-import { FiExternalLink, FiThumbsUp, FiThumbsDown } from "react-icons/fi";
+import {
+  FiExternalLink,
+  FiThumbsUp,
+  FiThumbsDown,
+  FiBookmark,
+  FiMenu,
+  FiMoreVertical,
+} from "react-icons/fi";
 import FeedbackButton from "./FeedbackButton";
 import { Box, Text } from "@chakra-ui/react";
 const FeedbackSection = ({ feedbackGiven, openFeedbackModal }) => {
@@ -6,15 +13,16 @@ const FeedbackSection = ({ feedbackGiven, openFeedbackModal }) => {
     <Box
       display={"flex"}
       flexDirection={"row"}
-      backgroundColor={"#f9fafb"}
+      // backgroundColor={"#f9fafb"}
       marginTop={"1vh"}
       marginBottom={"1vh"}
       paddingTop={"1vh"}
-      paddingBottom={"1vh"}
+      // paddingBottom={"1vh"}
       borderRadius={"0px 5px 5px 5px"}
       marginLeft={{ base: "32px", sm: "45px", lg: "47px" }}
+      justifyContent={"flex-end"}
     >
-      <Text
+      {/* <Text
         as={"i"}
         fontSize={"0.75rem"}
         color={"#465756"}
@@ -22,7 +30,13 @@ const FeedbackSection = ({ feedbackGiven, openFeedbackModal }) => {
         marginRight={"auto"}
       >
         How was this response?
-      </Text>
+      </Text> */}
+      <FeedbackButton
+        postive={false}
+        feedbackGiven={undefined}
+        onClick={() => openFeedbackModal(false)}
+        icon={<FiBookmark color={"#107569"} />}
+      />
 
       <FeedbackButton
         icon={<FiThumbsUp color={"#107569"} />}
@@ -35,6 +49,12 @@ const FeedbackSection = ({ feedbackGiven, openFeedbackModal }) => {
         postive={false}
         feedbackGiven={feedbackGiven}
         onClick={() => openFeedbackModal(false)}
+      />
+      <FeedbackButton
+        postive={false}
+        feedbackGiven={undefined}
+        onClick={() => openFeedbackModal(false)}
+        icon={<FiMoreVertical color={"#107569"} />}
       />
     </Box>
   );

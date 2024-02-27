@@ -29,7 +29,7 @@ import {
   CountryRegionData,
 } from "react-country-region-selector";
 import { MdOutlineVerifiedUser, MdCheck, MdSearch } from "react-icons/md";
-import NextImage from "next/image";
+// import { Image } from "@chakra-ui/react";
 import { AppContext, UserContext } from "../App";
 import AppList from "./AppList";
 import { Controller, useForm } from "react-hook-form";
@@ -125,11 +125,11 @@ export default function Personalize(props) {
             marginLeft={"-10px"}
             marginBottom={{ base: "0x", sm: "0px" }}
           >
-            <NextImage
+            <Image
               src={logoIcon}
               alt={`Logo Icon`}
-              width={48}
-              height={100}
+              htmlWidth={48}
+              htmlHeight={100}
             />
           </Box>
           <Text as={"b"} fontSize={"18px"} fontWeight={"600"} color={"#101828"}>
@@ -270,11 +270,11 @@ export default function Personalize(props) {
                   borderRadius={"8px"}
                 >
                   <Box style={{ marginRight: "5px" }}>
-                    <NextImage
+                    <Image
                       src={settingsIcon}
                       alt={`Settings Button`}
-                      width={22}
-                      height={23}
+                      htmlWidth={22}
+                      htmlHeight={23}
                     />
                   </Box>
                   <Box as="span" flex="1" textAlign="left">
@@ -353,13 +353,13 @@ export default function Personalize(props) {
                               marginTop: "11px",
                             }}
                           >
-                            <NextImage
+                            <Image
                               src={`/assets/country/${getCountryLogo(
                                 tempDetails.country
                               )}`}
                               alt={`${tempDetails.country} Country Logo`}
-                              width={20}
-                              height={100}
+                              htmlWidth={20}
+                              htmlHeight={100}
                             />
                           </Box>
                         )}
@@ -513,11 +513,11 @@ export default function Personalize(props) {
                         borderRadius={"8px"}
                       >
                         <Box style={{ marginRight: "5px" }}>
-                          <NextImage
+                          <Image
                             src={zapIcon}
                             alt={`Zap Icon`}
-                            width={22}
-                            height={23}
+                            htmlWidth={22}
+                            htmlHeight={23}
                           />
                         </Box>
                         <Box as="span" flex="1" textAlign="left">

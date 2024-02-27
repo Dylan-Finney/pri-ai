@@ -1,5 +1,5 @@
 import { Box, Button, Text } from "@chakra-ui/react";
-import NextImage from "next/image";
+import { Image } from "@chakra-ui/react";
 import { RiLoginCircleLine } from "react-icons/ri";
 
 const Illustration = "/assets/Illustration.svg";
@@ -8,11 +8,12 @@ const OnboardingPlaceholder = ({ logIn, openDemo }) => {
   return (
     <>
       <Box style={{ width: "220px", height: "160px" }}>
-        <NextImage
+        <Image
           src={Illustration}
           alt="Illustration"
-          width={220}
-          height={100}
+          // boxSize={"220px"}
+          htmlHeight={"100px"}
+          // style={{ width: "220px", height: "100px" }}
         />
       </Box>
       <Text as="b" fontSize="lg">

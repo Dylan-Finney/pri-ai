@@ -1,9 +1,6 @@
-import { agentsProd2 } from "../../../utils/agents";
-import { runWithAmplifyServerContext } from "@/utils/amplifyServerUtils";
-import { getCurrentUser } from "aws-amplify/auth/server";
-import { cookies } from "next/headers";
+import { getCurrentUser } from "aws-amplify/auth";
+import { agentsProd2 } from "../agents";
 
-import { NextResponse } from "next/server";
 var AWS = require("aws-sdk");
 AWS.config.update({
   region: process.env.REACT_APP_AWS_REGION,
@@ -24,13 +21,9 @@ const getAgentDetailsParams = (userID) => {
     TableName: process.env.REACT_APP_AWS_AGENTS_TABLE_NAME,
   };
 };
-export async function POST(req) {
+export async function getPersonalAgentDetails() {
   try {
-    const user = await runWithAmplifyServerContext({
-      nextServerContext: { cookies },
-
-      operation: (contextSpec) => getCurrentUser(contextSpec),
-    });
+    const user = await getCurrentUser();
     if (user.userId) {
       //   const { threadID } = await req.json();
       var agentDetails = [];
@@ -89,21 +82,11 @@ export async function POST(req) {
 
       await fetchAgentImages();
 
-      return NextResponse.json(
-        {
-          statusText: "Get Agent Details Success",
-          agentDetails,
-        },
-        { status: 200 }
-      );
+      return agentDetails;
     } else {
-      return NextResponse.json({ statusText: "Auth Fail" }, { status: 400 });
+      console.error("Auth Fail");
     }
   } catch (e) {
     console.error(e);
-    return NextResponse.json(
-      { statusText: "Auth Fail or Error" },
-      { status: 400 }
-    );
   }
 }

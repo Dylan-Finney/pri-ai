@@ -1,8 +1,4 @@
-import { runWithAmplifyServerContext } from "@/utils/amplifyServerUtils";
-import { getCurrentUser } from "aws-amplify/auth/server";
-import { cookies } from "next/headers";
-
-import { NextResponse } from "next/server";
+import { getCurrentUser } from "aws-amplify/auth";
 var AWS = require("aws-sdk");
 AWS.config.update({
   region: process.env.REACT_APP_AWS_REGION,
@@ -22,15 +18,10 @@ const getMessagesParams = (threadID) => {
     TableName: process.env.REACT_APP_AWS_MESSAGES_TABLE_NAME,
   };
 };
-export async function POST(req) {
+export async function getThread(threadID) {
   try {
-    const user = await runWithAmplifyServerContext({
-      nextServerContext: { cookies },
-
-      operation: (contextSpec) => getCurrentUser(contextSpec),
-    });
+    const user = await getCurrentUser();
     if (user.userId) {
-      const { threadID } = await req.json();
       var allMessages = [];
       const statusGetMessages = await new Promise((resolve, reject) => {
         ddb.query(getMessagesParams(threadID), function (err, data) {
@@ -60,20 +51,11 @@ export async function POST(req) {
 
       const success = statusGetMessages === 200;
 
-      return NextResponse.json(
-        {
-          statusText: success ? "Get Thread Success" : "Get Thread Fail",
-          allMessages,
-        },
-        { status: success ? 200 : 400 }
-      );
+      return allMessages;
     } else {
-      return NextResponse.json({ statusText: "Auth Fail" }, { status: 400 });
+      console.error("Auth Fail");
     }
   } catch (e) {
-    return NextResponse.json(
-      { statusText: "Auth Fail or Error" },
-      { status: 400 }
-    );
+    console.error(e);
   }
 }

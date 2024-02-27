@@ -1,6 +1,6 @@
 // import { OpenAIStreamChat } from "@/utils/OpenAIStream";
 import { OpenAIStreamChat } from "@/utils/OpenAIStream";
-import { agentDemoPrompts } from "@/utils/agents";
+import { agentDemoPrompts } from "../../../utils/agents";
 import { OpenAIStream, StreamingTextResponse } from "ai";
 import { NextResponse } from "next/server";
 // import { OpenAIStreamChat } from "../../utils/OpenAIStream";

@@ -1,6 +1,7 @@
 "use client";
 /* eslint-disable react/no-unescaped-entities */
-import "@/styles/App.module.css";
+// import "@/styles/App.module.css";
+import "../styles/App.module.css";
 import axios from "axios";
 import {
   createContext,
@@ -19,20 +20,20 @@ import ChatPrompt from "./ChatPrompt";
 import ChatResponse from "./ChatResponse";
 import Sidebar from "./Sidebar";
 
-import { useVectorStore } from "@/store/zustand";
-import { generateUniqueId } from "@/utils";
-import { agentsDemo2, agentsProd2 } from "@/utils/agents";
-import { apps, avatars } from "@/utils/constants";
-import { enqueueAudioFile } from "@/utils/enqueueAudioFile";
+import { useVectorStore } from "../store/zustand";
+import { generateUniqueId } from "../utils";
+import { agentsDemo2, agentsProd2 } from "../utils/agents";
+import { apps, avatars } from "../utils/constants";
+import { enqueueAudioFile } from "../utils/enqueueAudioFile";
 import {
   aiAnswer,
   getHistory,
   updateUsedTokens,
-} from "@/utils/pri-ai/getAnswer";
-import { getData } from "@/utils/pri-ai/getChunks";
-import { handleIndex } from "@/utils/pri-ai/handleIndex";
-import sections from "@/utils/sections";
-import { streamIn } from "@/utils/streamIn";
+} from "../utils/pri-ai/getAnswer";
+import { getData } from "../utils/pri-ai/getChunks";
+import { handleIndex } from "../utils/pri-ai/handleIndex";
+import sections from "../utils/sections";
+import { streamIn } from "../utils/streamIn";
 import { createStandaloneToast } from "@chakra-ui/toast";
 import { getCurrentUser } from "aws-amplify/auth";
 import { v4 as uuidv4 } from "uuid";
@@ -48,6 +49,11 @@ import PromptInput from "./PromptInput";
 import { Sharing } from "./Sharing";
 import { Container, errorToasts } from "./Toast";
 import UploadModal from "./UploadModal/UploadModal";
+import { initialize } from "../utils/backend/initialize";
+import { chatDemo, chatFull } from "../utils/backend/chat";
+import { getThread } from "../utils/backend/getThread";
+import { createTitle } from "../utils/backend/createTitle";
+import { saveMessage } from "../utils/backend/save";
 
 // const { serverRuntimeConfig } = getConfig();
 // console.log({ serverRuntimeConfig });
@@ -73,9 +79,9 @@ export const UserContext = createContext();
 
 // var AWS = require("aws-sdk");
 // AWS.config.update({
-//   region: process.env.AWS_REGION,
-//   accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-//   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+//   region: process.env.REACT_APP_AWS_REGION,
+//   accessKeyId: process.env.REACT_APP_AWS_ACCESS_KEY_ID,
+//   secretAccessKey: process.env.REACT_APP_AWS_SECRET_ACCESS_KEY,
 // });
 
 function App() {
@@ -453,6 +459,7 @@ function App() {
   });
   const [onboarding, setOnboarding] = useState(true);
   const [initializing, setInitializing] = useState(true);
+  const [agents, setAgents] = useState([]);
 
   useEffect(() => {
     const checkIfLoggedIn = async () => {
@@ -474,21 +481,19 @@ function App() {
           const newName = `${user.username}'s Pri-AI`;
           setSelectedAvatar(newAvatar);
           setAIName(newName);
-          const response = await axios({
-            method: "POST",
-            url: "/api/initialize",
-            data: {},
-          });
+          const initalizedData = await initialize();
           // console.log(response);
-          setConversations(response.data.threads);
-          setSelectedAvatar(response.data.avatar);
-          setAIName(response.data.name);
+          setConversations(initalizedData.threads);
+          setSelectedAvatar(initalizedData.avatar);
+          setAIName(initalizedData.name);
+          setAgents(agentsProd2);
 
           initalMessage();
         }
       } catch (e) {
         console.error(e);
         setDemoMode(true);
+        setAgents(agentsDemo2);
       }
       setInitializing(false);
     };
@@ -615,15 +620,9 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
   }) => {
     const newThreadID = uuidv4();
     var title = "New Thread";
-    const responseTitle = await fetch("/api/createTitle", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        aiResponse: answer,
-        prompt: prompt,
-      }),
+    const responseTitle = await createTitle({
+      aiResponse: answer,
+      prompt: prompt,
     });
     var title = "";
 
@@ -636,26 +635,19 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
       title = "New Thread";
     }
     if (loggedIn) {
-      await fetch("/api/save", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      await saveMessage({
+        threadID: newThreadID,
+        prompt: {
+          time: promptSent.toString(),
+          message: prompt,
         },
-        // credentials: "include",
-        body: JSON.stringify({
-          threadID: newThreadID,
-          prompt: {
-            time: promptSent.toString(),
-            message: prompt,
-          },
-          response: {
-            time: responseReceivedTime.toString(),
-            message: answer,
-          },
-          userID,
-          title,
-          isNew: true,
-        }),
+        response: {
+          time: responseReceivedTime.toString(),
+          message: answer,
+        },
+        userID,
+        title,
+        isNew: true,
       });
     }
 
@@ -692,25 +684,18 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
         return c.id === conversationID;
       });
       // console.log({ conversation });
-      await fetch("/api/save", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      await saveMessage({
+        threadID: conversationID,
+        prompt: {
+          time: promptSent.toString(),
+          message: prompt,
         },
-        // credentials: "include",
-        body: JSON.stringify({
-          threadID: conversationID,
-          prompt: {
-            time: promptSent.toString(),
-            message: prompt,
-          },
-          response: {
-            time: responseReceivedTime.toString(),
-            message: answer,
-          },
-          userID,
-          isNew: false,
-        }),
+        response: {
+          time: responseReceivedTime.toString(),
+          message: answer,
+        },
+        userID,
+        isNew: false,
       });
     }
 
@@ -733,37 +718,35 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
   };
 
   const fetchAnswers = async (prompt, promptSent) => {
-    const fetchPromises = [];
-    fetchPromises[0] = fetch(loggedIn ? "/api/chatFull" : "/api/chatDemo", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      // credentials: "include",
-      body: JSON.stringify({
-        persona: {
-          name: details.name || "",
-          email: details.email || "",
-          job: details.job || "",
-          country: details.country || "",
-          region: details.region || "",
-        },
-        chatlog: chatlog,
-        prompt: prompt,
-        agent: getAgent(prompt),
-      }),
-    });
-    fetchPromises[1] = axios({
-      method: "POST",
-      url: "/api/categorize",
-      data: {
-        prompt: prompt,
-      },
-    });
-    const [response, responseCategory] = await Promise.all(fetchPromises);
+    const response = loggedIn
+      ? await chatFull({
+          persona: {
+            name: details.name || "",
+            email: details.email || "",
+            job: details.job || "",
+            country: details.country || "",
+            region: details.region || "",
+          },
+          chatlog: chatlog,
+          prompt: prompt,
+          agent: getAgent(prompt),
+        })
+      : await chatDemo({
+          persona: {
+            name: details.name || "",
+            email: details.email || "",
+            job: details.job || "",
+            country: details.country || "",
+            region: details.region || "",
+          },
+          chatlog: chatlog,
+          prompt: prompt,
+          agent: getAgent(prompt),
+        });
+    // const [response, responseCategory] = await Promise.all(fetchPromises);
     var answer = "";
     const responseReceivedTime = Date.now();
-    await streamIn(response.body, (newAnswerChunk) => {
+    await streamIn(response, (newAnswerChunk) => {
       // console.log({answer})
       answer = answer + newAnswerChunk;
       // console.log({ answer });
@@ -913,39 +896,31 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
         setChatlog([]);
         setShowWelcomeMessage(false);
         setFetchingConversation(true);
-        const response = await axios({
-          method: "POST",
-          url: "/api/getThread",
-          data: { threadID: newID },
-        });
+        const allMessages = await getThread(newID);
         // console.log(response);
         setConversationID(newID);
-        setChatlog(response.data.allMessages);
+        setChatlog(allMessages);
         setFetchingConversation(false);
-        console.log(response.data.allMessages);
+        console.log(allMessages);
         var userMessageIndex = -1;
         var aiMessageIndex = -1;
         for (
-          var index = response.data.allMessages.length - 1;
+          var index = allMessages.length - 1;
           (aiMessageIndex < 0 || userMessageIndex < 0) && index >= 0;
           index--
         ) {
-          if (response.data.allMessages[index].speaker === "User") {
+          if (allMessages[index].speaker === "User") {
             userMessageIndex = index;
-          } else if (response.data.allMessages[index].speaker !== "User") {
+          } else if (allMessages[index].speaker !== "User") {
             aiMessageIndex = index;
           }
         }
         lastGoodAnswer.current = {
           answer:
-            aiMessageIndex >= 0
-              ? response.data.allMessages[aiMessageIndex].message
-              : "",
+            aiMessageIndex >= 0 ? allMessages[aiMessageIndex].message : "",
           aggregate: false,
           statement:
-            userMessageIndex >= 0
-              ? response.data.allMessages[userMessageIndex].message
-              : "",
+            userMessageIndex >= 0 ? allMessages[userMessageIndex].message : "",
           followUp: false,
           entryType: 1,
         };
@@ -972,13 +947,11 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
           }
           lastGoodAnswer.current = {
             answer:
-              aiMessageIndex >= 0
-                ? response.data.allMessages[aiMessageIndex].message
-                : "",
+              aiMessageIndex >= 0 ? allMessages[aiMessageIndex].message : "",
             aggregate: false,
             statement:
               userMessageIndex >= 0
-                ? response.data.allMessages[userMessageIndex].message
+                ? allMessages[userMessageIndex].message
                 : "",
             followUp: false,
             entryType: 1,
@@ -1150,7 +1123,7 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
                       <>
                         <div style={{ marginTop: "auto" }} />
 
-                        {showWelcomeMessage && (
+                        {/* {showWelcomeMessage && (
                           <>
                             <ChatResponse
                               aIName={aIName}
@@ -1161,7 +1134,7 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
                               generating={false}
                             />
                           </>
-                        )}
+                        )} */}
                         {fetchingConversation === true ? (
                           <>
                             {Array.from({ length: 10 }, (_, index) => (
@@ -1183,43 +1156,66 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
                           </>
                         ) : (
                           <>
-                            {chatlog?.map((message, index) => {
-                              return (
-                                <Box key={index}>
-                                  {message.speaker === "User" ? (
-                                    <ChatPrompt
-                                      name={details.name}
-                                      text={message.message}
-                                      time={message.time}
-                                    />
-                                  ) : (
-                                    <ChatResponse
-                                      aIName={aIName}
-                                      selectedAvatar={selectedAvatar}
-                                      text={message.message}
-                                      time={message.time}
-                                      saving={saving}
-                                      submitFeedback={(helpful, details) => {
-                                        submitFeedback(
-                                          message.id,
-                                          helpful,
-                                          details,
-                                          index
-                                        );
-                                      }}
-                                      feedback={
-                                        index < chatlog.length - 1 ||
-                                        (!loading &&
-                                          index === chatlog.length - 1)
-                                      }
-                                      generating={
-                                        loading && index === chatlog.length - 1
-                                      }
-                                    />
-                                  )}
-                                </Box>
-                              );
-                            })}
+                            {chatlog.length === 0 ? (
+                              <Flex
+                                flex={1}
+                                justifyContent={"center"}
+                                alignItems={"center"}
+                                flexDir={"column"}
+                              >
+                                <Text>What shall we do next?</Text>
+                                <Text>
+                                  Pri-AI with your team of AI buddies makes
+                                  thigns a breeze
+                                </Text>
+                                <Text>AI Buddies is ON for this thread</Text>
+                                <Text>What are AI Buddies?</Text>
+                              </Flex>
+                            ) : (
+                              <>
+                                {chatlog?.map((message, index) => {
+                                  return (
+                                    <Box key={index}>
+                                      {message.speaker === "User" ? (
+                                        <ChatPrompt
+                                          name={details.name}
+                                          text={message.message}
+                                          time={message.time}
+                                        />
+                                      ) : (
+                                        <ChatResponse
+                                          aIName={aIName}
+                                          selectedAvatar={selectedAvatar}
+                                          text={message.message}
+                                          time={message.time}
+                                          saving={saving}
+                                          submitFeedback={(
+                                            helpful,
+                                            details
+                                          ) => {
+                                            submitFeedback(
+                                              message.id,
+                                              helpful,
+                                              details,
+                                              index
+                                            );
+                                          }}
+                                          feedback={
+                                            index < chatlog.length - 1 ||
+                                            (!loading &&
+                                              index === chatlog.length - 1)
+                                          }
+                                          generating={
+                                            loading &&
+                                            index === chatlog.length - 1
+                                          }
+                                        />
+                                      )}
+                                    </Box>
+                                  );
+                                })}
+                              </>
+                            )}
                           </>
                         )}
 

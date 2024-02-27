@@ -5,7 +5,7 @@ import { cookies } from "next/headers";
 import { runWithAmplifyServerContext } from "@/utils/amplifyServerUtils";
 import { getCurrentUser } from "aws-amplify/auth/server";
 import { NextResponse } from "next/server";
-import { agentDemoPrompts } from "@/utils/agents";
+import { agentDemoPrompts } from "../../../utils/agents";
 // import { OpenAIStreamChat } from "../../utils/OpenAIStream";
 
 export const runtime = "edge";

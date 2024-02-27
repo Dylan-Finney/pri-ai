@@ -16,9 +16,9 @@ export async function OpenAIStreamChat(payload) {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${
-          process.env.STAGE === "dev"
-            ? process.env.OPENAI_API_KEY
-            : process.env.OPENAI_API_KEY
+          process.env.REACT_APP_STAGE === "dev"
+            ? process.env.REACT_APP_OPENAI_API_KEY
+            : process.env.REACT_APP_OPENAI_API_KEY
         }`,
       },
       method: "POST",
@@ -116,9 +116,9 @@ export async function OpenAIStreamText(payload) {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${
-          process.env.STAGE === "dev"
-            ? process.env.OPENAI_API_KEY_DEV
-            : process.env.OPENAI_API_KEY_PROD
+          process.env.REACT_APP_STAGE === "dev"
+            ? process.env.REACT_APP_OPENAI_API_KEY_DEV
+            : process.env.REACT_APP_OPENAI_API_KEY_PROD
         }`,
       },
       method: "POST",

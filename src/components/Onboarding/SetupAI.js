@@ -8,7 +8,7 @@ import {
   Input,
   SimpleGrid,
 } from "@chakra-ui/react";
-import NextImage from "next/image";
+import { Image } from "@chakra-ui/react";
 import { UserContext } from "../App";
 import { avatars } from "@/utils/constants";
 
@@ -30,7 +30,12 @@ export default function SetupAI(props) {
           height={"48px"}
           marginBottom={{ base: "24px", sm: "0px" }}
         >
-          <NextImage src={logoModal} alt="Logo Icon" width={100} height={100} />
+          <Image
+            src={logoModal}
+            alt="Logo Icon"
+            htmlWidth={100}
+            htmlHeight={100}
+          />
         </Box>
         <Text
           fontSize={"30px"}
@@ -103,11 +108,11 @@ export default function SetupAI(props) {
                       border: "2px solid #0E9384",
                     }}
                   >
-                    <NextImage
+                    <Image
                       src={`/assets/avatar/${avatar}`}
                       alt={`${avatar} - selected`}
-                      width={100}
-                      height={100}
+                      htmlWidth={100}
+                      htmlHeight={100}
                     />
                   </Box>
                 );
@@ -127,11 +132,11 @@ export default function SetupAI(props) {
                       border: "2px solid #EAECF0",
                     }}
                   >
-                    <NextImage
+                    <Image
                       src={`/assets/avatar/${avatar}`}
                       alt={`${avatar}`}
-                      width={100}
-                      height={100}
+                      htmlWidth={100}
+                      htmlHeight={100}
                     />
                   </Box>
                 );

@@ -1,5 +1,5 @@
-import { Text, Button } from "@chakra-ui/react";
-import NextImage from "next/image";
+import { Text, Button, Image } from "@chakra-ui/react";
+// import NextImage from "next/image";
 const chat = "/assets/chat.svg";
 const chatTwo = "/assets/chat2.svg";
 
@@ -15,16 +15,16 @@ const NewChatButton = ({ onClick }) => {
       width={"100%"}
       height={"fit-content"}
     >
-      <NextImage src={chat} alt={"New Chat Icon"} width={23} height={23} />
+      <Image src={chat} alt={"New Chat Icon"} htmlWidth={23} htmlHeight={23} />
       <Text ml={2} fontWeight={500}>
-        New Chat
+        New Thread
       </Text>
-      <NextImage
+      <Image
         style={{ marginLeft: "auto" }}
         src={chatTwo}
         alt={"New Chat Icon 2"}
-        width={23}
-        height={23}
+        htmlWidth={23}
+        htmlHeight={23}
       />
     </Button>
   );

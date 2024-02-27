@@ -3,11 +3,11 @@
 // import { AgentSkiCoachIcon } from "@/assets/AgentSkiCoachIcon";
 // import { AgentSleepCoachIcon } from "@/assets/AgentSleepCoachIcon";
 
-import { AgentBasketballCoachIcon } from "@/assets/AgentBasketballIcon";
-import { AgentNutritionistIcon } from "@/assets/AgentNutritionistIcon";
-import { AgentSkiCoachIcon } from "@/assets/AgentSkiCoachIcon";
-import { AgentSleepCoachIcon } from "@/assets/AgentSleepCoachIcon";
-import { AgentTrainerIcon } from "@/assets/AgentTrainerIcon";
+import { AgentBasketballCoachIcon } from "../assets/AgentBasketballIcon";
+import { AgentNutritionistIcon } from "../assets/AgentNutritionistIcon";
+import { AgentSkiCoachIcon } from "../assets/AgentSkiCoachIcon";
+import { AgentSleepCoachIcon } from "../assets/AgentSleepCoachIcon";
+import { AgentTrainerIcon } from "../assets/AgentTrainerIcon";
 
 export const agentDemoPrompts = {
   //Personality

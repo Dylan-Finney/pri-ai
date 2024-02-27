@@ -1,8 +1,8 @@
 /* eslint-disable react/no-unescaped-entities */
 
-import { handleIndex } from "@/utils/pri-ai/handleIndex";
-import useUploadFile from "@/utils/s3";
-import { useFileUpload } from "@/utils/useFileUpload";
+import { handleIndex } from "../../utils/pri-ai/handleIndex";
+import useUploadFile from "../../utils/s3";
+import { useFileUpload } from "../../utils/useFileUpload";
 import { useEffect, useRef, useState } from "react";
 
 const dataCloudIcon = "/assets/data-cloud.svg";

@@ -1,17 +1,11 @@
 import axios from "axios";
+import { getAudioURL } from "./backend/audio";
 
 export async function speakText(speak, lng) {
   try {
     // if (!mute) {
-    const responseAPI = await axios({
-      method: "POST",
-      url: "/api/audio",
-      data: {
-        speak,
-        lng,
-      },
-    });
-    return responseAPI.data.url;
+    const url = getAudioURL({ speak, lng });
+    return url;
     // }
   } catch (err) {
     console.error("Can't get TTS");

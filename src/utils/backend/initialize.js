@@ -1,9 +1,5 @@
-import { runWithAmplifyServerContext } from "@/utils/amplifyServerUtils";
-import { avatars } from "@/utils/constants";
-import { getCurrentUser } from "aws-amplify/auth/server";
-import { cookies } from "next/headers";
-
-import { NextResponse } from "next/server";
+import { avatars } from "../constants";
+import { getCurrentUser } from "aws-amplify/auth";
 var AWS = require("aws-sdk");
 AWS.config.update({
   region: process.env.REACT_APP_AWS_REGION,
@@ -46,13 +42,9 @@ const getPriAIConfigParams = (userID) => {
   };
 };
 
-export async function POST(req) {
+export async function initialize() {
   try {
-    const user = await runWithAmplifyServerContext({
-      nextServerContext: { cookies },
-
-      operation: (contextSpec) => getCurrentUser(contextSpec),
-    });
+    const user = await getCurrentUser();
     if (user.userId) {
       var queryPromises = [];
       var threads = [];
@@ -138,22 +130,11 @@ export async function POST(req) {
       const success = statusGetThreads === 200 && statusGetConfig === 200;
       // console.log(newAvatar);
 
-      return NextResponse.json(
-        {
-          statusText: success ? "Initialize Success" : "Initialize Fail",
-          name,
-          avatar,
-          threads,
-        },
-        { status: success ? 200 : 400 }
-      );
+      return { name, avatar, threads };
     } else {
-      return NextResponse.json({ statusText: "Auth Fail" }, { status: 400 });
+      console.error("Auth Fail");
     }
   } catch (e) {
-    return NextResponse.json(
-      { statusText: "Auth Fail or Error" },
-      { status: 400 }
-    );
+    console.error(e);
   }
 }

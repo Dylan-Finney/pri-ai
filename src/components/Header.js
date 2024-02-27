@@ -16,13 +16,15 @@ import {
   useEditableControls,
 } from "@chakra-ui/react";
 import { TbEdit } from "react-icons/tb";
-import NextImage from "next/image";
+import { Image } from "@chakra-ui/react";
 import { GoMute, GoUnmute } from "react-icons/go";
 import { RiDeleteBin6Line } from "react-icons/ri";
 import { CgSlack } from "react-icons/cg";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { getCurrentUser } from "aws-amplify/auth";
+import { changeName } from "../utils/backend/changeName";
+import { agentsDemoImages } from "../utils/agents";
 
 const share = "/assets/share.svg";
 
@@ -43,7 +45,10 @@ const Header = ({
   mode,
   changeMode,
   loggedIn = false,
+  threadTitle = "New Thread",
+  mentionedAgents = ["Assistant"],
 }) => {
+  const mentionedAgentsFiltered = mentionedAgents.slice(-3).reverse();
   const [customAIName, setCustomAIName] = useState(aIName || "");
 
   // const [colorTitle, setColorTitle] = useState(aIName || "");
@@ -93,101 +98,116 @@ const Header = ({
         height={"100%"}
         alignItems={"center"}
       >
-        {selectedAvatar === null || onboarding ? (
-          <></>
-        ) : (
-          <>
-            {initializing === true ? (
-              <>
-                <SkeletonCircle width={"40px"} height={"40px"} />
-                <SkeletonText
-                  skeletonHeight={"8"}
-                  noOfLines={1}
-                  maxWidth={"30%"}
-                  minWidth={"20%"}
-                  marginLeft={"0.5rem"}
-                  transitionDelay={20}
-                  marginRight={"0.5rem"}
-                />
-              </>
-            ) : (
-              <>
-                <div
-                  style={{
-                    flex: "none",
-                    order: "0",
-                    flexGrow: "0",
-                    position: "relative",
-                  }}
-                >
-                  <Box style={{ width: "40px", height: "40px" }}>
-                    <NextImage
-                      src={`/assets/avatar/${selectedAvatar}`}
-                      alt="Avatar"
-                      width={100}
-                      height={100}
-                    />
-                  </Box>
-                  <div
-                    style={{
-                      background: "#12B76A",
-                      border: "2.5px solid #FFFFFF",
-                      borderRadius: "10px",
-                      width: "15px",
-                      height: "15px",
-                      position: "absolute",
-                      right: "0px",
-                      bottom: "0px",
-                    }}
-                  />
-                </div>
-                <Editable
-                  textAlign="center"
-                  alignItems="center"
-                  display={"flex"}
-                  flexDirection={"row"}
-                  defaultValue={aIName}
-                  // value={aIName || ""}
+        <Flex
+          flexDir={"row"}
+          padding={"10px"}
+          borderBottom={"1px solid #EAECF0"}
+          alignItems={"center"}
+        >
+          {console.log({ mentionedAgents })}
+          {mode ? (
+            <>
+              {mentionedAgentsFiltered.map((speaker, agentIndex) => {
+                return (
+                  <>
+                    <Text>{JSON.stringify(agentsDemoImages[speaker])}</Text>
+                    <Box
+                      width={"32px"}
+                      height={"32px"}
+                      backgroundColor={"white"}
+                      border={"1px solid white"}
+                      borderRadius={"20px"}
+                      marginLeft={agentIndex > 0 ? "-10px" : "unset"}
+                    >
+                      {agentsDemoImages[speaker] !== undefined
+                        ? agentsDemoImages[speaker].threadIcon
+                        : agentsDemoImages["Nutritionist"].threadIcon}
+                    </Box>
+                  </>
+                );
+              })}
+            </>
+          ) : (
+            <>
+              {mentionedAgentsFiltered.map((speaker, agentIndex) => {
+                return (
+                  <>
+                    <Box
+                      width={"32px"}
+                      height={"32px"}
+                      backgroundColor={"white"}
+                      border={"1px solid white"}
+                      borderRadius={"20px"}
+                      marginLeft={agentIndex > 0 ? "-10px" : "unset"}
+                    >
+                      {/* {agentsImages[speaker]?.threadIcon ? (
+                        agentsImages[speaker].threadIcon
+                      ) : (
+                        <AIAvatar scale={2} />
+                      )} */}
+                    </Box>
+                  </>
+                );
+              })}
+            </>
+          )}
 
-                  onSubmit={async (newValue) => {
-                    setAIName(newValue);
-                    try {
-                      await getCurrentUser();
-                      axios({
-                        method: "POST",
-                        url: "/api/changeName",
-                        data: { newName: newValue },
-                      });
-                    } catch (e) {}
-                  }}
-                  as={"b"}
-                  marginLeft={"0.5rem"}
-                  marginRight={"0.5rem"}
-                  isPreviewFocusable={false}
-                  submitOnBlur={false}
-                  onChange={(nextValue) => {
-                    setCustomAIName(nextValue);
-                  }}
-                  value={customAIName}
+          {mentionedAgents.length > 3 && (
+            <Box
+              width={"32px"}
+              height={"32px"}
+              backgroundColor={"white"}
+              border={"2px solid white"}
+              borderRadius={"20px"}
+              marginLeft={"-10px"}
+              alignItems={"center"}
+              justifyContent={"center"}
+            >
+              <Flex
+                backgroundColor={"#F2F4F7"}
+                height={"95%"}
+                width={"95%"}
+                borderRadius={"200px"}
+                textAlign={"center"}
+                padding={"5px 0"}
+              >
+                <Text
+                  color={"#475467"}
+                  fontSize={"12px"}
+                  fontWeight={500}
+                  width={"32px"}
+                  height={"32px"}
+                  textAlign={"center"}
+                  alignItems={"center"}
+                  marginTop={"auto"}
                 >
-                  <EditablePreview
-                    width={"fit-content"}
-                    marginRight={"0.5rem"}
-                  />
-                  {/* Here is the custom input */}
-                  <Input
-                    as={EditableInput}
-                    width={"fit-content"}
-                    marginRight={"0.5rem"}
-                  />
-                  <EditableControls />
-                </Editable>
-              </>
-            )}
-
-            {/* <Text as="b" borderRadius={"25px"} paddingLeft={"1rem"} paddingRight={"1rem"} height={"fit-content"} paddingBottom={"0rem"} color={"#027948"} backgroundColor={"#ecfdf3"}><span style={{height: "5px",  width: "5px","background-color": "#12b76a","border-radius": "50%", display: "inline-block", marginBottom: "3px"}}/> Online</Text> */}
-          </>
-        )}
+                  +{mentionedAgents.length - 3}
+                </Text>
+              </Flex>
+            </Box>
+          )}
+          <Flex flexDir={"column"} paddingLeft={"10px"} overflow={"hidden"}>
+            <Text
+              fontWeight={600}
+              fontSize={"12px"}
+              overflow={"hidden"}
+              textOverflow={"ellipsis"}
+              whiteSpace={"nowrap"}
+            >
+              {threadTitle}
+            </Text>
+            <Text
+              fontWeight={400}
+              fontSize={"10px"}
+              overflow={"hidden"}
+              textOverflow={"ellipsis"}
+              whiteSpace={"nowrap"}
+            >
+              {[...mentionedAgents].reverse().join(", ")}
+            </Text>
+            <Text></Text>
+          </Flex>
+        </Flex>
         {/* <Text marginLeft={"0.5rem"} as='b'>{aIName}</Text><TbEdit size="1.5em"style={{ display: 'inline-block' }}/> */}
 
         <Spacer />
@@ -281,7 +301,7 @@ const Header = ({
             width={"20px"}
             height={"20px"}
           >
-            <NextImage width={100} height={100} alt="Share Icon" src={share} />
+            <Image boxSize={"20px"} alt="Share Icon" src={share} />
           </Box>
         </Button>
       </Box>
@@ -300,7 +320,7 @@ const Header = ({
               "drop-shadow(0px 1px 3px rgba(16, 24, 40, 0.1)) drop-shadow(0px 1px 2px rgba(16, 24, 40, 0.06))",
           }}
         >
-          <NextImage src={logo} alt="Logo" width={100} height={100} />
+          <Image src={logo} alt="Logo" boxSize={"32px"} />
         </Box>
         <Text
           paddingLeft={"10px"}

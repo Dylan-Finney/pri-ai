@@ -1,4 +1,4 @@
-import { agentsDemo2, agentsProd2 } from "@/utils/agents";
+import { agentsDemo2, agentsProd2 } from "../../utils/agents";
 import {
   Box,
   Button,
@@ -17,6 +17,7 @@ import { useEffect, useState } from "react";
 import AgentsCard from "./AgentsCard";
 import ExampleBlock from "./ExampleBlock";
 import PromptingSection from "./PromptingSection";
+import { getPersonalAgentDetails } from "../../utils/backend/getPersonalAgentDetails";
 
 const AgentsDrawer = ({
   onClose,
@@ -40,19 +41,15 @@ const AgentsDrawer = ({
   useEffect(() => {
     const getDetails = async () => {
       if (demoMode === false) {
-        const response = await axios({
-          method: "POST",
-          url: "/api/getPersonalAgentsDetails",
-          data: {},
-        });
+        const agentDetails = await getPersonalAgentDetails();
         // console.log(response);
-        console.log(response.data.agentDetails);
+        console.log(agentDetails);
         var agentsCopy = [...agentsProd2];
         const agentIndexes = agentsCopy.map(function (x) {
           return x.id;
         });
 
-        for (const agentDetail of response.data.agentDetails) {
+        for (const agentDetail of agentDetails) {
           if (agentIndexes.indexOf(agentDetail.id) > -1) {
             agentsCopy[agentIndexes.indexOf(agentDetail.id)] = {
               ...agentsCopy[agentIndexes.indexOf(agentDetail.id)],

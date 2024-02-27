@@ -1,5 +1,4 @@
-import { Box, Text } from "@chakra-ui/react";
-import NextImage from "next/image";
+import { Box, Text, Image } from "@chakra-ui/react";
 const logo = "/assets/logo.svg";
 
 const LogoHeader = () => {
@@ -20,7 +19,7 @@ const LogoHeader = () => {
             "drop-shadow(0px 1px 3px rgba(16, 24, 40, 0.1)) drop-shadow(0px 1px 2px rgba(16, 24, 40, 0.06))",
         }}
       >
-        <NextImage src={logo} alt={"logo"} width={40} height={40} />
+        <Image src={logo} alt={"logo"} boxSize={"40px"} />
       </Box>
       <Text
         paddingLeft={"10px"}

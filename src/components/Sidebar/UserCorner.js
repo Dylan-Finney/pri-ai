@@ -10,7 +10,7 @@ import { CgSlack } from "react-icons/cg";
 import { signOut } from "aws-amplify/auth";
 import SidebarItem from "./SidebarItem";
 import User from "./User";
-import sections from "@/utils/sections";
+import sections from "../../utils/sections";
 const about = "/assets/about.svg";
 const FAQ = "/assets/FAQ.svg";
 const logout = "/assets/logout.svg";

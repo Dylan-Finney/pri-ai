@@ -1,8 +1,5 @@
-import { runWithAmplifyServerContext } from "@/utils/amplifyServerUtils";
-import { getCurrentUser } from "aws-amplify/auth/server";
-import { cookies } from "next/headers";
+import { getCurrentUser } from "aws-amplify/auth";
 
-import { NextResponse } from "next/server";
 var AWS = require("aws-sdk");
 AWS.config.update({
   region: process.env.REACT_APP_AWS_REGION,
@@ -11,16 +8,18 @@ AWS.config.update({
 });
 
 var ddb = new AWS.DynamoDB({ apiVersion: "2012-08-10" });
-export async function POST(req) {
+export async function saveMessage({
+  threadID,
+  prompt,
+  response,
+  userID,
+  title,
+  isNew,
+  speaker = "assistant",
+}) {
   try {
-    const user = await runWithAmplifyServerContext({
-      nextServerContext: { cookies },
-
-      operation: (contextSpec) => getCurrentUser(contextSpec),
-    });
+    const user = await getCurrentUser();
     if (user.userId) {
-      const { threadID, prompt, response, userID, title, isNew } =
-        await req.json();
       var baseObject = {
         PriAIMessages3: [
           {
@@ -79,6 +78,9 @@ export async function POST(req) {
                   },
                   title: {
                     S: title,
+                  },
+                  speakers: {
+                    SS: [speaker],
                   },
                 },
               },
@@ -156,19 +158,11 @@ export async function POST(req) {
 
       const success = statusPut === 200 && statusUpdate === 200;
 
-      return NextResponse.json(
-        {
-          statusText: success ? "Save Success" : "Save Fail",
-        },
-        { status: success ? 200 : 400 }
-      );
+      return success;
     } else {
-      return NextResponse.json({ statusText: "Auth Fail" }, { status: 400 });
+      console.error("Auth Fail");
     }
   } catch (e) {
-    return NextResponse.json(
-      { statusText: "Auth Fail or Error" },
-      { status: 400 }
-    );
+    console.error("Auth Fail or Error");
   }
 }

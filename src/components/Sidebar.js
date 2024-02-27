@@ -1,4 +1,4 @@
-import sections from "@/utils/sections";
+import sections from "../utils/sections";
 import { Box, SkeletonText } from "@chakra-ui/react";
 import { useState } from "react";
 import LogoHeader from "./Sidebar/LogoHeader";

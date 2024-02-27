@@ -1,5 +1,5 @@
-import { Box, Text } from "@chakra-ui/react";
-import NextImage from "next/image";
+import { Box, Text, Image } from "@chakra-ui/react";
+// import NextImage from "next/image";
 const User = ({ name }) => {
   return (
     <Box
@@ -22,11 +22,10 @@ const User = ({ name }) => {
           marginBottom: "auto",
         }}
       >
-        <NextImage
+        <Image
           src={`/assets/avatar/Unknown.svg`}
           alt={"Profile Pic"}
-          width={40}
-          height={41}
+          boxSize={"40px"}
         />
       </Box>
       <Text paddingLeft={"5px"} fontWeight="600">
