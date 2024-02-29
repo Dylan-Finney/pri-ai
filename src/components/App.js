@@ -207,6 +207,7 @@ function App() {
       }
       const results = await aiAnswer({
         url,
+        requestId: generateUniqueId(),
         lastEntry,
         aggregate,
         followUp: followUpUpdate,
@@ -216,8 +217,12 @@ function App() {
         chunks,
         summary: summary.current,
         chatId: generateUniqueId(),
-        currentIndex: indexQuery,
+        indexQuery,
         session: sessionID,
+        entryType,
+        langCode,
+        appId: "pri-ai",
+        userId: userID,
       });
 
       if (results?.error) {
@@ -268,6 +273,9 @@ function App() {
       );
 
       updateUsedTokens({
+        userId: userID,
+        requestId: generateUniqueId(),
+
         url,
         finish_reason: results.finish_reason,
         currentIndex: indexQuery,
@@ -624,11 +632,13 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
       aiResponse: answer,
       prompt: prompt,
     });
+    console.log({ responseTitle });
     var title = "";
 
-    await streamIn(responseTitle.body, (newTitleChunk) => {
+    await streamIn(responseTitle, (newTitleChunk) => {
       title = title + newTitleChunk;
     });
+    console.log({ title });
     if (title.charAt(0) === `"` || title.charAt(0) === `'`) {
       title = title.substring(1, title.length - 1);
     } else if (title.length === 0) {

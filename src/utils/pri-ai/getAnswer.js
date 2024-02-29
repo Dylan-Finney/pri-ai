@@ -1,7 +1,5 @@
 import { fetchWithTimeout } from "..";
 import { updateUsedTokensBackend } from "../backend/updateUsedTokens";
-
-// import { fetchWithTimeout } from "@/utils";
 function customDeserialize(str) {
   const obj = {};
   str.split(";").forEach((pair) => {
@@ -16,16 +14,16 @@ const getStreamAnswer = async (data, chatId, update = false) => {
   const reader = data.getReader();
   const decoder = new TextDecoder();
   let done = false;
-  //   if (!update) {
-  //     document.getElementById(chatId).querySelector(".dots").style.display =
-  //       "none";
-  //   }
-  //   const element = document
-  //     .getElementById(chatId)
-  //     .querySelector(".question-answer");
-  //   if (update) {
-  //     element.innerHTML += " ";
-  //   }
+  // if (!update) {
+  //   document.getElementById(chatId).querySelector(".dots").style.display =
+  //     "none";
+  // }
+  // const element = document
+  //   .getElementById(chatId)
+  //   .querySelector(".question-answer");
+  // if (update) {
+  //   element.innerHTML += " ";
+  // }
 
   let answer = "";
   let finish_reason = null;
@@ -180,12 +178,20 @@ export const getHistory = (
 
 export const updateUsedTokens = async ({ url, ...opts }) => {
   // proxy api, which outputs info to app logs.
-  const tokens = await updateUsedTokensBackend(opts);
+  // const tokens = await fetch(`${url}/updateUsedTokens`, {
+  //   method: "POST",
+  //   headers: new Headers({
+  //     "Content-Type": "application/json",
+  //     Accept: "application/json",
+  //   }),
+  //   body: JSON.stringify(opts),
+  // });
 
   let tokendata = {};
-  if (tokens.ok) {
-    tokendata = await tokens.json();
-  }
+  tokendata = await updateUsedTokensBackend(opts);
+  // if (tokens.ok) {
+  //   tokendata = await tokens.json();
+  // }
 
   return Promise.resolve(tokendata);
 };
@@ -263,17 +269,16 @@ const makeRequest = async (requestOptions, url) => {
 
   const data = requestResponse.body;
   //console.log("NEW REQ DATA ", data);
-  const sentMessages = JSON.parse(
-    decodeURIComponent(requestResponse.headers.get("X-Custom-Messages"))
-  );
+  //const sentMessages = JSON.parse(decodeURIComponent(requestResponse.headers.get('X-Custom-Messages')));
   //console.log("HEADER ", requestResponse.headers);
   //console.log("HEADER ", requestResponse.headers.get('X-Custom-Messages'));
-  //console.log(sentMessages);
-  return { error: null, data, sentMessages };
+  // console.log("CUSTOM HEADER ", sentMessages);
+  //return { error: null, data, sentMessages };
+  return { error: null, data };
   //return null;
 };
 
-export const aiAnswer = async ({ url, ...opts }) => {
+export const aiAnswer = async ({ url, entryType, langCode, ...opts }) => {
   // requestBody supports OPENAI_API_KEY option too.. but then better create proxy api otherwise secret is visible...
 
   const requestOptions = {
@@ -291,7 +296,7 @@ export const aiAnswer = async ({ url, ...opts }) => {
 
   let requestResponse = undefined;
   try {
-    requestResponse = await fetchWithTimeout(`${process.env.REACT_APP_MIDDLEWARE_API_URL}generate`, requestOptions);
+    requestResponse = await fetchWithTimeout(`${process.env.MIDDLEWARE_API_URL}generate`, requestOptions);
   } catch (err) {
     console.log("OPENAI ERROR ", err);
     console.error(err);
@@ -326,7 +331,7 @@ export const aiAnswer = async ({ url, ...opts }) => {
   const data = requestResponse.body;
   const sentMessages = JSON.parse(decodeURIComponent(requestResponse.headers.get('X-Custom-Messages'))); */
 
-  const { error, data, sentMessages } = await makeRequest(requestOptions, url);
+  const { error, data } = await makeRequest(requestOptions, url);
   if (error) {
     return error;
   }
@@ -338,8 +343,13 @@ export const aiAnswer = async ({ url, ...opts }) => {
 
   const tokens = updateUsedTokens({
     url,
+    userId: opts.userId,
+    requestId: opts.requestId,
+    followUp: opts.followUp,
+    aggregate: opts.aggregate,
+    entryType,
+    langCode,
     currentIndex: opts.currentIndex,
-    messages: sentMessages,
     llm: opts.llm,
     statement: opts.statement,
     session: opts.session,
@@ -359,11 +369,12 @@ export const aiAnswer = async ({ url, ...opts }) => {
   // null: API response still in progress or incomplete.  This should not happen here as getStreamAnswer also updates the UI...
 
   console.log("ANSWER RESULTS", results);
-  console.log("HISTORY ", sentMessages);
+  // console.log("HISTORY ", sentMessages);
   let finalAnswer = results[1].answer;
   let finishReason = results[1]?.finish_reason;
-  if (finishReason !== undefined && finishReason === "length") {
-    // loop continue until finish-reason is not "length" anymore...
+  /*
+  if (finishReason !== undefined && finishReason === 'length') {
+    // loop continue until finish-reason is not "length" anymore... 
     //console.log("CONTINUE LOOP ", sentMessages);
     //statement: entry
     //opts.statement = 'next part';
@@ -371,18 +382,14 @@ export const aiAnswer = async ({ url, ...opts }) => {
     if (opts.history[0].role === "system") {
       opts.history[0].content += "\n- Continue incomplete answer.";
     }
-    opts.history.push({ role: "assistant", content: finalAnswer });
+    opts.history.push({ "role": "assistant", "content": finalAnswer });
     opts.chunks = [];
     opts.continueNext = true;
     requestOptions.body = JSON.stringify(opts);
     //console.log("REQ OPTS ", requestOptions);
     let cnt = 0;
     do {
-      const {
-        error,
-        data,
-        sentMessages: history,
-      } = await makeRequest(requestOptions);
+      const { error, data, sentMessages: history } = await makeRequest(requestOptions);
       if (error) {
         return error;
       }
@@ -390,29 +397,19 @@ export const aiAnswer = async ({ url, ...opts }) => {
       console.log("LOOP RESULTS ", streamResults);
 
       opts.history = history;
-      opts.history.push({ role: "assistant", content: streamResults.answer });
+      opts.history.push({ "role": "assistant", "content": streamResults.answer });
       requestOptions.body = JSON.stringify(opts);
 
       finalAnswer += " " + streamResults.answer;
 
       finishReason = streamResults.finish_reason;
-      // so that we don't get infinite loop...
+      // so that we don't get infinite loop... 
       cnt++;
-    } while (finishReason === "length" && cnt < 2);
+    } while (finishReason === "length" && cnt < 2)
 
-    /*
-      const { error, data, sentMessages } = await makeRequest(fetchWithTimeout, requestOptions);
-      if (error) {
-        return error;
-      }
-    
-      //console.log("HEADERS ", sentMessages);
-      if (!data) {
-        return;
-      }
-      */
+
   }
-
+*/
   return {
     error: null,
     answer: finalAnswer,

@@ -62,7 +62,7 @@ export async function initialize() {
               threads.push({
                 id: element.threadID.S,
                 lastMessage: parseInt(element.time.N),
-                title: element.title.S,
+                title: element.title?.S || "New Thread",
               });
             });
             //   setConversations(threads);
