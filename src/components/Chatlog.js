@@ -10,6 +10,7 @@ export function Chatlog(props) {
       justifyContent={onboarding ? "center" : null}
       alignItems={onboarding ? "center" : null}
       textAlign={onboarding ? "center" : null}
+      maxHeight={"86vh"}
       style={{
         backgroundColor: onboarding ? "#F6FEFC" : "#fcfcfd",
         whiteSpace: "pre-wrap",

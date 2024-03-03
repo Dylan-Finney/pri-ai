@@ -1,18 +1,21 @@
 import { HelpIcon } from "@/assets/HelpIcon";
 import { agentsDemo2, agentsProd2 } from "@/utils/agents";
-import { Box, Button, Flex, Text, Tooltip } from "@chakra-ui/react";
+import { Avatar, Box, Button, Flex, Text, Tooltip } from "@chakra-ui/react";
 import NextImage from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { HiMicrophone, HiStop } from "react-icons/hi";
 import { TbSend } from "react-icons/tb";
 import { Mention, MentionsInput } from "react-mentions";
+import AgentImage from "./AgentImage";
+import { DataContext } from "./App";
 // import { HelpIcon } from "@/assets/";
 
 function PromptInput(props) {
   const [prompt, setPrompt] = useState("");
   const [mic, setMic] = useState(false);
   const speech = useRef("");
-  const agents = props.demoMode === true ? agentsDemo2 : agentsProd2;
+  const { agents, buddies } = useContext(DataContext);
+  const agentsAll = props.demoMode === true ? agents : buddies;
   // const [userID, setUserID] = useState("");
   useEffect(() => {
     let recognition;
@@ -80,7 +83,7 @@ function PromptInput(props) {
         <HelpIcon />
       </Box>
       <MentionsInput
-        onCurs
+        disabled={props.sendDisabled || props.saving}
         placeholder="Ex: What is in my calendar for tomorrow?"
         value={prompt}
         onKeyUp={(event) => {
@@ -131,7 +134,7 @@ function PromptInput(props) {
         <Mention
           trigger="@"
           displayTransform={(a, display) => `@${display}`}
-          data={agents.map((data, i) => {
+          data={agentsAll.map((data, i) => {
             return {
               id: i,
               display: `${data.call}`,
@@ -151,6 +154,7 @@ function PromptInput(props) {
           ) => {
             const image = suggestion.data.image.urlCircle || undefined;
             const company = suggestion.data.company || "Prifina";
+            console.log("Mention", suggestion.data);
             return (
               <Flex
                 onBlur={() => {
@@ -164,29 +168,15 @@ function PromptInput(props) {
                 {/* <AgentSkiCoachIcon scale={1} /> */}
 
                 {image !== undefined ? (
-                  <Box
-                    // cursor={"pointer"}
-                    position={"relative"}
-                    width={"fit-content"}
-                    // onClick={() => {
-                    //   onClickAgent(agent);
-                    // }}
-                  >
-                    <NextImage
-                      src={`/assets/agents/${image}`}
-                      width={50}
-                      height={50}
-                      alt={`Picture of the ${suggestion.data}`}
-                    ></NextImage>
-                    <Box
-                      position={"absolute"}
-                      zIndex={2}
-                      bottom={-2}
-                      right={-2}
-                    >
-                      {suggestion.data.image.chatIcon}
-                    </Box>
-                  </Box>
+                  <AgentImage
+                    show={suggestion.data.image.urlFull}
+                    icon={suggestion.data.image.chatIcon}
+                    name={suggestion.data.name}
+                    url={suggestion.data.image.urlFull}
+                    defaultImage={suggestion.data.image.defaultFull}
+                    size={2}
+                    iconScale={2}
+                  />
                 ) : (
                   <div
                     style={{

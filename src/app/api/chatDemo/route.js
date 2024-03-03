@@ -78,6 +78,8 @@ For displaying any maths or equations, use only the $...$ or $$...$$ delimiter o
       };
     });
 
+    console.log(JSON.stringify(messages));
+
     const payload = {
       model: "gpt-3.5-turbo-16k-0613",
       messages: [

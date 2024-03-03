@@ -1,5 +1,5 @@
 import sections from "@/utils/sections";
-import { Box, SkeletonText } from "@chakra-ui/react";
+import { Box, SkeletonText, Text } from "@chakra-ui/react";
 import { useState } from "react";
 import LogoHeader from "./Sidebar/LogoHeader";
 import NewChatButton from "./Sidebar/NewChatButton";
@@ -8,6 +8,7 @@ import Thread from "./Sidebar/Thread";
 import ThreadGroupDivider from "./Sidebar/ThreadGroupDivider";
 import ThreadGroupTitle from "./Sidebar/ThreadGroupTitle";
 import UserCorner from "./Sidebar/UserCorner";
+import axios from "axios";
 
 const SkeletonThread = () => {
   return <SkeletonText skeletonHeight={"6"} noOfLines={1} mb={3} />;
@@ -46,7 +47,10 @@ export default function Sidebar(props) {
       paddingLeft={4}
       paddingRight={4}
     >
-      <LogoHeader />
+      {/* <LogoHeader /> */}
+      <Text paddingTop={"15px"} paddingRight={"5px"}>
+        Threads
+      </Text>
       <Box
         display={"flex"}
         flexDirection={"column"}
@@ -134,7 +138,7 @@ export default function Sidebar(props) {
                       const active = props.activeConvo === conversation.id;
 
                       return (
-                        <Box key={index}>
+                        <Box key={index} paddingRight={"10px"}>
                           {startOfNewGroup && <ThreadGroupDivider />}
                           {displayGroupTitle && (
                             <ThreadGroupTitle
@@ -142,13 +146,35 @@ export default function Sidebar(props) {
                             />
                           )}
                           <Thread
+                            threadID={conversation.id}
+                            isLargerThanMd={props.isLargerThanMd}
                             onClick={() => {
                               if (!props.disabledClick && !active) {
                                 props.changeSection(sections.CHAT);
-                                props.changeConversation(conversation.id);
+                                props.changeConversation(
+                                  conversation.id,
+                                  conversation.title
+                                );
                               }
                             }}
                             active={active}
+                            deleteConvo={async (threadID) => {
+                              if (props.loggedIn) {
+                                await axios({
+                                  method: "POST",
+                                  url: "/api/deleteThread",
+                                  data: {
+                                    threadID,
+                                  },
+                                });
+                              }
+
+                              props.deleteThread(threadID);
+                              if (active) {
+                                props.changeSection(sections.CHAT);
+                                props.changeConversation(-1);
+                              }
+                            }}
                             title={conversation.title}
                           />
                         </Box>

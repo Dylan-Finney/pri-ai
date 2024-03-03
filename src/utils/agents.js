@@ -7,7 +7,7 @@ import { AgentBasketballCoachIcon } from "@/assets/AgentBasketballIcon";
 import { AgentNutritionistIcon } from "@/assets/AgentNutritionistIcon";
 import { AgentSkiCoachIcon } from "@/assets/AgentSkiCoachIcon";
 import { AgentSleepCoachIcon } from "@/assets/AgentSleepCoachIcon";
-import { AgentTrainerIcon } from "@/assets/AgentTrainerIcon";
+import { AgentTrainerIcon } from "@/assets/avatar/icons/AgentTrainerIcon";
 
 export const agentDemoPrompts = {
   //Personality
@@ -232,11 +232,12 @@ export const agentsProd2 = [
     image: {
       urlCircle: "",
       urlFull: "",
-      chatIcon: "",
+      defaultFull: "/assets/agents/helper.png",
+      chatIcon: "/assets/agents/icons/prifina.png",
     },
     company: "Prifina",
     index: "prifina",
-    description: "Don't understand how Prifina works? Ask Helper for details",
+    description: "Helping you with all Prifina apps and services.",
     edtiable: false,
     uploadable: false,
   },
@@ -247,11 +248,22 @@ export const agentsProd2 = [
     image: {
       urlCircle: "",
       urlFull: "",
-      chatIcon: "",
+      defaultFull: "/assets/agents/assistant.png",
+      chatIcon: "/assets/agents/icons/assistant.png",
+    },
+    info: {
+      description:
+        "I'm your dedicated navigator through the vast landscape of all your information in your DataCloud. As your trusted guide, I'm here to ensure you harness the full potential of your own data, empowering you with insights and assistance tailored specifically to your life.",
+      personality:
+        "Empathetic, knowledgeable, and always eager to help, I'm here to make your data work for you. With a friendly approach and a knack for simplifying complex information.",
+      shared: "",
+      knowledge:
+        "Utilizes the knowledge you've provided, including articles, transcripts, documents, etc., shared through uploads or emails, to offer personalized assistance based on the information within those.",
     },
     company: "Prifina",
     index: `User's Index`,
-    description: "Your personal AI buddy that has access to any knowledge ",
+    description:
+      "Helping you with all your personal information in your data cloud.",
     edtiable: false,
     uploadable: true,
   },
@@ -261,8 +273,8 @@ export const agentsProd2 = [
     call: "xyz",
     image: {
       urlCircle: "",
-      urlFull: "",
-      chatIcon: "",
+      urlFull: "/assets/agents/helper.png",
+      chatIcon: "/assets/agents/icons/prifina.png",
     },
     company: "Prifina",
     index: "dylan-test2",
@@ -278,8 +290,8 @@ export const agentsDemo2 = [
     call: "caregiver",
     image: {
       urlCircle: "",
-      urlFull: "",
-      chatIcon: <></>,
+      urlFull: "/assets/agents/helper.png",
+      chatIcon: "/assets/agents/icons/prifina.png",
     },
     company: "Prifina",
     index: "",
@@ -291,8 +303,8 @@ export const agentsDemo2 = [
     call: "jester",
     image: {
       urlCircle: "",
-      urlFull: "",
-      chatIcon: <></>,
+      urlFull: "/assets/agents/helper.png",
+      chatIcon: "/assets/agents/icons/prifina.png",
     },
     company: "Prifina",
     index: "",
@@ -304,8 +316,8 @@ export const agentsDemo2 = [
     call: "storyteller",
     image: {
       urlCircle: "",
-      urlFull: "",
-      chatIcon: <></>,
+      urlFull: "/assets/agents/helper.png",
+      chatIcon: "/assets/agents/icons/prifina.png",
     },
     company: "Prifina",
     index: "",
@@ -317,8 +329,8 @@ export const agentsDemo2 = [
     call: "analyst",
     image: {
       urlCircle: "",
-      urlFull: "",
-      chatIcon: <></>,
+      urlFull: "/assets/agents/helper.png",
+      chatIcon: "/assets/agents/icons/prifina.png",
     },
     company: "Prifina",
     index: "",
@@ -330,8 +342,8 @@ export const agentsDemo2 = [
     call: "mentor",
     image: {
       urlCircle: "",
-      urlFull: "",
-      chatIcon: <></>,
+      urlFull: "/assets/agents/helper.png",
+      chatIcon: "/assets/agents/icons/prifina.png",
     },
     company: "Prifina",
     index: "",
@@ -343,8 +355,21 @@ export const agentsDemo2 = [
     call: "philosopher",
     image: {
       urlCircle: "",
-      urlFull: "",
-      chatIcon: <></>,
+      urlFull: "/assets/agents/helper.png",
+      chatIcon: "/assets/agents/icons/prifina.png",
+    },
+    company: "Prifina",
+    index: "",
+    description: "",
+    edtiable: false,
+  },
+  {
+    name: "Pri-AI",
+    call: "pri-ai",
+    image: {
+      urlCircle: "",
+      urlFull: "/assets/agents/helper.png",
+      chatIcon: "/assets/agents/icons/prifina.png",
     },
     company: "Prifina",
     index: "",
@@ -356,8 +381,8 @@ export const agentsDemo2 = [
     call: "challenger",
     image: {
       urlCircle: "",
-      urlFull: "",
-      chatIcon: <></>,
+      urlFull: "/assets/agents/helper.png",
+      chatIcon: "/assets/agents/icons/prifina.png",
     },
     company: "Prifina",
     index: "",
@@ -369,8 +394,8 @@ export const agentsDemo2 = [
     call: "language",
     image: {
       urlCircle: "",
-      urlFull: "",
-      chatIcon: <></>,
+      urlFull: "/assets/agents/helper.png",
+      chatIcon: "/assets/agents/icons/prifina.png",
     },
     company: "Prifina",
     index: "",
@@ -383,7 +408,7 @@ export const agentsDemo2 = [
     image: {
       urlCircle: "AIAgentNutritionistAvatar.png",
       urlFull: "NourishWell.png",
-      chatIcon: <AgentNutritionistIcon scale={1} />,
+      chatIcon: "",
     },
     company: "NourishWell",
     index: "",
@@ -396,7 +421,7 @@ export const agentsDemo2 = [
     image: {
       urlCircle: "AIAgentSleepCoachAvatar.png",
       urlFull: "SleepLab.png",
-      chatIcon: <AgentSleepCoachIcon scale={1} />,
+      chatIcon: "",
     },
     company: "Sleep lab",
     index: "",
@@ -410,7 +435,7 @@ export const agentsDemo2 = [
     image: {
       urlCircle: "AIAgentBasketballCoachAvatar.png",
       urlFull: "Game6.png",
-      chatIcon: <AgentBasketballCoachIcon scale={1} />,
+      chatIcon: "",
     },
     company: "Game 6",
     index: "",
@@ -424,7 +449,7 @@ export const agentsDemo2 = [
     image: {
       urlCircle: "AIAgentSkiCoachAvatar.png",
       urlFull: "Heierling.png",
-      chatIcon: <AgentSkiCoachIcon scale={1} />,
+      chatIcon: "",
     },
     company: "Heierling",
     index: "",
@@ -436,8 +461,8 @@ export const agentsDemo2 = [
     call: "travel",
     image: {
       urlCircle: "",
-      urlFull: "",
-      chatIcon: <></>,
+      urlFull: "/assets/agents/helper.png",
+      chatIcon: "/assets/agents/icons/prifina.png",
     },
     company: "Prifina",
     index: "",
@@ -449,8 +474,8 @@ export const agentsDemo2 = [
     call: "productivity",
     image: {
       urlCircle: "",
-      urlFull: "",
-      chatIcon: <></>,
+      urlFull: "/assets/agents/helper.png",
+      chatIcon: "/assets/agents/icons/prifina.png",
     },
     company: "Prifina",
     index: "",
@@ -462,8 +487,8 @@ export const agentsDemo2 = [
     call: "socialint",
     image: {
       urlCircle: "",
-      urlFull: "",
-      chatIcon: <></>,
+      urlFull: "/assets/agents/helper.png",
+      chatIcon: "/assets/agents/icons/prifina.png",
     },
     company: "Prifina",
     index: "",
@@ -475,8 +500,8 @@ export const agentsDemo2 = [
     call: "tailor",
     image: {
       urlCircle: "",
-      urlFull: "",
-      chatIcon: <></>,
+      urlFull: "/assets/agents/helper.png",
+      chatIcon: "/assets/agents/icons/prifina.png",
     },
     company: "Prifina",
     index: "",
@@ -489,7 +514,7 @@ export const agentsDemo2 = [
     image: {
       urlCircle: "AIAgentTrainerAvatar.png",
       urlFull: "OptiFit.png",
-      chatIcon: <AgentTrainerIcon scale={1} />,
+      chatIcon: (scale = 2) => <AgentTrainerIcon scale={scale} />,
     },
     company: "Opti-Fit",
     index: "",

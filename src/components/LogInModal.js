@@ -38,7 +38,7 @@ const VerificationInput = ({ error, changeAuthCode }) => {
   ];
 
   const handleChange = (index, value) => {
-    console.log({ value });
+    // console.log({ value });
     const newInputValues = [...inputValues];
     // newInputValues[index] = value;
     if (value.length < 2 && /^\d?$/.test(value)) {

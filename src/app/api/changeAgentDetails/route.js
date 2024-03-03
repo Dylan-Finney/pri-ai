@@ -39,7 +39,7 @@ export async function POST(req) {
         const statusPutName = await new Promise(async (resolve, reject) => {
           try {
             var params = {
-              TableName: process.env.AWS_THREADS_TABLE_NAME,
+              TableName: process.env.AWS_AGENTS_TABLE_NAME,
               Item: {
                 userID: { S: user.userId },
                 agentID: { S: agentID.toString() },

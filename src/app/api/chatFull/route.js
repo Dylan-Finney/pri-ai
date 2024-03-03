@@ -89,7 +89,21 @@ For displaying any maths or equations, use only the $...$ or $$...$$ delimiter o
             content: exchange.message,
           };
         });
-
+        console.log(
+          JSON.stringify([
+            {
+              role: "system",
+              content:
+                agent === null
+                  ? initalPrompt
+                  : `${generalAccessPrompt}
+${agentDemoPrompts[agent[1].toLowerCase()]}
+For displaying any maths or equations, use only the $...$ or $$...$$ delimiter of Latex Math Mode, e.g. $\frac{1}{3}$. Use Markdown for text fomatting.`,
+            },
+            ...messages.flat(),
+            { role: "user", content: prompt },
+          ])
+        );
         const payload = {
           model: "gpt-4-0125-preview",
           messages: [

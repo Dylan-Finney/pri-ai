@@ -40,16 +40,25 @@ export async function POST(req) {
             // console.log("Success", data.Items);
 
             data.Items.forEach(function (element, index, array) {
-              // console.log({ element });
+              console.log({ element });
+              console.log(element.feedback?.M.helpful);
               allMessages.push({
                 message: element.message.S,
                 time: parseInt(element.time.N),
-                speaker: element.speaker.S,
+                speaker:
+                  element.speaker.S === "PriAI"
+                    ? "assistant"
+                    : element.speaker.S,
+                bookmark: element.bookmark?.BOOL || false,
+                feedback: {
+                  helpful: element.feedback?.M.helpful?.BOOL,
+                  details: element.feedback?.M.details?.S || undefined,
+                },
               });
             });
 
             allMessages = allMessages.sort((a, b) => a.time - b.time);
-            // console.log({ allMessages });
+            console.log({ allMessages: JSON.stringify(allMessages) });
             resolve(200);
             // setConversationID(newID);
             // setChatlog(allMessages);

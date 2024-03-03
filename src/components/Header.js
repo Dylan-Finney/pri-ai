@@ -16,13 +16,19 @@ import {
   useEditableControls,
 } from "@chakra-ui/react";
 import { TbEdit } from "react-icons/tb";
-import NextImage from "next/image";
+import { Image } from "@chakra-ui/react";
 import { GoMute, GoUnmute } from "react-icons/go";
 import { RiDeleteBin6Line } from "react-icons/ri";
 import { CgSlack } from "react-icons/cg";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import axios from "axios";
 import { getCurrentUser } from "aws-amplify/auth";
+// import { changeName } from "../utils/backend/changeName";
+import { agentsDemoImages } from "../utils/agents";
+import AgentImage from "./AgentImage";
+import { DataContext } from "./App";
+import ThreadTitle from "./ThreadTitle";
+import sections from "@/utils/sections";
 
 const share = "/assets/share.svg";
 
@@ -43,7 +49,13 @@ const Header = ({
   mode,
   changeMode,
   loggedIn = false,
+  threadTitle = "New Thread",
+  mentionedAgents = ["Assistant"],
+  section,
+  show,
 }) => {
+  const { agents } = useContext(DataContext);
+  const mentionedAgentsFiltered = mentionedAgents.slice(-3).reverse();
   const [customAIName, setCustomAIName] = useState(aIName || "");
 
   // const [colorTitle, setColorTitle] = useState(aIName || "");
@@ -83,114 +95,32 @@ const Header = ({
         flexDirection: "row",
         alignItems: "center",
         paddingLeft: "1rem",
-        marginTop: "10px",
-        marginBottom: "10px",
+        // marginTop: "10px",
+        // marginBottom: "10px",
+        height: "7vh",
       }}
     >
       <Box
-        display={{ base: "none", md: "flex" }}
+        display={{
+          base: section !== sections.UPLOAD ? "none" : "flex",
+          md: "flex",
+        }}
         width={"100%"}
         height={"100%"}
         alignItems={"center"}
       >
-        {selectedAvatar === null || onboarding ? (
-          <></>
-        ) : (
-          <>
-            {initializing === true ? (
-              <>
-                <SkeletonCircle width={"40px"} height={"40px"} />
-                <SkeletonText
-                  skeletonHeight={"8"}
-                  noOfLines={1}
-                  maxWidth={"30%"}
-                  minWidth={"20%"}
-                  marginLeft={"0.5rem"}
-                  transitionDelay={20}
-                  marginRight={"0.5rem"}
-                />
-              </>
-            ) : (
-              <>
-                <div
-                  style={{
-                    flex: "none",
-                    order: "0",
-                    flexGrow: "0",
-                    position: "relative",
-                  }}
-                >
-                  <Box style={{ width: "40px", height: "40px" }}>
-                    <NextImage
-                      src={`/assets/avatar/${selectedAvatar}`}
-                      alt="Avatar"
-                      width={100}
-                      height={100}
-                    />
-                  </Box>
-                  <div
-                    style={{
-                      background: "#12B76A",
-                      border: "2.5px solid #FFFFFF",
-                      borderRadius: "10px",
-                      width: "15px",
-                      height: "15px",
-                      position: "absolute",
-                      right: "0px",
-                      bottom: "0px",
-                    }}
-                  />
-                </div>
-                <Editable
-                  textAlign="center"
-                  alignItems="center"
-                  display={"flex"}
-                  flexDirection={"row"}
-                  defaultValue={aIName}
-                  // value={aIName || ""}
-
-                  onSubmit={async (newValue) => {
-                    setAIName(newValue);
-                    try {
-                      await getCurrentUser();
-                      axios({
-                        method: "POST",
-                        url: "/api/changeName",
-                        data: { newName: newValue },
-                      });
-                    } catch (e) {}
-                  }}
-                  as={"b"}
-                  marginLeft={"0.5rem"}
-                  marginRight={"0.5rem"}
-                  isPreviewFocusable={false}
-                  submitOnBlur={false}
-                  onChange={(nextValue) => {
-                    setCustomAIName(nextValue);
-                  }}
-                  value={customAIName}
-                >
-                  <EditablePreview
-                    width={"fit-content"}
-                    marginRight={"0.5rem"}
-                  />
-                  {/* Here is the custom input */}
-                  <Input
-                    as={EditableInput}
-                    width={"fit-content"}
-                    marginRight={"0.5rem"}
-                  />
-                  <EditableControls />
-                </Editable>
-              </>
-            )}
-
-            {/* <Text as="b" borderRadius={"25px"} paddingLeft={"1rem"} paddingRight={"1rem"} height={"fit-content"} paddingBottom={"0rem"} color={"#027948"} backgroundColor={"#ecfdf3"}><span style={{height: "5px",  width: "5px","background-color": "#12b76a","border-radius": "50%", display: "inline-block", marginBottom: "3px"}}/> Online</Text> */}
-          </>
+        {section === 0 && show && (
+          <ThreadTitle
+            title={threadTitle}
+            mentionedAgents={mentionedAgents}
+            mode={mode}
+          />
         )}
+        {section === 2 && <Text>Data Center</Text>}
+
         {/* <Text marginLeft={"0.5rem"} as='b'>{aIName}</Text><TbEdit size="1.5em"style={{ display: 'inline-block' }}/> */}
 
-        <Spacer />
+        {/* <Spacer />
         {loggedIn && (
           <Button
             marginRight={"1rem"}
@@ -203,33 +133,9 @@ const Header = ({
           >
             {mode ? `GPT MODE` : `PRI AI MODE`}
           </Button>
-        )}
+        )} */}
 
-        <Button
-          marginRight={"1rem"}
-          size="sm"
-          backgroundColor={"#f0fdf9"}
-          color={"#107569"}
-          onClick={() => {
-            setMute(!mute);
-          }}
-        >
-          {mute ? (
-            <>
-              Unmute{" "}
-              <Box marginLeft={"5px"}>
-                <GoMute size={16} />
-              </Box>
-            </>
-          ) : (
-            <>
-              Mute{" "}
-              <Box marginLeft={"5px"}>
-                <GoUnmute size={16} />
-              </Box>
-            </>
-          )}
-        </Button>
+        {/*
         <Button
           marginRight={"1rem"}
           size="sm"
@@ -281,12 +187,15 @@ const Header = ({
             width={"20px"}
             height={"20px"}
           >
-            <NextImage width={100} height={100} alt="Share Icon" src={share} />
+            <Image boxSize={"20px"} alt="Share Icon" src={share} />
           </Box>
-        </Button>
+        </Button> */}
       </Box>
       <Box
-        display={{ base: "flex", md: "none" }}
+        display={{
+          base: section !== sections.UPLOAD ? "flex" : "none",
+          md: "none",
+        }}
         flexDirection={"row"}
         width={"100%"}
         alignItems={"center"}
@@ -300,7 +209,7 @@ const Header = ({
               "drop-shadow(0px 1px 3px rgba(16, 24, 40, 0.1)) drop-shadow(0px 1px 2px rgba(16, 24, 40, 0.06))",
           }}
         >
-          <NextImage src={logo} alt="Logo" width={100} height={100} />
+          <Image src={logo} alt="Logo" boxSize={"32px"} />
         </Box>
         <Text
           paddingLeft={"10px"}

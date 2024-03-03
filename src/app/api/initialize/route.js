@@ -46,6 +46,17 @@ const getPriAIConfigParams = (userID) => {
   };
 };
 
+const getBookmarkParams = (userID) => {
+  return {
+    ExpressionAttributeValues: {
+      ":s": { S: userID },
+    },
+    KeyConditionExpression: "userID = :s",
+    // ProjectionExpression: "Episode, Title, Subtitle",
+    TableName: "PriAIBookmarks4",
+  };
+};
+
 export async function POST(req) {
   try {
     const user = await runWithAmplifyServerContext({
@@ -58,6 +69,7 @@ export async function POST(req) {
       var threads = [];
       var avatar = "";
       var name = "";
+      var bookmarks = {};
 
       queryPromises[0] = new Promise((resolve, reject) => {
         ddb.query(getThreadsParams(user.userId), function (err, data) {
@@ -66,11 +78,14 @@ export async function POST(req) {
           } else {
             //console.log("Success", data.Items);
             data.Items.forEach(function (element, index, array) {
-              // console.log({ element });
+              console.log({ element });
               threads.push({
                 id: element.threadID.S,
                 lastMessage: parseInt(element.time.N),
-                title: element.title.S,
+                title: element.title ? element.title.S : "New Thread",
+                speakers: element.speakers ? element.speakers.SS : [],
+                buddies: element.buddies ? element.buddies.BOOL : true,
+                // helpful: element.feedback ? JSON. ,
               });
             });
             //   setConversations(threads);
@@ -131,9 +146,30 @@ export async function POST(req) {
         });
       });
 
-      const [statusGetThreads, statusGetConfig] = await Promise.all(
-        queryPromises
-      );
+      queryPromises[2] = new Promise((resolve, reject) => {
+        ddb.query(getBookmarkParams(user.userId), function (err, data) {
+          if (err) {
+            // console.log("Error", err);
+          } else {
+            //console.log("Success", data.Items);
+            data.Items.forEach(function (element, index, array) {
+              // console.log({ element });
+              // const lastIndex = element.messageID.S.lastIndexOf("-");
+              // const time = parseInt(element.messageTimes.NS);
+              const threadID = element.threadID.S;
+              bookmarks[threadID] = element.messageTimes?.NS.map((time) =>
+                parseInt(time)
+              );
+            });
+            //   setConversations(threads);
+          }
+          console.log({ bookmarks });
+          resolve(200);
+        });
+      });
+
+      const [statusGetThreads, statusGetConfig, statusGetBookmarks] =
+        await Promise.all(queryPromises);
 
       const success = statusGetThreads === 200 && statusGetConfig === 200;
       // console.log(newAvatar);
@@ -144,6 +180,7 @@ export async function POST(req) {
           name,
           avatar,
           threads,
+          bookmarks,
         },
         { status: success ? 200 : 400 }
       );

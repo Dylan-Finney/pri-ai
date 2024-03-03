@@ -3,6 +3,7 @@ import { Box, Button, Flex, Text } from "@chakra-ui/react";
 import axios from "axios";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import AgentImage from "../AgentImage";
 
 const AgentsCard = ({
   url,
@@ -11,6 +12,7 @@ const AgentsCard = ({
   description,
   icon,
   index,
+  defaultImage,
   innerRef,
   scrollTo = false,
   uploadable = false,
@@ -19,6 +21,7 @@ const AgentsCard = ({
   awsIndex,
   demoMode = true,
   changeDetails,
+  selectAgent,
 }) => {
   // console.log(index);
   const [files, setSelectedFiles] = useFileUpload();
@@ -57,36 +60,21 @@ const AgentsCard = ({
       backgroundColor={"#F9FAFB"}
       borderRadius={"8px"}
       border={"1px solid #EAECF0"}
-      justifyContent={"center"}
+      // justifyContent={"center"}
       alignItems={"center"}
+      onClick={(event) => {
+        event.stopPropagation();
+        selectAgent(call);
+      }}
     >
       {url && !imageError && (
-        <Box position={"relative"}>
-          <Box
-            alignSelf={"center"}
-            overflow={"hidden"}
-            borderRadius={"5px"}
-            width={84}
-            height={84}
-          >
-            <Image
-              src={url.startsWith("http") ? url : `/assets/agents/${url}`}
-              // width={84}
-              // height={84}
-              onError={() => {
-                setImageError(true);
-              }}
-              layout={"fill"}
-              borderRadius={"10px"}
-              objectFit={"contain"}
-              alt={`Picture of ${title}`}
-              style={{ maxWidth: "unset" }}
-            />
-          </Box>
-          <Box position={"absolute"} zIndex={2} bottom={-1} right={-1}>
-            {icon}
-          </Box>
-        </Box>
+        <AgentImage
+          show={url}
+          icon={icon}
+          name={title}
+          url={url}
+          defaultImage={defaultImage}
+        />
       )}
 
       <Flex flexDir={"column"}>
@@ -114,88 +102,6 @@ const AgentsCard = ({
         <Text textAlign={"center"} color={"#475467"} fontSize={"12px"}>
           {description}
         </Text>
-        {!demoMode && (
-          <Flex justifyContent={"center"}>
-            <Button
-              isLoading={titleButtonLoading}
-              onClick={async () => {
-                const newTitle = window.prompt(
-                  `What do you want to rename "${title}" to`,
-                  title
-                );
-                if (title !== newTitle) {
-                  setTitleButtonLoading(true);
-                  await axios({
-                    method: "POST",
-                    url: "/api/changeAgentDetails",
-                    data: {
-                      agentID,
-                      name: newTitle,
-                    },
-                  });
-                  changeDetails({ newTitle, newURL: url });
-                  setTitleButtonLoading(false);
-                }
-              }}
-            >
-              Change
-            </Button>
-            <Button
-              isLoading={imageButtonLoading}
-              onClick={() => {
-                setSelectedFiles(
-                  { multiple: false, accept: [".png", ".jpeg", ".jpg"] },
-                  (files) => {
-                    setImageButtonLoading(true);
-                    files.map(async ({ source, name, size, file }) => {
-                      console.log({ source, name, size, file });
-
-                      const reader = new FileReader();
-                      reader.readAsDataURL(file);
-
-                      reader.onload = async () => {
-                        try {
-                          const splitName = name.split(".");
-                          const response = await axios({
-                            method: "POST",
-                            url: "/api/changeAgentDetails",
-                            data: {
-                              agentID,
-                              imageEncoded: reader.result,
-                              type: splitName[splitName.length - 1],
-                              contentType: file.type,
-                            },
-                          });
-                          changeDetails({
-                            newTitle: title,
-                            newURL: response.data.signedUrl,
-                          });
-                          setImageButtonLoading(false);
-                        } catch (error) {
-                          console.error("Error uploading file:", error);
-                        }
-                      };
-                      reader.onerror = (error) => {
-                        console.error("Error reading file:", error);
-                      };
-                    });
-                  }
-                );
-              }}
-            >
-              Image
-            </Button>
-            {uploadable === true && (
-              <Button
-                onClick={() => {
-                  openUploadModal(awsIndex);
-                }}
-              >
-                Upload
-              </Button>
-            )}
-          </Flex>
-        )}
       </Flex>
     </Flex>
   );

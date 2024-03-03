@@ -4,6 +4,7 @@ import "@/styles/App.module.css";
 import axios from "axios";
 import {
   createContext,
+  useCallback,
   useEffect,
   useLayoutEffect,
   useRef,
@@ -48,6 +49,21 @@ import PromptInput from "./PromptInput";
 import { Sharing } from "./Sharing";
 import { Container, errorToasts } from "./Toast";
 import UploadModal from "./UploadModal/UploadModal";
+import { FiChevronRight, FiChevronsLeft } from "react-icons/fi";
+import { AgentDetails } from "./AgentDetails";
+import { useDropzone } from "react-dropzone";
+import { UploadSection } from "./Sections/UploadSection";
+import LogoHeader from "./Sidebar/LogoHeader";
+import Image from "next/image";
+// import { chat } from "./ChatIcon";
+import ChatIcon from "./ChatIcon2";
+import UploadIcon from "./UploadIcon";
+import ThreadTitle from "./ThreadTitle";
+import SideTabIcon from "@/assets/SideTabIcon";
+import { GoMute, GoUnmute } from "react-icons/go";
+import { EmptyThread } from "@/assets/EmptyThread";
+// import { EmptyThread } from "@/assets/EmptyThreads";
+// const chat = "/assets/chat.svg";
 
 // const { serverRuntimeConfig } = getConfig();
 // console.log({ serverRuntimeConfig });
@@ -65,11 +81,16 @@ const {
   DrawerContent,
   DrawerCloseButton,
   Skeleton,
+  Input,
+  Select,
+  Spacer,
+  Switch,
 } = require("@chakra-ui/react");
 export const Context = createContext();
 
 export const AppContext = createContext();
 export const UserContext = createContext();
+export const DataContext = createContext();
 
 // var AWS = require("aws-sdk");
 // AWS.config.update({
@@ -119,6 +140,20 @@ function App() {
 
   const [demoMode, setDemoMode] = useState(true);
 
+  const [showSideTab, setShowSideTab] = useState(false);
+  const sideTabScreens = {
+    SAVED_CHATS: 0,
+    ARCHIVED_CHATS: 1,
+    AGENT_DETAILS: 2,
+    AGENT_LIST: 3,
+  };
+
+  const [sideTabScreen, setSideTabScreen] = useState(
+    sideTabScreens.SAVED_CHATS
+  );
+  const [expandedAgent, setExpandedAgent] = useState(-1);
+  const [expandSideTab, setExpandSideTab] = useState(false);
+
   if (typeof window !== "undefined") {
     //console.log("WINDOW ", window.location.origin);
     // url = window.location.origin + (window.location.port === "" ? "" : ":" + window.location.port) + "/api/v1";
@@ -150,8 +185,10 @@ function App() {
     tokens,
     contentInput = "",
     prompt,
-    indexQuery
+    indexQuery,
+    usedAgent
   ) => {
+    const requestID = generateUniqueId();
     try {
       console.log("BEGIN getAnswer INSIDE");
       let entry = prompt.entry.trim();
@@ -201,6 +238,7 @@ function App() {
       }
       const results = await aiAnswer({
         url,
+        requestId: requestID,
         lastEntry,
         aggregate,
         followUp: followUpUpdate,
@@ -212,6 +250,11 @@ function App() {
         chatId: generateUniqueId(),
         currentIndex: indexQuery,
         session: sessionID,
+
+        entryType,
+        langCode,
+        appId: "PriAI",
+        userId: userID,
       });
 
       if (results?.error) {
@@ -256,16 +299,19 @@ function App() {
           {
             message: cleanedAnswer,
             time: responseReceivedTime,
-            speaker: "PriAI",
+            speaker: getSpeaker(usedAgent.call),
           },
         ])
       );
 
       updateUsedTokens({
         url,
+        userId: userID,
+        requestId: requestID,
         finish_reason: results.finish_reason,
         currentIndex: indexQuery,
         llm: defaultModel.current,
+        langCode,
         statement: entry,
         session: sessionID,
         answer: results.answer,
@@ -294,6 +340,7 @@ function App() {
           answer: cleanedAnswer,
           promptSent: prompt.promptSent,
           responseReceivedTime,
+          speaker: usedAgent.call,
         });
       } else {
         await appendConversation({
@@ -301,6 +348,7 @@ function App() {
           answer: cleanedAnswer,
           promptSent: prompt.promptSent,
           responseReceivedTime,
+          speaker: usedAgent.call,
         });
       }
     } catch (e) {
@@ -310,7 +358,7 @@ function App() {
 
   const getAgent = (entry) => {
     var regexAgent = entry.match(/@\[(\w+)\]\((\d+)\)/);
-    const agents = demoMode ? agentsDemo2 : agentsProd2;
+    // const agents = demoMode ? agentsDemo2 : buddies;
     if (regexAgent === null) {
       const regexAllPossAgents = entry.match(/@(\w+)/g);
       console.log(regexAllPossAgents);
@@ -398,19 +446,19 @@ function App() {
       debugOption
     );
 
-    console.log({
-      dataError,
-      chunks,
-      scores,
-      functions,
-      confidence,
-      tokens,
-      searchAggregation,
-      followUp,
-      entryType,
-      langCode,
-      newInput,
-    });
+    // console.log({
+    //   dataError,
+    //   chunks,
+    //   scores,
+    //   functions,
+    //   confidence,
+    //   tokens,
+    //   searchAggregation,
+    //   followUp,
+    //   entryType,
+    //   langCode,
+    //   newInput,
+    // });
     if (dataError) {
       errorToasts({ error: dataError.message || dataError.name });
       console.error(dataError.name || dataError.message, dataError.cause.info);
@@ -434,7 +482,8 @@ function App() {
         promptSent,
         entry,
       },
-      indexQuery
+      indexQuery,
+      usedAgent
     );
     console.log("END GET ANSWER ");
     setLoading(false);
@@ -444,6 +493,7 @@ function App() {
 
   //Speech Recongition
   const [loggedIn, setLoggedIn] = useState(false);
+  const [threadTitle, setThreadTitle] = useState("New Thread");
   const [details, setDetails] = useState({
     name: null,
     country: "United States",
@@ -453,6 +503,9 @@ function App() {
   });
   const [onboarding, setOnboarding] = useState(true);
   const [initializing, setInitializing] = useState(true);
+
+  const [agents, setAgents] = useState(agentsProd2);
+  const [buddies, setBuddies] = useState(agentsProd2);
 
   useEffect(() => {
     const checkIfLoggedIn = async () => {
@@ -479,11 +532,42 @@ function App() {
             url: "/api/initialize",
             data: {},
           });
+          // console.log(response.data);
           // console.log(response);
           setConversations(response.data.threads);
           setSelectedAvatar(response.data.avatar);
           setAIName(response.data.name);
+          setBookmarks(response.data.bookmarks);
 
+          const responseAgentDetails = await axios({
+            method: "POST",
+            url: "/api/getPersonalAgentsDetails",
+            data: {},
+          });
+          // console.log(responseAgentDetails.data);
+          var agentsCopy = [...agentsProd2];
+          const agentIndexes = agentsCopy.map(function (x) {
+            return x.id;
+          });
+
+          for (const agentDetail of responseAgentDetails.data.agentDetails) {
+            if (agentIndexes.indexOf(agentDetail.id) > -1) {
+              agentsCopy[agentIndexes.indexOf(agentDetail.id)] = {
+                ...agentsCopy[agentIndexes.indexOf(agentDetail.id)],
+                name:
+                  agentDetail.name === undefined
+                    ? agentsCopy[agentIndexes.indexOf(agentDetail.id)].name
+                    : agentDetail.name,
+                image: {
+                  ...agentsCopy[agentDetail.id].image,
+                  urlFull: agentDetail.image,
+                },
+              };
+            }
+          }
+          // console.log({ agentsCopy });
+          setBuddies(agentsCopy);
+          setAgents([...agentsDemo2, ...agentsCopy]);
           initalMessage();
         }
       } catch (e) {
@@ -501,7 +585,7 @@ function App() {
   const [sourceNodes, setSourceNodes] = useState([]);
 
   const audioCtx = useRef(null);
-  const [mute, setMute] = useState(false);
+  const [mute, setMute] = useState(true);
 
   const welcomeMessageText = `👋 Welcome to PriAI's demo mode by Prifina!
 Demo mode is designed to simulate having access to all of your personal data and information available in your private data cloud, along with data from various common applications and services typically used by consumers. This includes your emails, social media accounts, wearables, calendar, smart home devices, and other public data sources. By combining these sources, we're able to provide you with the best possible answers.
@@ -579,7 +663,7 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
   const [chatlog, setChatlog] = useState([]);
   const [userID, setUserID] = useState("");
   const [saving, setSaving] = useState(false);
-  const [section, setSection] = useState("chat");
+  const [section, setSection] = useState(sections.CHAT);
   const [fetchingConversation, setFetchingConversation] = useState(false);
   const [selectedAvatar, setSelectedAvatar] = useState(null);
   const [showWelcomeMessage, setShowWelcomeMessage] = useState(false);
@@ -588,6 +672,7 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
   const [questionsUsed, setQuestionsUsed] = useState(0);
   const [loginTime, setLoginTime] = useState(Date.now());
   const [isLargerThanMD] = useMediaQuery("(min-width: 48em)");
+  const [bookmarks, setBookmarks] = useState({});
 
   const [conversations, setConversations] = useState([]);
 
@@ -607,11 +692,16 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
     }
   }, [isLargerThanMD, onSideBarClose]);
 
+  const getSpeaker = (speaker) => {
+    return speaker !== "" ? speaker : demoMode ? "pri-ai" : "assistant";
+  };
+
   const saveConversation = async ({
     prompt,
     answer,
     promptSent,
     responseReceivedTime,
+    speaker = "",
   }) => {
     const newThreadID = uuidv4();
     var title = "New Thread";
@@ -651,10 +741,14 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
           response: {
             time: responseReceivedTime.toString(),
             message: answer,
+            speaker: getSpeaker(speaker),
           },
           userID,
           title,
           isNew: true,
+          speakers: [getSpeaker(speaker)],
+          newSpeaker: true,
+          demo: demoMode,
         }),
       });
     }
@@ -667,9 +761,15 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
         title,
         id: newThreadID,
         lastMessage: Date.now(),
+        buddies: !demoMode,
+        speakers: [getSpeaker(speaker)],
         chatlog: [].concat(chatlog, [
           { message: prompt, time: promptSent, speaker: "User" },
-          { message: answer, time: responseReceivedTime, speaker: "PriAI" },
+          {
+            message: answer,
+            time: responseReceivedTime,
+            speaker: getSpeaker(speaker),
+          },
         ]),
       },
     ];
@@ -685,12 +785,22 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
     answer,
     promptSent,
     responseReceivedTime,
+    speaker = "",
   }) => {
+    const conversation = conversations.find((c) => {
+      return c.id === conversationID;
+    });
+    // console.log(conversation);
+    const isNewSpeaker = () => {
+      if (!conversation.speakers || conversation.speakers?.length === 0) {
+        return true;
+      } else {
+        return !conversation.speakers.includes(getSpeaker(speaker));
+      }
+    };
     if (loggedIn) {
       // Put New Messages
-      const conversation = conversations.find((c) => {
-        return c.id === conversationID;
-      });
+
       // console.log({ conversation });
       await fetch("/api/save", {
         method: "POST",
@@ -707,9 +817,12 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
           response: {
             time: responseReceivedTime.toString(),
             message: answer,
+            speaker: getSpeaker(speaker),
           },
           userID,
           isNew: false,
+          speakers: [...conversation.speakers, getSpeaker(speaker)],
+          newSpeaker: isNewSpeaker(),
         }),
       });
     }
@@ -719,6 +832,9 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
         if (c.id === conversationID) {
           return {
             ...c,
+            speakers: isNewSpeaker()
+              ? [...conversation.speakers, getSpeaker(speaker)]
+              : conversation.speakers,
             lastMessage: Date.now(),
             chatlog: [].concat(chatlog, [
               { message: prompt, time: promptSent, speaker: "User" },
@@ -732,7 +848,47 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
     );
   };
 
-  const fetchAnswers = async (prompt, promptSent) => {
+  const boxRef = useRef();
+  let isFirstClick = true;
+  let changingScreen = false;
+
+  const resetSideTab = () => {
+    setSideTabScreen(sideTabScreens.SAVED_CHATS);
+    setShowSideTab(false);
+    setExpandSideTab(false);
+    setExpandedAgent(-1);
+  };
+  useEffect(() => {
+    if (showSideTab) {
+      // boxRef.current.onclick = (event) => {
+      //   event.stopPropagation();
+      // };
+      window.onclick = (event) => {
+        if (boxRef.current) {
+          if (
+            showSideTab &&
+            event.target !== boxRef.current &&
+            !boxRef.current.contains(event.target)
+          ) {
+            if (isFirstClick) {
+              isFirstClick = false;
+              return;
+            }
+            // else if (changingScreen) {
+            //   changingScreen = false;
+            //   return;
+            // }
+            // console.log("HIDE TAB");
+            resetSideTab();
+          }
+        }
+      };
+    } else {
+      window.onclick = (event) => {};
+    }
+  }, [showSideTab]);
+
+  const fetchAnswers = async (prompt, promptSent, speaker = "") => {
     const fetchPromises = [];
     fetchPromises[0] = fetch(loggedIn ? "/api/chatFull" : "/api/chatDemo", {
       method: "POST",
@@ -770,7 +926,11 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
       setChatlog(
         [].concat(chatlog, [
           { message: prompt, time: promptSent, speaker: "User" },
-          { message: answer, time: responseReceivedTime, speaker: "PriAI" },
+          {
+            message: answer,
+            time: responseReceivedTime,
+            speaker: getSpeaker(speaker),
+          },
         ])
       );
     });
@@ -791,9 +951,13 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
         })
       );
 
+      const agent = getAgent(promptOriginal);
+      const speaker = getSpeaker(agent === null ? "" : agent[1]);
+      // const speaker = agent.length > 0 ? getSpeaker(agent[1]) : "assistant";
       const { answer, responseReceivedTime } = await fetchAnswers(
         prompt,
-        promptSent
+        promptSent,
+        speaker
       );
       // console.log("DONE");
       setQuestionsUsed(questionsUsed + 1);
@@ -804,6 +968,7 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
           answer,
           promptSent,
           responseReceivedTime,
+          speaker,
         });
       } else {
         await appendConversation({
@@ -811,6 +976,7 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
           answer,
           promptSent,
           responseReceivedTime,
+          speaker,
         });
       }
       try {
@@ -855,22 +1021,46 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
     }
   };
 
-  const submitFeedback = async (id, helpful, details, index) => {
+  useEffect(() => {
+    if (loggedIn) {
+      if (conversationID === "") {
+        setDemoMode(false);
+      }
+    }
+  }, [conversationID]);
+
+  useEffect(() => {
+    setAgents(demoMode ? agentsDemo2 : [...buddies, ...agentsDemo2]);
+  }, [demoMode]);
+  const submitFeedback = async ({
+    threadID,
+    time,
+    helpful,
+    details,
+    remove = false,
+    index,
+  }) => {
     try {
       const responseFeedback = await axios({
         method: "POST",
         url: "/api/feedback",
         data: {
-          id: id,
-          userID: userID,
-          helpful: helpful,
-          details: details,
+          threadID,
+          time,
+          helpful,
+          details,
+          remove,
         },
       });
       let chatlogTemp = [...chatlog];
       chatlogTemp[index] = {
-        prompt: { ...chatlogTemp[index].prompt },
-        response: { ...chatlogTemp[index].response, helpful },
+        ...chatlogTemp[index],
+        feedback: remove
+          ? {}
+          : {
+              helpful: remove ? undefined : helpful,
+              details: remove ? undefined : details,
+            },
       };
       setChatlog([...chatlogTemp]);
     } catch (e) {
@@ -902,13 +1092,18 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
 
   // }, []);
 
-  const changeConversation = async (newID) => {
+  const changeConversation = async (newID, title = "New Thread") => {
     if (newID === -1) {
       setChatlog([]);
       setConversationIndex(newID);
       setConversationID(newID);
+      setThreadTitle(title);
       lastGoodAnswer.current = {};
+      if (loggedIn) {
+        setDemoMode(false);
+      }
     } else {
+      const newIndex = conversations.findIndex((convo) => convo.id === newID);
       if (loggedIn) {
         setChatlog([]);
         setShowWelcomeMessage(false);
@@ -922,7 +1117,7 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
         setConversationID(newID);
         setChatlog(response.data.allMessages);
         setFetchingConversation(false);
-        console.log(response.data.allMessages);
+        // console.log(response.data.allMessages);
         var userMessageIndex = -1;
         var aiMessageIndex = -1;
         for (
@@ -949,8 +1144,9 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
           followUp: false,
           entryType: 1,
         };
+        setThreadTitle(title);
+        setDemoMode(!conversations[newIndex].buddies);
       } else {
-        const newIndex = conversations.findIndex((convo) => convo.id === newID);
         if (newIndex > -1) {
           setChatlog(conversations[newIndex].chatlog);
           setConversationIndex(newID);
@@ -983,304 +1179,929 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
             followUp: false,
             entryType: 1,
           };
+          setThreadTitle(title);
+          setDemoMode(!conversations[newIndex].buddies);
         } else {
           console.error("Couldn't find index");
         }
       }
     }
+    setShowSideTab(false);
   };
 
   useLayoutEffect(() => {
     var element = document.getElementById("chatlog");
-    element.scrollTop = element.scrollHeight;
+    if (element) {
+      element.scrollTop = element.scrollHeight;
+    }
   }, [chatlog, loading, showWelcomeMessage]);
+
+  const baseBookmarkThreadObj = {
+    id: "",
+    messages: [],
+  };
+
+  const [bookmarkedThread, setBookmarkedThread] = useState(
+    baseBookmarkThreadObj
+  );
+  const [expandedSideTab, setExpandedSideTab] = useState(false);
+  useEffect(() => {
+    setBookmarkedThread(baseBookmarkThreadObj);
+  }, [showSideTab]);
+
+  const [agentKnowledgeUpload, setAgentKnowledgeUpload] = useState("");
+
+  useEffect(() => {
+    if (section === sections.CHAT) {
+      setAgentKnowledgeUpload("");
+    }
+  }, [section]);
+
   return (
     <>
       <div style={{ margin: "" }}>
-        <>
-          {onboarding ? (
-            <>
-              <UserContext.Provider
-                value={[
-                  aIName,
-                  setAIName,
-                  details,
-                  setDetails,
-                  selectedAvatar,
-                  setSelectedAvatar,
-                ]}
+        <DataContext.Provider
+          value={{ agents, setAgents, buddies, setBuddies }}
+        >
+          <Flex flexDirection={"row"}>
+            <Flex
+              height={"100vh"}
+              width={"100px"}
+              flexDirection={"column"}
+              backgroundColor={"#1e1e23"}
+              alignItems={"center"}
+              // justifyContent={"center"}
+              gap={20}
+            >
+              <LogoHeader />
+              <Box
+                onClick={() => {
+                  setSection(sections.CHAT);
+                }}
               >
-                <AppContext.Provider
-                  value={[
-                    apps,
-                    (apps) => {
-                      setChosenApps(apps);
-                    },
-                  ]}
+                <ChatIcon active={section === sections.CHAT} />
+              </Box>
+              {loggedIn && (
+                <Box
+                  onClick={() => {
+                    setSection(sections.UPLOAD);
+                  }}
                 >
-                  <OnboardingModal
-                    isOpen={isOnboardingOpen}
-                    onClose={onOnboardingClose}
-                    onOpen={onOnboardingOpen}
-                    onFinish={() => {
+                  <UploadIcon active={section === sections.UPLOAD} />
+                </Box>
+              )}
+
+              <Spacer />
+              <Button
+                // marginRight={"1rem"}
+                // size="sm"
+                backgroundColor={"#107569"}
+                color={"#107569"}
+                borderRadius={"50%"}
+                width={"50px"}
+                height={"50px"}
+                justifyContent={"center"}
+                alignItems={"center"}
+                display={"block"}
+                marginBottom={"5vh"}
+                onClick={() => {
+                  setMute(!mute);
+                }}
+              >
+                {mute ? (
+                  <>
+                    <Box>
+                      <GoMute color="white" size={16} />
+                    </Box>
+                  </>
+                ) : (
+                  <>
+                    <Box>
+                      <GoUnmute color="white" size={16} />
+                    </Box>
+                  </>
+                )}
+              </Button>
+            </Flex>
+            <Box width={"100%"}>
+              {onboarding ? (
+                <>
+                  <UserContext.Provider
+                    value={[
+                      aIName,
+                      setAIName,
+                      details,
+                      setDetails,
+                      selectedAvatar,
+                      setSelectedAvatar,
+                    ]}
+                  >
+                    <AppContext.Provider
+                      value={[
+                        apps,
+                        (apps) => {
+                          setChosenApps(apps);
+                        },
+                      ]}
+                    >
+                      <OnboardingModal
+                        isOpen={isOnboardingOpen}
+                        onClose={onOnboardingClose}
+                        onOpen={onOnboardingOpen}
+                        onFinish={() => {
+                          setOnboarding(false);
+                          setAIName(`${details.name}'s Pri-AI`);
+                          setSelectedAvatar(
+                            avatars[Math.floor(Math.random() * avatars.length)]
+                          );
+                          initalMessage();
+                          setFetchingConversation(false);
+                        }}
+                        initializing={initializing}
+                      />
+                    </AppContext.Provider>
+                  </UserContext.Provider>
+                  <LoginModal
+                    isOpen={isLogInOpen}
+                    onClose={onLogInClose}
+                    onOpen={onLogInOpen}
+                    logInSuccess={(username) => {
+                      // setLoggedIn(true);
+                      setDetails({
+                        ...details,
+                        name: username,
+                      });
                       setOnboarding(false);
-                      setAIName(`${details.name}'s Pri-AI`);
+                      setAIName(`${username}'s Pri-AI`);
                       setSelectedAvatar(
                         avatars[Math.floor(Math.random() * avatars.length)]
                       );
-                      initalMessage();
-                      setFetchingConversation(false);
                     }}
-                    initializing={initializing}
                   />
-                </AppContext.Provider>
-              </UserContext.Provider>
-              <LoginModal
-                isOpen={isLogInOpen}
-                onClose={onLogInClose}
-                onOpen={onLogInOpen}
-                logInSuccess={(username) => {
-                  // setLoggedIn(true);
-                  setDetails({
-                    ...details,
-                    name: username,
-                  });
-                  setOnboarding(false);
-                  setAIName(`${username}'s Pri-AI`);
-                  setSelectedAvatar(
-                    avatars[Math.floor(Math.random() * avatars.length)]
-                  );
-                }}
-              />
-            </>
-          ) : (
-            <></>
-          )}
-          <Sharing
-            isOpen={isSharingOpen}
-            onClose={onSharingClose}
-            onOpen={onSharingOpen}
-            isLargerThanMD={isLargerThanMD}
-          />
-
-          <Drawer
-            placement={"left"}
-            isOpen={isSideBarOpen}
-            onClose={onSideBarClose}
-            size={"xs"}
-          >
-            <DrawerOverlay />
-            <DrawerContent width={"85%"} padding={"16px"}>
-              <DrawerCloseButton />
-              <Sidebar
-                loggedIn={loggedIn}
-                // display={{ base: "none", md: "flex" }}
-                section={section}
-                name={details.name}
-                questionsUsed={questionsUsed}
-                changeSection={setSection}
-                conversations={conversations}
-                disabledClick={fetchingConversation || loading}
-                changeConversation={(newID) => {
-                  changeConversation(newID);
-                  onSideBarClose();
-                }}
-                onboarding={onboarding}
-                activeConvo={conversationID}
-                initializing={initializing}
-              />
-            </DrawerContent>
-          </Drawer>
-          <div
-            style={{ display: "flex", flexDirection: "row", height: "100vh" }}
-          >
-            <Sidebar
-              loggedIn={loggedIn}
-              display={{ base: "none", md: "flex" }}
-              section={section}
-              name={details.name}
-              questionsUsed={questionsUsed}
-              changeSection={setSection}
-              conversations={conversations}
-              disabledClick={fetchingConversation || loading}
-              changeConversation={changeConversation}
-              onboarding={onboarding}
-              activeConvo={conversationID}
-              initializing={initializing}
-            />
-            <div
-              style={{
-                flexDirection: "column",
-                minWidth: "80.5%",
-                width: "100%",
-                display: "flex",
-              }}
-            >
-              <Header
-                mode={demoMode}
-                changeMode={() => {
-                  setDemoMode(!demoMode);
-                }}
-                selectedAvatar={selectedAvatar}
-                onboarding={onboarding}
-                aIName={aIName}
-                setAIName={setAIName}
-                mute={mute}
-                setMute={setMute}
-                onSideBarOpen={onSideBarOpen}
-                clearChat={clearChat}
-                onSharingOpen={onSharingOpen}
-                userID={userID}
-                loggedIn={loggedIn}
-                initializing={initializing}
-              />
-              {section === sections.ABOUT ? (
-                <>
-                  <About />
                 </>
               ) : (
-                <>
-                  <Chatlog onboarding={onboarding}>
-                    {onboarding ? (
-                      <OnboardingPlaceholder
-                        logIn={onLogInOpen}
-                        openDemo={onOnboardingOpen}
-                      />
-                    ) : (
-                      <>
-                        <div style={{ marginTop: "auto" }} />
-
-                        {showWelcomeMessage && (
-                          <>
-                            <ChatResponse
-                              aIName={aIName}
-                              selectedAvatar={selectedAvatar}
-                              time={loginTime}
-                              text={welcomeMessageText}
-                              feedback={false}
-                              generating={false}
-                            />
-                          </>
-                        )}
-                        {fetchingConversation === true ? (
-                          <>
-                            {Array.from({ length: 10 }, (_, index) => (
-                              <>
-                                <Skeleton
-                                  key={index * 2}
-                                  height={"100px"}
-                                  mb={1}
-                                  speed={0.85}
-                                />
-                                <Skeleton
-                                  key={index * 2 + 1}
-                                  height={"100px"}
-                                  speed={0.95}
-                                  mb={1}
-                                />
-                              </>
-                            ))}
-                          </>
-                        ) : (
-                          <>
-                            {chatlog?.map((message, index) => {
-                              return (
-                                <Box key={index}>
-                                  {message.speaker === "User" ? (
-                                    <ChatPrompt
-                                      name={details.name}
-                                      text={message.message}
-                                      time={message.time}
-                                    />
-                                  ) : (
-                                    <ChatResponse
-                                      aIName={aIName}
-                                      selectedAvatar={selectedAvatar}
-                                      text={message.message}
-                                      time={message.time}
-                                      saving={saving}
-                                      submitFeedback={(helpful, details) => {
-                                        submitFeedback(
-                                          message.id,
-                                          helpful,
-                                          details,
-                                          index
-                                        );
-                                      }}
-                                      feedback={
-                                        index < chatlog.length - 1 ||
-                                        (!loading &&
-                                          index === chatlog.length - 1)
-                                      }
-                                      generating={
-                                        loading && index === chatlog.length - 1
-                                      }
-                                    />
-                                  )}
-                                </Box>
-                              );
-                            })}
-                          </>
-                        )}
-
-                        {loading && <LoadingAnimation />}
-                      </>
-                    )}
-                  </Chatlog>
-
-                  <PromptInput
-                    language={language}
-                    demoMode={demoMode}
-                    sendDisabled={
-                      loading ||
-                      onboarding ||
-                      questionsUsed >= 10 ||
-                      fetchingConversation
-                    }
-                    voiceDisabled={!voiceInputEnabled}
-                    send={async (prompt) => {
-                      if (demoMode === true) {
-                        await getResponse(prompt);
-                      } else {
-                        await getChunks(prompt.trim());
-                      }
-
-                      //
-                    }}
-                    saving={saving}
-                    openDrawer={(index = undefined) => {
-                      setScrollToAgent(index);
-                      onDrawerOpen();
-                    }}
-                  />
-                  <AgentsDrawer
-                    demoMode={demoMode}
-                    onClose={onDrawerClose}
-                    isOpen={isDrawerOpen}
-                    scrollToAgent={scrollToAgent}
-                    onLogInOpen={onLogInOpen}
-                    openUploadModal={(index) => {
-                      setIndexToUpload(index);
-                      onUploadOpen();
-                    }}
-                    setIndexToUpload={setIndexToUpload}
-                  />
-                  <UploadModal
-                    isOpen={isUploadOpen}
-                    onClose={() => {
-                      setIndexToUpload("");
-                      onUploadClose();
-                    }}
-                    onOpen={onUploadOpen}
-                    userID={userID}
-                    index={indexToUpload}
-                  />
-                  {/* </Flex> */}
-                </>
+                <></>
               )}
-            </div>
-          </div>
-        </>
+              <Sharing
+                isOpen={isSharingOpen}
+                onClose={onSharingClose}
+                onOpen={onSharingOpen}
+                isLargerThanMD={isLargerThanMD}
+              />
+
+              <Drawer
+                placement={"left"}
+                isOpen={isSideBarOpen}
+                onClose={onSideBarClose}
+                size={"xs"}
+              >
+                <DrawerOverlay />
+                <DrawerContent width={"85%"} padding={"16px"}>
+                  <DrawerCloseButton />
+                  <Sidebar
+                    isLargerThanMD={isLargerThanMD}
+                    loggedIn={loggedIn}
+                    // display={{ base: "none", md: "flex" }}
+                    section={section}
+                    name={details.name}
+                    questionsUsed={questionsUsed}
+                    changeSection={setSection}
+                    conversations={conversations}
+                    disabledClick={fetchingConversation || loading}
+                    changeConversation={(newID) => {
+                      changeConversation(newID);
+                      onSideBarClose();
+                    }}
+                    deleteThread={(threadID) => {
+                      setConversations(
+                        conversations.filter((convo) => convo.id !== threadID)
+                      );
+                    }}
+                    onboarding={onboarding}
+                    activeConvo={conversationID}
+                    initializing={initializing}
+                  />
+                </DrawerContent>
+              </Drawer>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "row",
+                  height: "100vh",
+                }}
+              >
+                {section === sections.UPLOAD && (
+                  <>
+                    {" "}
+                    <div
+                      style={{
+                        flexDirection: "column",
+                        minWidth: "80.5%",
+                        width: "100%",
+                        display: "flex",
+                      }}
+                    >
+                      <Header
+                        mode={demoMode}
+                        changeMode={() => {
+                          setDemoMode(!demoMode);
+                        }}
+                        selectedAvatar={selectedAvatar}
+                        onboarding={onboarding}
+                        aIName={aIName}
+                        setAIName={setAIName}
+                        mute={mute}
+                        setMute={setMute}
+                        onSideBarOpen={onSideBarOpen}
+                        clearChat={clearChat}
+                        onSharingOpen={onSharingOpen}
+                        userID={userID}
+                        loggedIn={loggedIn}
+                        initializing={initializing}
+                        threadTitle={threadTitle}
+                        section={section}
+                        mentionedAgents={[
+                          ...new Set(
+                            chatlog
+                              .map((message) => message.speaker)
+                              .filter((speaker) => speaker !== "User")
+                          ),
+                        ]}
+                      />
+                      <UploadSection
+                        userID={userID}
+                        defaultAgent={agentKnowledgeUpload}
+                      />
+                    </div>
+                  </>
+                )}
+                {section === sections.ABOUT && <About />}
+                {section === sections.CHAT && (
+                  <>
+                    <Sidebar
+                      loggedIn={loggedIn}
+                      display={{ base: "none", md: "flex" }}
+                      section={section}
+                      name={details.name}
+                      questionsUsed={questionsUsed}
+                      changeSection={setSection}
+                      conversations={conversations}
+                      disabledClick={fetchingConversation || loading}
+                      changeConversation={changeConversation}
+                      onboarding={onboarding}
+                      activeConvo={conversationID}
+                      initializing={initializing}
+                      deleteThread={async (threadID) => {
+                        if (bookmarks[threadID]) {
+                          await axios({
+                            method: "POST",
+                            url: "/api/deleteBookmarks",
+                            data: {
+                              threadID,
+                              bookmarks: bookmarks[threadID],
+                            },
+                          });
+                          const copy = { ...bookmarks };
+                          delete copy[threadID];
+                          setBookmarks(copy);
+                        }
+                        setConversations(
+                          conversations.filter((convo) => convo.id !== threadID)
+                        );
+                      }}
+                    />
+                    <div
+                      style={{
+                        flexDirection: "column",
+                        minWidth: "80.5%",
+                        width: "100%",
+                        display: "flex",
+                      }}
+                    >
+                      <Header
+                        mode={demoMode}
+                        changeMode={() => {
+                          setDemoMode(!demoMode);
+                        }}
+                        show={conversationID !== -1}
+                        selectedAvatar={selectedAvatar}
+                        onboarding={onboarding}
+                        aIName={aIName}
+                        setAIName={setAIName}
+                        mute={mute}
+                        setMute={setMute}
+                        onSideBarOpen={onSideBarOpen}
+                        clearChat={clearChat}
+                        onSharingOpen={onSharingOpen}
+                        userID={userID}
+                        loggedIn={loggedIn}
+                        initializing={initializing}
+                        threadTitle={threadTitle}
+                        section={section}
+                        mentionedAgents={[
+                          ...new Set(
+                            chatlog
+                              .map((message) => message.speaker)
+                              .filter((speaker) => speaker !== "User")
+                          ),
+                        ]}
+                      />
+                      <Flex flex={1}>
+                        <Flex
+                          // visibility={"hidden"}
+                          flex={1}
+                          display={expandSideTab ? "none" : "flex"}
+                          flexDirection={"column"}
+                        >
+                          <Chatlog onboarding={onboarding}>
+                            {!showSideTab && loggedIn && (
+                              <Flex
+                                width={25}
+                                height={25}
+                                position={"absolute"}
+                                alignSelf={"flex-end"}
+                                marginRight={10}
+                                marginTop={10}
+                                backgroundColor={"white"}
+                                onClick={() => {
+                                  // console.log("TEST");
+                                  setShowSideTab(true);
+                                }}
+                                alignItems={"center"}
+                                justifyContent={"center"}
+                                _hover={{ bg: "#f5f7f9" }}
+                                padding={"2px"}
+                                cursor={"pointer"}
+                                // right={"10px"}
+                              >
+                                <SideTabIcon />
+                              </Flex>
+                            )}
+                            {onboarding ? (
+                              <OnboardingPlaceholder
+                                logIn={onLogInOpen}
+                                openDemo={onOnboardingOpen}
+                              />
+                            ) : (
+                              <>
+                                <div style={{ marginTop: "auto" }} />
+                                {fetchingConversation === true ? (
+                                  <>
+                                    {Array.from({ length: 5 }, (_, index) => (
+                                      <>
+                                        <Skeleton
+                                          key={index * 2}
+                                          height={"50px"}
+                                          mb={1}
+                                          speed={0.85}
+                                        />
+                                        <Skeleton
+                                          key={index * 2 + 1}
+                                          height={"50px"}
+                                          speed={0.95}
+                                          mb={1}
+                                        />
+                                      </>
+                                    ))}
+                                  </>
+                                ) : (
+                                  <>
+                                    {chatlog.length === 0 ? (
+                                      <Flex
+                                        flex={1}
+                                        justifyContent={"center"}
+                                        alignItems={"center"}
+                                        flexDirection={"column"}
+                                      >
+                                        <Text
+                                          textAlign={"center"}
+                                          fontWeight={600}
+                                        >
+                                          What shall we do next?
+                                        </Text>
+                                        <Text textAlign={"center"}>
+                                          Pri-AI with your team of AI Buddies
+                                          makes things a breeze!
+                                        </Text>
+                                        <EmptyThread />
+                                        <Text textAlign={"center"}>
+                                          <span style={{ fontWeight: 600 }}>
+                                            AI Buddies{" "}
+                                          </span>
+                                          is{" "}
+                                          <span style={{ fontWeight: 600 }}>
+                                            {demoMode ? "OFF" : "ON"}{" "}
+                                          </span>
+                                          for this thread
+                                          <Switch
+                                            isDisabled={!loggedIn}
+                                            defaultChecked={!demoMode}
+                                            value={demoMode}
+                                            onChange={() => {
+                                              // console.log("switch");
+                                              setDemoMode(!demoMode);
+                                            }}
+                                          />
+                                        </Text>
+                                        <Text
+                                          textAlign={"center"}
+                                          cursor={"pointer"}
+                                          color={"#107569"}
+                                          textDecoration={"underline"}
+                                          onClick={() => {
+                                            window
+                                              .open(
+                                                "https://www.prifina.com/create-ai-buddy.html",
+                                                "_blank"
+                                              )
+                                              .focus();
+                                          }}
+                                        >
+                                          What are AI buddies?
+                                        </Text>
+                                      </Flex>
+                                    ) : (
+                                      <>
+                                        {chatlog?.map((message, index) => {
+                                          return (
+                                            <Box key={index}>
+                                              {message.speaker === "User" ? (
+                                                <ChatPrompt
+                                                  name={details.name}
+                                                  text={message.message}
+                                                  time={message.time}
+                                                />
+                                              ) : (
+                                                <ChatResponse
+                                                  aIName={aIName}
+                                                  speaker={message.speaker}
+                                                  selectedAvatar={
+                                                    selectedAvatar
+                                                  }
+                                                  index={index}
+                                                  helpful={
+                                                    message.feedback?.helpful
+                                                  }
+                                                  text={message.message}
+                                                  time={message.time}
+                                                  saving={saving}
+                                                  threadID={conversationID}
+                                                  bookmarked={message.bookmark}
+                                                  openSideTab={() => {
+                                                    // console.log(message);
+                                                    setExpandedAgent(
+                                                      message.speaker
+                                                    );
+                                                    setSideTabScreen(
+                                                      sideTabScreens.AGENT_DETAILS
+                                                    );
+                                                    setShowSideTab(true);
+                                                  }}
+                                                  bookmarkMessage={() => {
+                                                    message.bookmark =
+                                                      !message.bookmark;
+                                                    if (message.bookmark) {
+                                                      // console.log(bookmarks);
+                                                      // console.log({
+                                                      //   ...bookmarks,
+                                                      //   conversationID:
+                                                      //     bookmarks[
+                                                      //       conversationID
+                                                      //     ]
+                                                      //       ? [
+                                                      //           ...bookmarks[
+                                                      //             conversationID
+                                                      //           ],
+                                                      //           message.time,
+                                                      //         ]
+                                                      //       : [message.time],
+                                                      // });
+                                                      setBookmarks({
+                                                        ...bookmarks,
+                                                        [conversationID]:
+                                                          bookmarks[
+                                                            conversationID
+                                                          ]
+                                                            ? [
+                                                                ...bookmarks[
+                                                                  conversationID
+                                                                ],
+                                                                message.time,
+                                                              ]
+                                                            : [message.time],
+                                                      });
+                                                    } else {
+                                                      // console.log(bookmarks);
+                                                      // console.log(
+                                                      //   bookmarks[
+                                                      //     conversationID
+                                                      //   ]
+                                                      // );
+
+                                                      if (
+                                                        bookmarks[
+                                                          conversationID
+                                                        ].length > 1
+                                                      ) {
+                                                        const index = bookmarks[
+                                                          conversationID
+                                                        ].indexOf(message.time);
+                                                        if (index > -1) {
+                                                          var copyArray =
+                                                            bookmarks[
+                                                              conversationID
+                                                            ];
+                                                          setBookmarks({
+                                                            ...bookmarks,
+                                                            [conversationID]:
+                                                              copyArray.splice(
+                                                                index,
+                                                                1
+                                                              ),
+                                                          });
+                                                        }
+                                                      } else {
+                                                        var copyObj = bookmarks;
+                                                        delete copyObj[
+                                                          conversationID
+                                                        ];
+                                                        setBookmarks(copyObj);
+                                                      }
+                                                    }
+                                                  }}
+                                                  submitFeedback={({
+                                                    helpful = "",
+                                                    details = "",
+                                                    remove = false,
+                                                  }) => {
+                                                    submitFeedback({
+                                                      helpful,
+                                                      details,
+                                                      threadID: conversationID,
+                                                      time: message.time,
+                                                      remove,
+                                                    });
+                                                  }}
+                                                  feedback={
+                                                    (index <
+                                                      chatlog.length - 1 ||
+                                                      (!loading &&
+                                                        index ===
+                                                          chatlog.length -
+                                                            1)) &&
+                                                    loggedIn
+                                                  }
+                                                  generating={
+                                                    loading &&
+                                                    index === chatlog.length - 1
+                                                  }
+                                                />
+                                              )}
+                                            </Box>
+                                          );
+                                        })}
+                                      </>
+                                    )}
+                                  </>
+                                )}
+
+                                {loading && <LoadingAnimation />}
+                              </>
+                            )}
+                          </Chatlog>
+
+                          <PromptInput
+                            language={language}
+                            demoMode={demoMode}
+                            sendDisabled={
+                              loading ||
+                              onboarding ||
+                              questionsUsed >= 10 ||
+                              fetchingConversation
+                            }
+                            voiceDisabled={!voiceInputEnabled}
+                            send={async (prompt) => {
+                              // console.log(demoMode);
+                              if (demoMode === true) {
+                                await getResponse(prompt);
+                              } else {
+                                await getChunks(prompt.trim());
+                              }
+
+                              //
+                            }}
+                            saving={saving}
+                            openDrawer={(index = undefined) => {
+                              setScrollToAgent(index);
+                              setSideTabScreen(sideTabScreens.AGENT_LIST);
+                              setShowSideTab(true);
+                              // onDrawerOpen();
+                            }}
+                          />
+                        </Flex>
+                        {showSideTab && (
+                          <Flex
+                            className="side-tab"
+                            backgroundColor={"#fcfcfe"}
+                            ref={boxRef}
+                            flex={1}
+                            maxHeight={"93vh"}
+                            maxWidth={expandSideTab ? "unset" : "20vw"}
+                            minWidth={"300px"}
+                            flexDir={"column"}
+                            borderLeft={"1px solid #dedede"}
+                            // padding={"10px"}
+                          >
+                            <Box backgroundColor={"#f5f7f9"} padding={"10px"}>
+                              {expandSideTab ? (
+                                <FiChevronRight
+                                  onClick={() => {
+                                    setExpandSideTab(!expandSideTab);
+                                  }}
+                                />
+                              ) : (
+                                <FiChevronRight
+                                  onClick={() => {
+                                    setExpandSideTab(!expandSideTab);
+                                  }}
+                                />
+                              )}
+                            </Box>
+                            <Box
+                              padding={"10px"}
+                              maxHeight={"93vh"}
+                              overflow={"hidden"}
+                            >
+                              {" "}
+                              {sideTabScreen === sideTabScreens.SAVED_CHATS && (
+                                <>
+                                  <Text>Saved Chats</Text>
+                                  {bookmarkedThread.id === "" ? (
+                                    <Flex gap={"10px"} flexDirection={"column"}>
+                                      {Object.keys(bookmarks).map((key) => {
+                                        const conversation = conversations.find(
+                                          (convo) => convo.id === key
+                                        );
+
+                                        return (
+                                          <>
+                                            <ThreadTitle
+                                              title={conversation.title}
+                                              mentionedAgents={
+                                                conversation.speakers
+                                              }
+                                              as={"list-item"}
+                                              onClick={async () => {
+                                                const response = await axios({
+                                                  method: "POST",
+                                                  url: "/api/getBookmarks",
+                                                  data: {
+                                                    threadID: key,
+                                                    bookmarks: bookmarks[key],
+                                                  },
+                                                });
+                                                setBookmarkedThread({
+                                                  id: key,
+                                                  buddies: conversation.buddies,
+                                                  messages:
+                                                    response.data.messages,
+                                                });
+                                                // console.log(response);
+                                              }}
+                                            />
+                                            {/* <Text
+                                            onClick={async () => {
+                                              const response = await axios({
+                                                method: "POST",
+                                                url: "/api/getBookmarks",
+                                                data: {
+                                                  threadID: key,
+                                                  bookmarks: bookmarks[key],
+                                                },
+                                              });
+                                              setBookmarkedThread({
+                                                id: key,
+                                                messages:
+                                                  response.data.messages,
+                                              });
+                                              console.log(response);
+                                            }}
+                                          >
+                                            {
+                                              conversations.find(
+                                                (convo) => convo.id === key
+                                              ).title
+                                            }
+                                          </Text> */}
+                                          </>
+                                        );
+                                      })}
+                                    </Flex>
+                                  ) : (
+                                    <>
+                                      <Flex
+                                        flexDirection={"row"}
+                                        justifyContent={"space-between"}
+                                      >
+                                        <Text
+                                          onClick={(event) => {
+                                            event.stopPropagation();
+                                            setBookmarkedThread(
+                                              baseBookmarkThreadObj
+                                            );
+                                          }}
+                                        >
+                                          Go Back
+                                        </Text>
+                                        <Text
+                                          onClick={(event) => {
+                                            event.stopPropagation();
+                                            changeConversation(
+                                              bookmarkedThread.id
+                                            );
+                                          }}
+                                        >
+                                          Open Thread
+                                        </Text>
+                                      </Flex>
+                                      {bookmarkedThread.messages.map(
+                                        (message) => {
+                                          return (
+                                            <ChatResponse
+                                              displayBookmarked={true}
+                                              // aIName={aIName}
+                                              speaker={message.speaker}
+                                              selectedAvatar={selectedAvatar}
+                                              text={message.message}
+                                              time={message.time}
+                                              // saving={saving}
+                                              openSideTab={() => {
+                                                // console.log(message);
+                                                setExpandedAgent(
+                                                  message.speaker
+                                                );
+                                                setSideTabScreen(
+                                                  sideTabScreens.AGENT_DETAILS
+                                                );
+                                                setShowSideTab(true);
+                                              }}
+                                              threadID={bookmarkedThread.id}
+                                              bookmarked={true}
+                                              bookmarkMessage={() => {
+                                                // console.log(bookmarks);
+                                                // console.log(
+                                                //   bookmarks[bookmarkedThread.id]
+                                                // );
+
+                                                if (
+                                                  bookmarks[bookmarkedThread.id]
+                                                    .length > 1
+                                                ) {
+                                                  const index = bookmarks[
+                                                    bookmarkedThread.id
+                                                  ].indexOf(message.time);
+                                                  if (index > -1) {
+                                                    const index2 =
+                                                      bookmarkedThread.messages.findIndex(
+                                                        (bookmarkedMessage) =>
+                                                          bookmarkedMessage.time ===
+                                                          message.time
+                                                      );
+                                                    var copyBookmarks =
+                                                      bookmarks[
+                                                        bookmarkedThread.id
+                                                      ];
+
+                                                    var copyBookmarksThread =
+                                                      bookmarkedThread.messages;
+
+                                                    copyBookmarksThread.splice(
+                                                      index2,
+                                                      1
+                                                    );
+
+                                                    copyBookmarks.splice(
+                                                      index,
+                                                      1
+                                                    );
+                                                    // console.log({
+                                                    //   // copyArray,
+                                                    //   index2,
+                                                    //   bookmarkedThread,
+                                                    //   bookmarks,
+                                                    //   a: bookmarkedThread
+                                                    //     .messages[index2],
+                                                    //   b: copyArray[index],
+                                                    // });
+                                                    setBookmarkedThread({
+                                                      ...bookmarkedThread,
+                                                      messages:
+                                                        copyBookmarksThread,
+                                                    });
+
+                                                    setBookmarks({
+                                                      ...bookmarks,
+                                                      [bookmarkedThread.id]:
+                                                        copyBookmarks,
+                                                    });
+                                                  }
+                                                } else {
+                                                  var copyObj = bookmarks;
+                                                  delete copyObj[
+                                                    bookmarkedThread.id
+                                                  ];
+                                                  setBookmarks(copyObj);
+                                                  setBookmarkedThread(
+                                                    baseBookmarkThreadObj
+                                                  );
+                                                }
+                                                if (
+                                                  conversationID ===
+                                                  bookmarkedThread.id
+                                                ) {
+                                                  const index =
+                                                    chatlog.findIndex(
+                                                      (chatlogMessage) =>
+                                                        chatlogMessage.time ===
+                                                        message.time
+                                                    );
+                                                  chatlog[
+                                                    index
+                                                  ].bookmark = false;
+                                                }
+                                              }}
+                                              asBookmark={true}
+                                              feedback={true}
+                                              generating={false}
+                                            />
+                                          );
+                                        }
+                                      )}
+                                    </>
+                                  )}
+                                </>
+                              )}
+                              {sideTabScreen ===
+                                sideTabScreens.AGENT_DETAILS && (
+                                <AgentDetails
+                                  loggedIn={loggedIn}
+                                  addKnowledge={(id) => {
+                                    // console.log(id);
+                                    setAgentKnowledgeUpload(id);
+                                    setSection(sections.UPLOAD);
+                                  }}
+                                  demo={demoMode}
+                                  expanded={expandSideTab}
+                                  speaker={expandedAgent}
+                                />
+                              )}
+                              {sideTabScreen === sideTabScreens.AGENT_LIST && (
+                                <AgentsDrawer
+                                  selectAgent={(speaker) => {
+                                    event.stopPropagation();
+                                    // console.log("HEY");
+                                    setExpandedAgent(speaker);
+                                    changingScreen = true;
+                                    setSideTabScreen(
+                                      sideTabScreens.AGENT_DETAILS
+                                    );
+                                    // setShowSideTab(true);
+                                  }}
+                                  demoMode={demoMode}
+                                  onClose={onDrawerClose}
+                                  isOpen={isDrawerOpen}
+                                  scrollToAgent={scrollToAgent}
+                                  onLogInOpen={onLogInOpen}
+                                  openUploadModal={(index) => {
+                                    setIndexToUpload(index);
+                                    onUploadOpen();
+                                  }}
+                                  setIndexToUpload={setIndexToUpload}
+                                />
+                              )}
+                            </Box>
+                          </Flex>
+                        )}
+                      </Flex>
+
+                      <UploadModal
+                        isOpen={isUploadOpen}
+                        onClose={() => {
+                          setIndexToUpload("");
+                          onUploadClose();
+                        }}
+                        onOpen={onUploadOpen}
+                        userID={userID}
+                        index={indexToUpload}
+                      />
+                      {/* </Flex> */}
+                    </div>
+                  </>
+                )}
+              </div>
+            </Box>
+          </Flex>
+        </DataContext.Provider>
       </div>
       <ToastContainer />
       <Container />

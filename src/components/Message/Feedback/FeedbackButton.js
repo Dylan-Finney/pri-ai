@@ -1,10 +1,25 @@
 import { Button } from "@chakra-ui/react";
 
-const FeedbackButton = ({ icon, postive, feedbackGiven, onClick }) => {
+const FeedbackButton = ({
+  icon,
+  meaning,
+  feedbackGiven = undefined,
+  onClick,
+  loading = false,
+}) => {
+  // console.log({ meaning, feedbackGiven });
   return (
     <Button
-      visibility={feedbackGiven === !postive ? "hidden" : "unset"}
-      isDisabled={feedbackGiven === postive}
+      // visibility={
+      //   feedbackGiven !== undefined
+      //     ? feedbackGiven === !meaning
+      //       ? "hidden"
+      //       : "unset"
+      //     : "unset"
+      // }
+      // isDisabled={
+      //   feedbackGiven !== undefined ? feedbackGiven === meaning : false
+      // }
       onClick={onClick}
       variant="ghost"
       height={"fit-content"}
@@ -13,6 +28,7 @@ const FeedbackButton = ({ icon, postive, feedbackGiven, onClick }) => {
       marginTop={"auto"}
       marginBottom={"auto"}
       paddingRight={"5px"}
+      isDisabled={loading}
       minWidth={"0vw"}
     >
       {icon}

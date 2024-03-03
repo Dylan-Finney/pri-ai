@@ -1,12 +1,16 @@
-import { InputGroup, Input } from "@chakra-ui/react";
+import { SearchIcon } from "@chakra-ui/icons";
+import { InputGroup, Input, InputLeftElement } from "@chakra-ui/react";
 
 const SearchThreadsInput = ({ searchValue, setSearchValue }) => {
   return (
     <InputGroup>
+      <InputLeftElement pointerEvents="none" top={"21px"}>
+        <SearchIcon />
+      </InputLeftElement>
       <Input
         value={searchValue}
         onChange={(event) => setSearchValue(event.target.value)}
-        placeholder={"Search"}
+        placeholder={"Filter"}
         marginLeft={"1px"}
         paddingRight={"0.5rem"}
         width={"100%"}

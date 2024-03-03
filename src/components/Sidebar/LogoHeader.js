@@ -22,14 +22,14 @@ const LogoHeader = () => {
       >
         <NextImage src={logo} alt={"logo"} width={40} height={40} />
       </Box>
-      <Text
+      {/* <Text
         paddingLeft={"10px"}
         color="#0E9384"
         fontWeight="700"
         fontSize={"20px"}
       >
         Pri-AI
-      </Text>
+      </Text> */}
     </Box>
   );
 };

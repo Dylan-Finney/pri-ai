@@ -1,16 +1,29 @@
 import { extendTheme } from "@chakra-ui/react";
+import { Roboto } from "next/font/google";
+
+const nextFont = Roboto({
+  weight: ["400", "500", "700"],
+  subsets: ["latin"],
+  variable: "--font-roboto",
+});
 
 export const theme = extendTheme({
   global: {
     "*": {
-      fontFamily: "Roboto",
+      fontFamily: "var(--font-rubik)",
+    },
+  },
+  textStyles: {
+    body: {
+      "font-family": "var(--font-rubik)",
     },
   },
   fonts: {
-    body: "Roboto",
-    input: "Roboto",
-    option: "Roboto",
-    "option:nth-child(n)": "Roboto",
+    body: "var(--font-rubik)",
+    input: "var(--font-rubik)",
+    option: "var(--font-rubik)",
+    "*": "var(--font-rubik)",
+    "option:nth-child(n)": "var(--font-rubik)",
   },
   initialColorMode: "light",
   components: {

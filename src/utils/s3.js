@@ -33,7 +33,7 @@ const config = {
   region: process.env.MY_REGION,
 };
 
-console.log(config);
+// console.log(config);
 const s3Client = new S3Client(config);
 //console.log("S3 config ", config);
 

@@ -19,8 +19,17 @@ export async function POST(req) {
       operation: (contextSpec) => getCurrentUser(contextSpec),
     });
     if (user.userId) {
-      const { threadID, prompt, response, userID, title, isNew } =
-        await req.json();
+      const {
+        threadID,
+        prompt,
+        response,
+        userID,
+        title,
+        isNew,
+        speakers,
+        newSpeaker,
+        demo,
+      } = await req.json();
       var baseObject = {
         PriAIMessages3: [
           {
@@ -54,7 +63,7 @@ export async function POST(req) {
                   S: response.message,
                 },
                 speaker: {
-                  S: "PriAI",
+                  S: response.speaker,
                 },
               },
             },
@@ -79,6 +88,12 @@ export async function POST(req) {
                   },
                   title: {
                     S: title,
+                  },
+                  speakers: {
+                    SS: speakers,
+                  },
+                  buddies: {
+                    BOOL: demo !== undefined ? !demo : false,
                   },
                 },
               },
@@ -113,41 +128,47 @@ export async function POST(req) {
         );
       });
       fetchPromises[1] = new Promise((resolve, reject) => {
-        if (isNew && isNew === true) {
-          ddb.updateItem(
-            {
-              ExpressionAttributeNames: {
-                "#Y": "time",
-              },
-              ExpressionAttributeValues: {
-                ":y": {
-                  N: response.time,
-                },
-              },
-              Key: {
-                userID: {
-                  S: userID,
-                },
-                threadID: {
-                  S: threadID,
-                },
-              },
-              ReturnValues: "ALL_NEW",
-              TableName: process.env.AWS_THREADS_TABLE_NAME,
-              UpdateExpression: "SET #Y = :y",
+        if (isNew === false) {
+          var params = {
+            ExpressionAttributeNames: {
+              "#Y": "time",
             },
-            function (err, data) {
-              if (err) {
-                console.error(err);
-                resolve(400);
-              }
-              // an error occurred
-              else {
-                // console.log(data);
-                resolve(200);
-              }
+            ExpressionAttributeValues: {
+              ":y": {
+                N: response.time,
+              },
+            },
+            Key: {
+              userID: {
+                S: userID,
+              },
+              threadID: {
+                S: threadID,
+              },
+            },
+            ReturnValues: "ALL_NEW",
+            TableName: process.env.AWS_THREADS_TABLE_NAME,
+            UpdateExpression: "SET #Y = :y",
+          };
+          if (newSpeaker) {
+            params.ExpressionAttributeNames["#S"] = "speakers";
+            params.ExpressionAttributeValues[":s"] = {
+              SS: speakers,
+            };
+            params.UpdateExpression = "SET #Y = :y, #S = :s";
+          }
+          console.log(params);
+          ddb.updateItem(params, function (err, data) {
+            if (err) {
+              console.error(err);
+              resolve(400);
             }
-          );
+            // an error occurred
+            else {
+              // console.log(data);
+              resolve(200);
+            }
+          });
         } else {
           resolve(200);
         }

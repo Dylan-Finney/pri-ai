@@ -34,9 +34,17 @@ export default function ChatResponse(props) {
     formState: { errors },
   } = useForm();
   const onSubmit = (data) => {
-    props.submitFeedback(helpful, data.feedbackDetails);
+    props.submitFeedback({
+      helpful,
+      details: data.feedbackDetails,
+      index: props.index,
+    });
     onFeedbackClose();
+    setFeedbackGiven(helpful);
   };
+
+  // console.log({ helpful: props.helpful });
+  const [feedbackGiven, setFeedbackGiven] = useState(props.helpful);
 
   return (
     <>
@@ -132,21 +140,33 @@ export default function ChatResponse(props) {
           </form>
         </ModalContent>
       </Modal>
-      <MessageContainer prompt={false}>
+      <MessageContainer bookmarked={props.displayBookmarked} prompt={false}>
         <MessageHeader
           avatar={props.selectedAvatar}
-          name={props.aIName}
+          speaker={props.speaker}
           time={props.time}
           prompt={false}
+          openSideTab={props.openSideTab}
         />
         <ResponseText text={props.text} generating={props.generating} />
         {props.feedback === true && (
           <FeedbackSection
-            feedbackGiven={props.helpful}
+            feedbackGiven={feedbackGiven}
             openFeedbackModal={(positive) => {
-              onFeedbackOpen();
-              setHelpful(positive);
+              if (feedbackGiven !== null && feedbackGiven !== undefined) {
+                props.submitFeedback({ remove: true, index: props.index });
+                setHelpful(null);
+                setFeedbackGiven(null);
+              } else {
+                onFeedbackOpen();
+                setHelpful(positive);
+              }
             }}
+            threadID={props.threadID}
+            time={props.time}
+            asBookmark={props.asBookmark}
+            bookmarked={props.bookmarked}
+            bookmarkMessage={props.bookmarkMessage}
           />
         )}
         {/* {props.end === false && (

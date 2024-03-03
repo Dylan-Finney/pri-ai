@@ -17,7 +17,7 @@ const NewChatButton = ({ onClick }) => {
     >
       <NextImage src={chat} alt={"New Chat Icon"} width={23} height={23} />
       <Text ml={2} fontWeight={500}>
-        New Chat
+        New Thread
       </Text>
       <NextImage
         style={{ marginLeft: "auto" }}

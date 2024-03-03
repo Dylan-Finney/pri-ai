@@ -83,6 +83,10 @@ export default function UploadModal({ isOpen, onClose, userID, index }) {
     resetFiles();
   }, [isOpen]);
 
+  useEffect(() => {
+    console.log(files);
+  }, [files]);
+
   return (
     <Modal
       closeOnOverlayClick={false}
