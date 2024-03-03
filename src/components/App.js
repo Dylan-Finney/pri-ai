@@ -1838,38 +1838,19 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
                                   <Text>Saved Chats</Text>
                                   {bookmarkedThread.id === "" ? (
                                     <Flex gap={"10px"} flexDirection={"column"}>
-                                      {Object.keys(bookmarks).map((key) => {
+                                      {Object.keys(bookmarks).map((key, i) => {
                                         const conversation = conversations.find(
                                           (convo) => convo.id === key
                                         );
 
                                         return (
-                                          <>
-                                            <ThreadTitle
-                                              title={conversation.title}
-                                              mentionedAgents={
-                                                conversation.speakers
-                                              }
-                                              as={"list-item"}
-                                              onClick={async () => {
-                                                const response = await axios({
-                                                  method: "POST",
-                                                  url: "/api/getBookmarks",
-                                                  data: {
-                                                    threadID: key,
-                                                    bookmarks: bookmarks[key],
-                                                  },
-                                                });
-                                                setBookmarkedThread({
-                                                  id: key,
-                                                  buddies: conversation.buddies,
-                                                  messages:
-                                                    response.data.messages,
-                                                });
-                                                // console.log(response);
-                                              }}
-                                            />
-                                            {/* <Text
+                                          <ThreadTitle
+                                            key={i}
+                                            title={conversation.title}
+                                            mentionedAgents={
+                                              conversation.speakers
+                                            }
+                                            as={"list-item"}
                                             onClick={async () => {
                                               const response = await axios({
                                                 method: "POST",
@@ -1881,19 +1862,13 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
                                               });
                                               setBookmarkedThread({
                                                 id: key,
+                                                buddies: conversation.buddies,
                                                 messages:
                                                   response.data.messages,
                                               });
-                                              console.log(response);
+                                              // console.log(response);
                                             }}
-                                          >
-                                            {
-                                              conversations.find(
-                                                (convo) => convo.id === key
-                                              ).title
-                                            }
-                                          </Text> */}
-                                          </>
+                                          />
                                         );
                                       })}
                                     </Flex>
@@ -1925,9 +1900,10 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
                                         </Text>
                                       </Flex>
                                       {bookmarkedThread.messages.map(
-                                        (message) => {
+                                        (message, i) => {
                                           return (
                                             <ChatResponse
+                                              key={i}
                                               displayBookmarked={true}
                                               // aIName={aIName}
                                               speaker={message.speaker}

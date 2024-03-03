@@ -255,14 +255,14 @@ export const UploadSection = ({ userID = "", defaultAgent = 1 }) => {
                   </Tr>
                 </Thead>
                 <Tbody>
-                  {files.map((file, index) => {
+                  {files.map((file, fileIndex) => {
                     return (
-                      <Tr>
+                      <Tr key={fileIndex}>
                         <Td>{file.name}</Td>
                         <Td>{file.name.split(".").pop()}</Td>
                         <Td
                           onClick={() => {
-                            setFiles(files.filter((_, i) => i !== index));
+                            setFiles(files.filter((_, i) => i !== fileIndex));
                           }}
                         >
                           Delete
@@ -303,9 +303,9 @@ export const UploadSection = ({ userID = "", defaultAgent = 1 }) => {
           >
             {buddies
               .filter((agent) => agent.uploadable === true)
-              .map((agent) => {
+              .map((agent, i) => {
                 return (
-                  <option value={agent.id}>
+                  <option key={i} value={agent.id}>
                     {agent.name} - @{agent.call}
                   </option>
                 );
@@ -372,9 +372,9 @@ export const UploadSection = ({ userID = "", defaultAgent = 1 }) => {
                       .toLowerCase()
                       .includes(filteredName.toLowerCase())
                   )
-                  .map((tableRecord) => {
+                  .map((tableRecord, i) => {
                     return (
-                      <Tr>
+                      <Tr key={i}>
                         <Td>{tableRecord.cols[0]}</Td>
                         <Td>{tableRecord.cols[1].split(".").pop()}</Td>
                         <Td>{new Date(tableRecord.cols[2]).toDateString()}</Td>
