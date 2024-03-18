@@ -51,8 +51,7 @@ const NewThreadScreen = ({
           for this thread
           <Switch
             isDisabled={!loggedIn}
-            defaultChecked={!demoMode}
-            value={demoMode}
+            isChecked={!demoMode}
             onChange={() => {
               inverseDemoMode();
             }}
