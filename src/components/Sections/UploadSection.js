@@ -531,7 +531,9 @@ export const UploadSection = ({}) => {
                             >
                               {tableRecord.cols[1].split(".").pop() ===
                                 "txt" && <BiSolidFileTxt />}
-                              {tableRecord.cols[0]}
+                              {tableRecord.cols[0] !== ""
+                                ? tableRecord.cols[0]
+                                : tableRecord.cols[1].split(".")[0]}
                             </Td>
                             {/* <Td>{tableRecord.cols[1].split(".").pop()}</Td> */}
                             <Td>

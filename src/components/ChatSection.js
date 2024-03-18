@@ -12,7 +12,7 @@ import LoadingAnimation from "./LoadingAnimation";
 import PromptInput from "./PromptInput";
 import SideTab from "./SideTab";
 import { useContext } from "react";
-import { AuthContext, ConvoContext, TestContext, UIContext } from "./App";
+import { AuthContext, ConvoContext, UIContext } from "./App";
 import axios from "axios";
 import sideTabScreens from "@/utils/sideTabScreens";
 import sections from "@/utils/sections";

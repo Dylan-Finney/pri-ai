@@ -4,22 +4,13 @@ import "@/styles/App.module.css";
 import axios from "axios";
 import {
   createContext,
-  useCallback,
   useEffect,
   useLayoutEffect,
   useRef,
   useState,
 } from "react";
-const {
-  DynamoDBClient,
-  ListTablesCommand,
-} = require("@aws-sdk/client-dynamodb");
-
 import About from "./About";
-import ChatPrompt from "./ChatPrompt";
-import ChatResponse from "./ChatResponse";
 import ThreadsSidebar from "./ThreadsSidebar";
-
 import { useVectorStore } from "@/store/zustand";
 import { generateUniqueId } from "@/utils";
 import { agentsDemo2, agentsProd2 } from "@/utils/agents";
@@ -38,83 +29,42 @@ import { createStandaloneToast } from "@chakra-ui/toast";
 import { getCurrentUser, signOut } from "aws-amplify/auth";
 import { v4 as uuidv4 } from "uuid";
 import { useShallow } from "zustand/react/shallow";
-import AgentsDrawer from "./AgentsDrawer/AgentsDrawer";
-import { ChatlogContainer } from "./ChatlogContainer";
-import Header from "./Header";
-import LoadingAnimation from "./LoadingAnimation";
 import LoginModal from "./LogInModal";
 import OnboardingModal from "./Onboarding/OnboardingModal";
-import OnboardingPlaceholder from "./Onboarding/OnboardingPlaceholder";
-import PromptInput from "./PromptInput";
 import { Sharing } from "./Sharing";
 import { Container, errorToasts } from "./Toast";
-import UploadModal from "./UploadModal/UploadModal";
-import { FiChevronRight, FiChevronsLeft, FiLogOut } from "react-icons/fi";
-import { AgentDetails } from "./AgentDetails";
-import { useDropzone } from "react-dropzone";
 import { UploadSection } from "./Sections/UploadSection";
-import LogoHeader from "./Sidebar/LogoHeader";
-import Image from "next/image";
-// import { chat } from "./ChatIcon";
-import ChatIcon from "./ChatIcon2";
-import UploadIcon from "./UploadIcon";
-import ThreadTitle from "./ThreadTitle";
-import SideTabIcon from "@/assets/SideTabIcon";
-import { GoMute, GoUnmute } from "react-icons/go";
-import { EmptyThread } from "@/assets/EmptyThread";
 import DeleteModal from "./DeleteModal";
-import ExamplePrompts from "./ExamplePrompts";
-import MuteButton from "./MuteButton";
-import NewThreadScreen from "./NewThreadScreen";
 import SideMenu from "./SideMenu";
-import SideTab from "./SideTab";
 import ChatSection from "./ChatSection";
 import sideTabScreens from "../utils/sideTabScreens";
 import sidebarScreens from "@/utils/sidebarScreens";
-// import { EmptyThread } from "@/assets/EmptyThreads";
-// const chat = "/assets/chat.svg";
 
-// const { serverRuntimeConfig } = getConfig();
-// console.log({ serverRuntimeConfig });
 const {
   useMediaQuery,
   Flex,
-  Textarea,
-  Button,
   useDisclosure,
-  Text,
   Box,
-  Tooltip,
   DrawerOverlay,
   Drawer,
   DrawerContent,
   DrawerCloseButton,
-  Skeleton,
-  Input,
-  Select,
-  Spacer,
-  Switch,
-  SimpleGrid,
 } = require("@chakra-ui/react");
 export const Context = createContext();
 
 export const AppContext = createContext();
 export const UserContext = createContext();
 export const DataContext = createContext();
-export const TestContext = createContext();
 
 export const UIContext = createContext();
 export const AuthContext = createContext();
 export const ConvoContext = createContext();
 
-// var AWS = require("aws-sdk");
-// AWS.config.update({
-//   region: process.env.AWS_REGION,
-//   accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-//   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-// });
-
 function App() {
+  /*
+    STATES
+  */
+
   const EVALS = {
     appStorage: "prifina-expert",
     defaultScoreLimit: 0.2,
@@ -148,11 +98,6 @@ function App() {
 
   const scoreLimit = useRef(defaultScoreLimit);
 
-  // const demoMode = {
-  //   PRIAI: 0,
-  //   GPT: 1,
-  // };
-
   const [demoMode, setDemoMode] = useState(true);
 
   const [showSideTab, setShowSideTab] = useState(false);
@@ -163,6 +108,120 @@ function App() {
   const [expandedAgent, setExpandedAgent] = useState(-1);
   const [expandSideTab, setExpandSideTab] = useState(false);
 
+  const [indexToUpload, setIndexToUpload] = useState("");
+
+  //Speech Recongition
+  const [loggedIn, setLoggedIn] = useState(false);
+  const [threadTitle, setThreadTitle] = useState("Welcome");
+  const [details, setDetails] = useState({
+    name: null,
+    country: "United States",
+    region: "California",
+    job: null,
+    email: null,
+  });
+  const [onboarding, setOnboarding] = useState(true);
+  const [initializing, setInitializing] = useState(true);
+
+  const [agents, setAgents] = useState(agentsProd2);
+  const [buddies, setBuddies] = useState(agentsProd2);
+
+  const [usrlang, setUsrlang] = useState(null);
+  const [voiceInputEnabled, setVoiceInputEnabled] = useState(false);
+  const [language, setLanguage] = useState(usrlang);
+  const [sourceNodes, setSourceNodes] = useState([]);
+
+  const audioCtx = useRef(null);
+  const [mute, setMute] = useState(true);
+
+  const welcomeMessageText = `👋 Welcome to PriAI's demo mode by Prifina!
+Demo mode is designed to simulate having access to all of your personal data and information available in your private data cloud, along with data from various common applications and services typically used by consumers. This includes your emails, social media accounts, wearables, calendar, smart home devices, and other public data sources. By combining these sources, we're able to provide you with the best possible answers.
+The full details on the abilities of Pri-AI can be found here in the help sheet. Keep in mind, demo mode does not have access to any of your data the real mode may have, nor any data not explicitly told. 
+
+🤝 I am your Personal Assistant. Think of me as your very own personal AI-powered butler, available 24/7 to assist you. If you are unsure how to use me, ask me how can I help you.`;
+  const [loading, setLoading] = useState(false);
+  const [scrollToAgent, setScrollToAgent] = useState(undefined);
+  const { ToastContainer, toast } = createStandaloneToast();
+
+  //Example exchange {id: "clfb3uecq3npo0bmrzk3mx114", prompt: {text: "Test Prompt", time: 1679068112}, response: {text: "Test Response", time: 1679068112, helpful: null}}
+  const [chatlog, setChatlog] = useState([]);
+  const [userID, setUserID] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [section, setSection] = useState(sections.CHAT);
+  const [fetchingConversation, setFetchingConversation] = useState(false);
+  const [selectedAvatar, setSelectedAvatar] = useState(null);
+  const [showWelcomeMessage, setShowWelcomeMessage] = useState(false);
+  const [aIName, setAIName] = useState(null);
+  const [chosenApps, setChosenApps] = useState([]);
+  const [questionsUsed, setQuestionsUsed] = useState(0);
+  const [loginTime, setLoginTime] = useState(Date.now());
+  const [isLargerThanMD] = useMediaQuery("(min-width: 48em)");
+  const [bookmarks, setBookmarks] = useState({});
+
+  const [conversations, setConversations] = useState([]);
+
+  const [conversationIndex, setConversationIndex] = useState(-1);
+  const [conversationID, setConversationID] = useState(-1);
+
+  const boxRef = useRef();
+  let isFirstClick = true;
+  let changingScreen = false;
+
+  //The selected bookmarked thread for the sidetab
+  const [bookmarkedThread, setBookmarkedThread] = useState(
+    baseBookmarkThreadObj
+  );
+
+  //Which agent was selected to ad knowledge to
+  const [agentKnowledgeUpload, setAgentKnowledgeUpload] = useState("");
+
+  //The selected screen for the sidetab
+  const [sidebarScreen, setSidebarScreen] = useState(sidebarScreens.MENU);
+
+  /*
+    DISCLOSURE STATES
+  */
+  const {
+    isOpen: isSideBarOpen,
+    onOpen: onSideBarOpen,
+    onClose: onSideBarClose,
+  } = useDisclosure();
+  const {
+    isOpen: isOnboardingOpen,
+    onOpen: onOnboardingOpen,
+    onClose: onOnboardingClose,
+  } = useDisclosure();
+  const {
+    isOpen: isLogInOpen,
+    onOpen: onLogInOpen,
+    onClose: onLogInClose,
+  } = useDisclosure();
+  const {
+    isOpen: isDeleteOpen,
+    onOpen: onDeleteOpen,
+    onClose: onDeleteClose,
+  } = useDisclosure();
+  const {
+    isOpen: isSharingOpen,
+    onOpen: onSharingOpen,
+    onClose: onSharingClose,
+  } = useDisclosure();
+
+  const {
+    isOpen: isDrawerOpen,
+    onOpen: onDrawerOpen,
+    onClose: onDrawerClose,
+  } = useDisclosure();
+
+  const {
+    isOpen: isUploadOpen,
+    onOpen: onUploadOpen,
+    onClose: onUploadClose,
+  } = useDisclosure();
+
+  /*
+    FUNCTIONS
+  */
   if (typeof window !== "undefined") {
     //console.log("WINDOW ", window.location.origin);
     // url = window.location.origin + (window.location.port === "" ? "" : ":" + window.location.port) + "/api/v1";
@@ -496,24 +555,6 @@ function App() {
     setLoading(false);
   };
 
-  const [indexToUpload, setIndexToUpload] = useState("");
-
-  //Speech Recongition
-  const [loggedIn, setLoggedIn] = useState(false);
-  const [threadTitle, setThreadTitle] = useState("Welcome");
-  const [details, setDetails] = useState({
-    name: null,
-    country: "United States",
-    region: "California",
-    job: null,
-    email: null,
-  });
-  const [onboarding, setOnboarding] = useState(true);
-  const [initializing, setInitializing] = useState(true);
-
-  const [agents, setAgents] = useState(agentsProd2);
-  const [buddies, setBuddies] = useState(agentsProd2);
-
   useEffect(() => {
     const checkIfLoggedIn = async () => {
       try {
@@ -575,7 +616,7 @@ function App() {
           // console.log({ agentsCopy });
           setBuddies(agentsCopy);
           setAgents([...agentsDemo2, ...agentsCopy]);
-          initalMessage();
+          // initalMessage();
         }
       } catch (e) {
         console.error(e);
@@ -585,23 +626,6 @@ function App() {
     };
     checkIfLoggedIn();
   }, [onboarding]);
-
-  const [usrlang, setUsrlang] = useState(null);
-  const [voiceInputEnabled, setVoiceInputEnabled] = useState(false);
-  const [language, setLanguage] = useState(usrlang);
-  const [sourceNodes, setSourceNodes] = useState([]);
-
-  const audioCtx = useRef(null);
-  const [mute, setMute] = useState(true);
-
-  const welcomeMessageText = `👋 Welcome to PriAI's demo mode by Prifina!
-Demo mode is designed to simulate having access to all of your personal data and information available in your private data cloud, along with data from various common applications and services typically used by consumers. This includes your emails, social media accounts, wearables, calendar, smart home devices, and other public data sources. By combining these sources, we're able to provide you with the best possible answers.
-The full details on the abilities of Pri-AI can be found here in the help sheet. Keep in mind, demo mode does not have access to any of your data the real mode may have, nor any data not explicitly told. 
-
-🤝 I am your Personal Assistant. Think of me as your very own personal AI-powered butler, available 24/7 to assist you. If you are unsure how to use me, ask me how can I help you.`;
-  const [loading, setLoading] = useState(false);
-  const [scrollToAgent, setScrollToAgent] = useState(undefined);
-  const { ToastContainer, toast } = createStandaloneToast();
 
   useEffect(() => {
     // var newAudio = new Audio("/sounds/new_message.wav");
@@ -633,63 +657,6 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
       sourceNodes.length = 0;
     }
   }, [mute]);
-  const {
-    isOpen: isSideBarOpen,
-    onOpen: onSideBarOpen,
-    onClose: onSideBarClose,
-  } = useDisclosure();
-  const {
-    isOpen: isOnboardingOpen,
-    onOpen: onOnboardingOpen,
-    onClose: onOnboardingClose,
-  } = useDisclosure();
-  const {
-    isOpen: isLogInOpen,
-    onOpen: onLogInOpen,
-    onClose: onLogInClose,
-  } = useDisclosure();
-  const {
-    isOpen: isDeleteOpen,
-    onOpen: onDeleteOpen,
-    onClose: onDeleteClose,
-  } = useDisclosure();
-  const {
-    isOpen: isSharingOpen,
-    onOpen: onSharingOpen,
-    onClose: onSharingClose,
-  } = useDisclosure();
-
-  const {
-    isOpen: isDrawerOpen,
-    onOpen: onDrawerOpen,
-    onClose: onDrawerClose,
-  } = useDisclosure();
-
-  const {
-    isOpen: isUploadOpen,
-    onOpen: onUploadOpen,
-    onClose: onUploadClose,
-  } = useDisclosure();
-
-  //Example exchange {id: "clfb3uecq3npo0bmrzk3mx114", prompt: {text: "Test Prompt", time: 1679068112}, response: {text: "Test Response", time: 1679068112, helpful: null}}
-  const [chatlog, setChatlog] = useState([]);
-  const [userID, setUserID] = useState("");
-  const [saving, setSaving] = useState(false);
-  const [section, setSection] = useState(sections.CHAT);
-  const [fetchingConversation, setFetchingConversation] = useState(false);
-  const [selectedAvatar, setSelectedAvatar] = useState(null);
-  const [showWelcomeMessage, setShowWelcomeMessage] = useState(false);
-  const [aIName, setAIName] = useState(null);
-  const [chosenApps, setChosenApps] = useState([]);
-  const [questionsUsed, setQuestionsUsed] = useState(0);
-  const [loginTime, setLoginTime] = useState(Date.now());
-  const [isLargerThanMD] = useMediaQuery("(min-width: 48em)");
-  const [bookmarks, setBookmarks] = useState({});
-
-  const [conversations, setConversations] = useState([]);
-
-  const [conversationIndex, setConversationIndex] = useState(-1);
-  const [conversationID, setConversationID] = useState(-1);
 
   useEffect(() => {
     // console.log({ conversations });
@@ -871,10 +838,6 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
     );
   };
 
-  const boxRef = useRef();
-  let isFirstClick = true;
-  let changingScreen = false;
-
   const resetSideTab = () => {
     setSideTabScreen(sideTabScreens.SAVED_CHATS);
     setShowSideTab(false);
@@ -883,9 +846,7 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
   };
   useEffect(() => {
     if (showSideTab) {
-      // boxRef.current.onclick = (event) => {
-      //   event.stopPropagation();
-      // };
+      //Close the sidetab when clicking on anything outside of the sidetab
       window.onclick = (event) => {
         if (boxRef.current) {
           if (
@@ -906,13 +867,25 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
           }
         }
       };
+      // Always expand for mobile
+      if (!isLargerThanMD) setExpandSideTab(true);
     } else {
+      //Reset UI and states when closed
       window.onclick = (event) => {};
+      setBookmarkedThread(baseBookmarkThreadObj);
+      setExpandSideTab(false);
     }
   }, [showSideTab]);
 
+  /**
+   * Function to fetch the answer to the prompt
+   * @param {string} prompt - The prompt to retrive the answer for
+   * @param {number} promptSent - The time the message was sent
+   * @param {string} speaker - The agent/buddy that the message is meant to be addressed to
+   */
   const fetchAnswers = async (prompt, promptSent, speaker = "") => {
     const fetchPromises = [];
+    //Get answer for the prompt, depending on whether the demo mode is on
     fetchPromises[0] = fetch(loggedIn ? "/api/chatFull" : "/api/chatDemo", {
       method: "POST",
       headers: {
@@ -932,6 +905,8 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
         agent: getAgent(prompt),
       }),
     });
+
+    //Categorize the prompt
     fetchPromises[1] = axios({
       method: "POST",
       url: "/api/categorize",
@@ -939,13 +914,14 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
         prompt: prompt,
       },
     });
+
     const [response, responseCategory] = await Promise.all(fetchPromises);
     var answer = "";
     const responseReceivedTime = Date.now();
+
+    //Stream in the answer
     await streamIn(response.body, (newAnswerChunk) => {
-      // console.log({answer})
       answer = answer + newAnswerChunk;
-      // console.log({ answer });
       setChatlog(
         [].concat(chatlog, [
           { message: prompt, time: promptSent, speaker: "User" },
@@ -960,12 +936,19 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
     return { answer, responseReceivedTime };
   };
 
+  /**
+   * The DemoMode function to get a response from the user's prompt.
+   * @param {string} promptOriginal - The prompt as it was sent by the user
+   */
   const getResponse = async (promptOriginal) => {
     var promptSent = Date.now();
     setLoading(true);
 
+    //Clears the prompt of embedded Mention Data
     const prompt = clearPromptOfMentionsData(promptOriginal);
+
     try {
+      //Append the message to the chatlog state to display while fetching the answer
       setChatlog(
         [].concat(chatlog, {
           message: prompt,
@@ -974,17 +957,22 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
         })
       );
 
+      //Get the agent/buddy that the prompt mentions
       const agent = getAgent(promptOriginal);
       const speaker = getSpeaker(agent === null ? "" : agent[1]);
-      // const speaker = agent.length > 0 ? getSpeaker(agent[1]) : "assistant";
+
+      //Fetch the answer from the backend
       const { answer, responseReceivedTime } = await fetchAnswers(
         prompt,
         promptSent,
         speaker
       );
-      // console.log("DONE");
+
+      //Increment the questions used for potential cap reasons
       setQuestionsUsed(questionsUsed + 1);
       setSaving(true);
+
+      //Save the message. If the answer is apart of a new thread, create a new thread in the backend.
       if (conversationID === -1) {
         await saveConversation({
           prompt,
@@ -1002,8 +990,10 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
           speaker,
         });
       }
+
       try {
         if (!mute) {
+          //Use Text-to-Speech for the answer
           enqueueAudioFile({
             answer,
             language,
@@ -1047,14 +1037,26 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
   useEffect(() => {
     if (loggedIn) {
       if (conversationID === "") {
+        //When creating a new thread and loggedIn, always disable demo mode to show the buddies
         setDemoMode(false);
       }
     }
   }, [conversationID]);
 
   useEffect(() => {
+    //Change the agents accessible to the user based on whether the user is in demo mode or not
     setAgents(demoMode ? agentsDemo2 : [...buddies, ...agentsDemo2]);
   }, [demoMode]);
+
+  /**
+   * Function to change the feedback for the selected message.
+   * @param {string} threadID - The ID of the conversation thread the message belongs to.
+   * @param {number} time - The time the message was sent.
+   * @param {boolean} helpful - Whether the feedback is positive (true) or negative (false).
+   * @param {string} details - The details provided about the feedback. (only for negative feedback)
+   * @param {boolean} remove - Whether the feedback is being added or removed (default: false).
+   * @param {number} index - The index of the message in the chatlog
+   */
   const submitFeedback = async ({
     threadID,
     time,
@@ -1064,6 +1066,7 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
     index,
   }) => {
     try {
+      //Update feedback for the message in the backend
       const responseFeedback = await axios({
         method: "POST",
         url: "/api/feedback",
@@ -1075,6 +1078,8 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
           remove,
         },
       });
+
+      //Update feedback in the frontend
       let chatlogTemp = [...chatlog];
       chatlogTemp[index] = {
         ...chatlogTemp[index],
@@ -1091,30 +1096,11 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
     }
   };
 
-  function sleep(ms) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
-  }
-
-  const initalMessage = async () => {
-    await sleep(2000);
-    setLoginTime(Date.now());
-    setShowWelcomeMessage(true);
-    // audio.play();
-    // await sleep(2000);
-    // setShowWelcomeOneMoreMessage(true);
-    // audio.play();
-  };
-
-  //Load up onboaridng on load
-  // const useMountEffect = (fun) => useEffect(fun, []);
-  // useMountEffect(() => {
-  //   onOnboardingOpen();
-  // });
-
-  // useEffect(() => {
-
-  // }, []);
-
+  /**
+   * Function to change the active conversation thread.
+   * @param {number} newID - The ID of the new conversation thread.
+   * @param {string} title - The title of the new conversation thread (default: "New Thread").
+   */
   const changeConversation = async (newID, title = "New Thread") => {
     if (newID === -1) {
       //Resets conversation state when there is no previous ID (newID is -1)
@@ -1157,7 +1143,7 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
           }
         }
 
-        //Resets lastGoodAnswer to have the last user message (statement) and ass
+        //Resets lastGoodAnswer to have the last user message (statement) and assitatn message (answer)
         lastGoodAnswer.current = {
           answer:
             aiMessageIndex >= 0
@@ -1171,6 +1157,7 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
           followUp: false,
           entryType: 1,
         };
+        //Sets the title of the thread and whether the thread uses the demo agents or buddies
         setThreadTitle(title);
         setDemoMode(!conversations[newIndex].buddies);
       } else {
@@ -1220,30 +1207,21 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
     }
   }, [chatlog, loading, showWelcomeMessage]);
 
-  const [bookmarkedThread, setBookmarkedThread] = useState(
-    baseBookmarkThreadObj
-  );
-  const [expandedSideTab, setExpandedSideTab] = useState(false);
-  useEffect(() => {
-    if (!showSideTab) {
-      setBookmarkedThread(baseBookmarkThreadObj);
-      setExpandSideTab(false);
-    } else {
-      if (!isLargerThanMD) setExpandSideTab(true);
-    }
-  }, [showSideTab]);
-
-  const [agentKnowledgeUpload, setAgentKnowledgeUpload] = useState("");
-
   useEffect(() => {
     if (section === sections.CHAT) {
+      //When the user returns to the chat section, reset the agentKnowledgeUpload state
       setAgentKnowledgeUpload("");
     }
   }, [section]);
 
-  const [sidebarScreen, setSidebarScreen] = useState(sidebarScreens.MENU);
-
+  /**
+   * Function to (un)bookmark the message in the chatlog
+   * @param {number} index - The index of the selected message in the chatlog.
+   * @param {boolean} add - Whether to bookmark or unbookmark the message.
+   * @param {number} time - The time the message was sent/retrived which corresponds to its ID.
+   */
   const bookmarkMessage = ({ index, add, time }) => {
+    //Update the bookmark flag within the conversation state
     setChatlog(
       chatlog.map((c, i) => {
         if (i == index) {
@@ -1256,6 +1234,7 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
       })
     );
     if (add) {
+      //Add bookmark
       setBookmarks({
         ...bookmarks,
         [conversationID]: bookmarks[conversationID]
@@ -1264,6 +1243,7 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
       });
     } else {
       if (bookmarks[conversationID].length > 1) {
+        //Remove bookmark from array
         const index = bookmarks[conversationID].indexOf(time);
         if (index > -1) {
           var copyArray = bookmarks[conversationID];
@@ -1273,6 +1253,7 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
           });
         }
       } else {
+        //Delete thread array from bookmarks object if there are no longer any bookmarks left
         var copyObj = bookmarks;
         delete copyObj[conversationID];
         setBookmarks(copyObj);
@@ -1280,6 +1261,10 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
     }
   };
 
+  /**
+   * Function to send the prompt to the correct processing function.
+   * @param {string} prompt - The prompt statement to retrive an answer for.
+   */
   const sendPrompt = async (prompt) => {
     if (demoMode === true) {
       await getResponse(prompt);
@@ -1413,7 +1398,7 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
                                     Math.floor(Math.random() * avatars.length)
                                   ]
                                 );
-                                initalMessage();
+                                // initalMessage();
                                 setFetchingConversation(false);
                               }}
                               initializing={initializing}

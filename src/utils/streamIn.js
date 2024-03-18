@@ -1,3 +1,8 @@
+/**
+ * Function to stream in chunks of data
+ * @param {Blob} data - The Blob Data to stream in for
+ * @param {function} changeVal - The function that takes in the new ChunkValues
+ *  */
 const streamIn = async (data, changeVal) => {
   if (!data) return undefined;
 
