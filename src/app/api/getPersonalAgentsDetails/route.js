@@ -64,6 +64,7 @@ export async function POST(req) {
             var params = {
               Bucket: process.env.AWS_IMAGES_BUCKET,
               Key: `${user.userId}/${agent.id}`,
+              Expires: 86400,
             };
             const url = await s3.getSignedUrlPromise("getObject", params);
 

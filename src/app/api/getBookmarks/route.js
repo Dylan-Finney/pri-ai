@@ -54,8 +54,9 @@ export async function POST(req) {
                 time: parseInt(message.time.N),
                 threadID: message.threadID.S,
                 speaker:
-                  message.speaker.S === "PriAI"
-                    ? "assistant"
+                  message.speaker.S === "PriAI" ||
+                  message.speaker.S === "assistant"
+                    ? "mybuddy"
                     : message.speaker.S,
               });
             });

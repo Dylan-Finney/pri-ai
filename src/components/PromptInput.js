@@ -7,15 +7,89 @@ import { HiMicrophone, HiStop } from "react-icons/hi";
 import { TbSend } from "react-icons/tb";
 import { Mention, MentionsInput } from "react-mentions";
 import AgentImage from "./AgentImage";
-import { DataContext } from "./App";
+import { AuthContext, ConvoContext, DataContext, UIContext } from "./App";
+import sideTabScreens from "@/utils/sideTabScreens";
+import PeopleIcon from "@/assets/PeopleIcon";
 // import { HelpIcon } from "@/assets/";
 
-function PromptInput(props) {
+const SendButton = ({ submit, inputDisabled }) => {
+  return (
+    <Button
+      marginLeft={"1%"}
+      marginRight={"auto"}
+      backgroundColor={"#0e9384"}
+      paddingLeft={"auto"}
+      paddingRight={"auto"}
+      type={"submit"}
+      onClick={submit}
+      isDisabled={inputDisabled}
+    >
+      <TbSend size={"1.3em"} color={"#FFFFFF"} />
+    </Button>
+  );
+};
+
+const MicButton = ({ voiceInputEnabled, inputDisabled, mic, setMic }) => {
+  return (
+    <Tooltip
+      textAlign={"center"}
+      label={`${
+        !voiceInputEnabled
+          ? "Browser not supported. Try Google Chrome or Microsoft Edge."
+          : ""
+      }`}
+    >
+      <Button
+        width={"fit-content"}
+        color={"#FFFFFF"}
+        backgroundColor={"#0E9384"}
+        marginLeft={"8px"}
+        onClick={() => {
+          setMic(!mic);
+        }}
+        isDisabled={inputDisabled || !voiceInputEnabled}
+      >
+        {mic ? <HiStop size={"1.3em"} /> : <HiMicrophone size={"1.3em"} />}
+      </Button>
+    </Tooltip>
+  );
+};
+
+const ShowAgentsButton = ({ onClick }) => {
+  return (
+    <Box cursor={"pointer"} onClick={onClick}>
+      <PeopleIcon />
+    </Box>
+  );
+};
+
+function PromptInput({}) {
+  const {
+    demoMode,
+    sendPrompt,
+    language,
+    loading,
+    questionsUsed,
+    fetchingConversation,
+    saving,
+    voiceInputEnabled,
+  } = useContext(ConvoContext);
+  const { setScrollToAgent, setSideTabScreen, setShowSideTab, isLargerThanMD } =
+    useContext(UIContext);
+  const { onboarding } = useContext(AuthContext);
+
   const [prompt, setPrompt] = useState("");
   const [mic, setMic] = useState(false);
   const speech = useRef("");
   const { agents, buddies } = useContext(DataContext);
-  const agentsAll = props.demoMode === true ? agents : buddies;
+
+  const inputDisabled =
+    loading ||
+    onboarding ||
+    questionsUsed >= 10 ||
+    fetchingConversation ||
+    saving;
+  const agentsAll = demoMode === true ? agents : buddies;
   // const [userID, setUserID] = useState("");
   useEffect(() => {
     let recognition;
@@ -25,7 +99,7 @@ function PromptInput(props) {
         window.speechRecognition || window.webkitSpeechRecognition;
       recognition = new SpeechRecognition();
       // does this support all browser languages?
-      recognition.lang = props.language;
+      recognition.lang = language;
       recognition.continuous = true;
       recognition.interimResults = true;
       var before = prompt;
@@ -64,7 +138,14 @@ function PromptInput(props) {
 
   const submit = async () => {
     setPrompt("");
-    await props.send(prompt);
+    await sendPrompt(prompt);
+  };
+
+  const showAgentsTab = (index = undefined) => {
+    setScrollToAgent(index);
+    setSideTabScreen(sideTabScreens.AGENT_LIST);
+    setShowSideTab(true);
+    // onDrawerOpen();
   };
   return (
     <Flex
@@ -72,18 +153,16 @@ function PromptInput(props) {
       borderTop={"2px solid #eeeff2"}
       minWidth="max-content"
       alignItems="center"
+      position={isLargerThanMD ? "unset" : "fixed"}
+      bottom={isLargerThanMD ? "unset" : 0}
+      width={"100%"}
+      backgroundColor={"white"}
+
       // flex={1}
     >
-      <Box
-        cursor={"pointer"}
-        onClick={() => {
-          props.openDrawer();
-        }}
-      >
-        <HelpIcon />
-      </Box>
+      <ShowAgentsButton onClick={showAgentsTab} />
       <MentionsInput
-        disabled={props.sendDisabled || props.saving}
+        disabled={inputDisabled}
         placeholder="Ex: What is in my calendar for tomorrow?"
         value={prompt}
         onKeyUp={(event) => {
@@ -152,14 +231,11 @@ function PromptInput(props) {
             index,
             focused
           ) => {
-            const image = suggestion.data.image.urlCircle || undefined;
+            const image = suggestion.data.image.urlFull || undefined;
             const company = suggestion.data.company || "Prifina";
             console.log("Mention", suggestion.data);
             return (
               <Flex
-                onBlur={() => {
-                  console.log("TEST");
-                }}
                 flexDirection={"row"}
                 style={{ padding: "10px" }}
                 alignItems={"center"}
@@ -197,7 +273,7 @@ function PromptInput(props) {
                   onClick={(e) => {
                     e.stopPropagation();
                     console.log("TEST");
-                    props.openDrawer(index);
+                    openDrawer(index);
                   }}
                   src={`/assets/details_menu.svg`}
                   width={25}
@@ -222,39 +298,13 @@ function PromptInput(props) {
           markup="#__id__"
         />
       </MentionsInput>
-      <Tooltip
-        textAlign={"center"}
-        label={`${
-          props.voiceDisabled
-            ? "Browser not supported. Try Google Chrome or Microsoft Edge."
-            : ""
-        }`}
-      >
-        <Button
-          width={"fit-content"}
-          color={"#FFFFFF"}
-          backgroundColor={"#0E9384"}
-          marginLeft={"8px"}
-          onClick={() => {
-            setMic(!mic);
-          }}
-          isDisabled={props.sendDisabled || props.voiceDisabled}
-        >
-          {mic ? <HiStop size={"1.3em"} /> : <HiMicrophone size={"1.3em"} />}
-        </Button>
-      </Tooltip>
-      <Button
-        marginLeft={"1%"}
-        marginRight={"auto"}
-        backgroundColor={"#0e9384"}
-        paddingLeft={"auto"}
-        paddingRight={"auto"}
-        type={"submit"}
-        onClick={submit}
-        isDisabled={props.sendDisabled || props.saving}
-      >
-        <TbSend size={"1.3em"} color={"#FFFFFF"} />
-      </Button>
+      <MicButton
+        inputDisabled={inputDisabled}
+        mic={mic}
+        setMic={setMic}
+        voiceInputEnabled={voiceInputEnabled}
+      />
+      <SendButton submit={submit} inputDisabled={inputDisabled} />
     </Flex>
   );
 }

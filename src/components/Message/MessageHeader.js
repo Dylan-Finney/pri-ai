@@ -1,10 +1,11 @@
-import { Box, Text } from "@chakra-ui/react";
+import { Box, Flex, Text } from "@chakra-ui/react";
 import NextImage from "next/image";
 import { timeToString } from "../utils";
 import { agentsProd2 } from "@/utils/agents";
-import { DataContext } from "../App";
+import { DataContext, UIContext } from "../App";
 import { useContext, useEffect, useState } from "react";
 import AgentImage from "../AgentImage";
+import sideTabScreens from "@/utils/sideTabScreens";
 const MessageAvatar = ({ avatar, onClick, customImage, agent }) => {
   return (
     <Box
@@ -45,14 +46,24 @@ const MessageHeader = ({
   time,
   prompt,
   speaker = "",
-  openSideTab,
+  bookmarked,
+  asThread,
+  // openSideTab,
 }) => {
+  const { setExpandedAgent, setSideTabScreen, setShowSideTab } =
+    useContext(UIContext);
   const { agents, buddies } = useContext(DataContext);
   const [agent, setAgent] = useState(
     [...agents, ...buddies].find(
       (agent) => agent.call === speaker.toLowerCase()
     )
   );
+  const openSideTab = () => {
+    // console.log(message);
+    setExpandedAgent(speaker);
+    setSideTabScreen(sideTabScreens.AGENT_DETAILS);
+    setShowSideTab(true);
+  };
   // useEffect(() => {
   //   setAgent(
   //     [...agents, ...buddies].find(
@@ -87,22 +98,39 @@ const MessageHeader = ({
           alignItems: "center",
         }}
       >
-        <Text
-          as={"b"}
-          fontSize={"sm"}
-          color={"#344054"}
-          display={"inline-block"}
-          marginRight={"auto"}
-        >
-          {name ? (
-            name
-          ) : (
-            <>
-              {agent?.name} -{" "}
-              <span style={{ color: "#107569" }}>@{speaker}</span>
-            </>
+        <Flex flexDirection={"row"} marginRight={"auto"}>
+          <Text
+            as={"b"}
+            fontSize={"sm"}
+            color={"#344054"}
+            display={"inline-block"}
+          >
+            {name ? (
+              name
+            ) : (
+              <>
+                {agent?.name} -{" "}
+                <span style={{ color: "#107569" }}>@{speaker}</span>
+              </>
+            )}
+          </Text>
+          {bookmarked && asThread && (
+            <Text
+              backgroundColor={"#e2efff"}
+              color={"#0075ff"}
+              fontWeight={600}
+              fontSize={"sm"}
+              marginLeft={"3px"}
+              paddingLeft={"7px"}
+              paddingRight={"7px"}
+              borderRadius={"30px"}
+              alignSelf={"center"}
+            >
+              Saved
+            </Text>
           )}
-        </Text>
+        </Flex>
+
         <Text
           fontSize={"xs"}
           color={"#215852"}

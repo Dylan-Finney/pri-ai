@@ -6,19 +6,24 @@ import {
   ModalContent,
   ModalOverlay,
   Text,
+  Wrap,
+  WrapItem,
   useDisclosure,
 } from "@chakra-ui/react";
 import { FiThumbsDown, FiThumbsUp } from "react-icons/fi";
 // import { ChatIcon } from "./ChatIcon";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import FeedbackInput from "./Message/Feedback/FeedbackInput";
 import FeedbackSection from "./Message/Feedback/FeedbackSection";
 import MessageContainer from "./Message/MessageContainer";
 import MessageHeader from "./Message/MessageHeader";
 import ResponseText from "./Message/ResponseText";
+import { negativeFeedbackOptions } from "@/utils/constants";
+import { ConvoContext } from "./App";
 
 export default function ChatResponse(props) {
+  // const { aIName } = useContext(ConvoContext);
   const {
     isOpen: isFeedbackOpen,
     onOpen: onFeedbackOpen,
@@ -34,9 +39,20 @@ export default function ChatResponse(props) {
     formState: { errors },
   } = useForm();
   const onSubmit = (data) => {
+    submit(helpful, selectedNegFeedbackIndex, data);
+  };
+
+  const submit = (helpful = true, selectedIndex, data) => {
+    var details = "";
+    if (!helpful) {
+      details += `${negativeFeedbackOptions[selectedIndex]}.`;
+      if (data) {
+        details += ` - ${data.feedbackDetails}`;
+      }
+    }
     props.submitFeedback({
       helpful,
-      details: data.feedbackDetails,
+      details,
       index: props.index,
     });
     onFeedbackClose();
@@ -45,6 +61,15 @@ export default function ChatResponse(props) {
 
   // console.log({ helpful: props.helpful });
   const [feedbackGiven, setFeedbackGiven] = useState(props.helpful);
+  const [selectedNegFeedbackIndex, setSelectedNegFeedbackIndex] = useState(
+    negativeFeedbackOptions.length - 1
+  );
+
+  // const [feedbackJustSubmitted, setFeedbackJustSubmitted] = useState(false);
+
+  useEffect(() => {
+    console.log({ helpful });
+  }, [isFeedbackOpen]);
 
   return (
     <>
@@ -80,39 +105,39 @@ export default function ChatResponse(props) {
             }}
           />
           <Flex alignContent={"center"} marginBottom="10px">
-            {helpful ? (
-              <>
-                <Flex
-                  backgroundColor={"#90EE90 "}
-                  minWidth={"30px"}
-                  minHeight={"30px"}
-                  maxWidth={"30px"}
-                  maxHeight={"30px"}
-                  border={"1px solid #777777"}
-                  borderRadius={"30px"}
-                  alignItems={"center"}
-                  justifyContent={"center"}
-                >
-                  <FiThumbsUp color={"#008000"} />
-                </Flex>
-              </>
-            ) : (
-              <>
-                <Flex
-                  backgroundColor={"#FFC0CB"}
-                  width={"30px"}
-                  height={"30px"}
-                  border={"1px solid #777777"}
-                  borderRadius={"30px"}
-                  alignItems={"center"}
-                  justifyContent={"center"}
-                >
-                  <FiThumbsDown color={"#FF0000 "} />
-                </Flex>
-              </>
-            )}
-            <Text marginLeft={"10px"}>Provide additonal feedback</Text>
+            <Text fontWeight={600}>Additional Feedback</Text>
           </Flex>
+          <Wrap width={"100%"}>
+            {negativeFeedbackOptions.map((feedbackText, index) => {
+              return (
+                <WrapItem
+                  backgroundColor={
+                    selectedNegFeedbackIndex === index ? "black" : "transparent"
+                  }
+                  cursor={"pointer"}
+                  border={"1px solid #d2d2d2"}
+                  borderRadius={"20px"}
+                  padding={"3px"}
+                  paddingLeft={"10px"}
+                  paddingRight={"10px"}
+                  onClick={() => {
+                    setSelectedNegFeedbackIndex(index);
+                  }}
+                >
+                  <Text
+                    width={"fit-content"}
+                    alignSelf={"center"}
+                    textAlign={"center"}
+                    color={
+                      selectedNegFeedbackIndex === index ? "white" : "#344054"
+                    }
+                  >
+                    {feedbackText}
+                  </Text>
+                </WrapItem>
+              );
+            })}
+          </Wrap>
           <form
             style={{ height: "100%", display: "contents" }}
             onSubmit={handleSubmit(onSubmit)}
@@ -140,11 +165,17 @@ export default function ChatResponse(props) {
           </form>
         </ModalContent>
       </Modal>
-      <MessageContainer bookmarked={props.displayBookmarked} prompt={false}>
+      <MessageContainer
+        asThread={props.asThread}
+        bookmarked={props.bookmarked}
+        prompt={false}
+      >
         <MessageHeader
-          avatar={props.selectedAvatar}
+          // avatar={props.selectedAvatar}
+          asThread={props.asThread}
           speaker={props.speaker}
           time={props.time}
+          bookmarked={props.bookmarked}
           prompt={false}
           openSideTab={props.openSideTab}
         />
@@ -152,16 +183,27 @@ export default function ChatResponse(props) {
         {props.feedback === true && (
           <FeedbackSection
             feedbackGiven={feedbackGiven}
-            openFeedbackModal={(positive) => {
+            openFeedbackModal={(positive, selectedIndex) => {
               if (feedbackGiven !== null && feedbackGiven !== undefined) {
                 props.submitFeedback({ remove: true, index: props.index });
                 setHelpful(null);
                 setFeedbackGiven(null);
               } else {
-                onFeedbackOpen();
                 setHelpful(positive);
+                if (
+                  !positive &&
+                  selectedIndex === negativeFeedbackOptions.length - 1
+                ) {
+                  onFeedbackOpen();
+                  setSelectedNegFeedbackIndex(
+                    negativeFeedbackOptions.length - 1
+                  );
+                } else {
+                  submit(positive, selectedIndex);
+                }
               }
             }}
+            submit
             threadID={props.threadID}
             time={props.time}
             asBookmark={props.asBookmark}
@@ -169,39 +211,6 @@ export default function ChatResponse(props) {
             bookmarkMessage={props.bookmarkMessage}
           />
         )}
-        {/* {props.end === false && (
-          <Box
-            marginLeft={{ base: "25px", sm: "45px", lg: "47px" }}
-            gap={"10px"}
-            display={"flex"}
-            flexDirection={{ base: "column", sm: "row" }}
-          >
-            <Button borderRadius={"8px"} backgroundColor={"#F0FDF9"}>
-              <Text fontWeight={"600"} color={"#107569"} marginRight={"5px"}>
-                Start a new chat
-              </Text>
-              <ChatIcon color="#107569" boxSize={6} />
-            </Button>
-            <Button borderRadius={"8px"} backgroundColor={"#0E9384"}>
-              <Text
-                fontWeight={"600"}
-                color={"#FFFFFF"}
-                marginRight={"5px"}
-                onClick={() => {
-                  window
-                    .open(
-                      "https://join.slack.com/t/libertyequalitydata/shared_invite/zt-ddr4t974-MCzsch4FSeux8DrFQ2atbQ",
-                      "_blank"
-                    )
-                    .focus();
-                }}
-              >
-                Join the community
-              </Text>{" "}
-              <CgSlack color={"#FFFFFF"} size={"22px"} />
-            </Button>
-          </Box>
-        )} */}
       </MessageContainer>
     </>
   );

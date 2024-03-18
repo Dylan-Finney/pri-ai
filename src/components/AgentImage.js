@@ -1,6 +1,6 @@
 import { Box } from "@chakra-ui/react";
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const AgentImage = ({
   show = true,
@@ -24,6 +24,25 @@ const AgentImage = ({
         return 84;
     }
   };
+
+  useEffect(() => {
+    setImageError(false);
+  }, [url]);
+
+  const getSrc = () => {
+    if (imageError) {
+      if (defaultImage !== undefined && defaultImage !== "") {
+        return defaultImage;
+      } else {
+        return `/assets/avatar/Avatar1.svg`;
+      }
+    } else if (url.startsWith("http") || url.startsWith("/assets/")) {
+      return url;
+    } else {
+      console.log({ url });
+      return `/assets/agents/${url}`;
+    }
+  };
   return (
     <>
       {show && url !== undefined && (
@@ -39,19 +58,11 @@ const AgentImage = ({
             borderWidth={"2px"}
           >
             <Image
-              src={
-                imageError
-                  ? defaultImage !== undefined && defaultImage !== ""
-                    ? defaultImage
-                    : undefined
-                  : url.startsWith("http") || url.startsWith("/assets/")
-                  ? url
-                  : `/assets/agents/${url}`
-              }
+              src={getSrc()}
               // width={84}
               // height={84}
-              onError={() => {
-                console.error(`${name} image error`);
+              onError={(e) => {
+                console.error(`${name} image error`, e);
                 setImageError(true);
               }}
               // layout={"fill"}

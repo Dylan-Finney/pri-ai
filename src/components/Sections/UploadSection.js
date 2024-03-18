@@ -6,6 +6,7 @@ import {
   InputGroup,
   InputLeftElement,
   Select,
+  SimpleGrid,
   Table,
   TableContainer,
   Tbody,
@@ -15,9 +16,11 @@ import {
   Th,
   Thead,
   Tr,
+  Wrap,
+  WrapItem,
 } from "@chakra-ui/react";
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
-import { DataContext } from "../App";
+import { AuthContext, ConvoContext, DataContext } from "../App";
 import { useDropzone } from "react-dropzone";
 import { handleIndex } from "@/utils/pri-ai/handleIndex";
 import { useListDocFiles } from "@/utils/dynamoDB";
@@ -25,12 +28,17 @@ import { languageOptions, metaTagOptions, planOptions } from "@/utils/options";
 import UploadIcon from "../UploadIcon";
 import { SearchIcon } from "@chakra-ui/icons";
 import useUploadFile from "@/utils/s3";
-import { FiRefreshCcw } from "react-icons/fi";
+import { FiRefreshCcw, FiX } from "react-icons/fi";
+import { BiSolidFileTxt } from "react-icons/bi";
+import AgentImage from "../AgentImage";
+import { RiDeleteBin6Line } from "react-icons/ri";
+import Header from "../Header";
 // import { languageOptions, metaTagOptions, planOptions } from "@/options";
 
 const TabTitle = ({ active = false, changeSection, sectionTab }) => {
   return (
     <Box
+      cursor={"pointer"}
       padding={"10px"}
       paddingLeft={"20px"}
       paddingRight={"20px"}
@@ -43,8 +51,12 @@ const TabTitle = ({ active = false, changeSection, sectionTab }) => {
   );
 };
 
-export const UploadSection = ({ userID = "", defaultAgent = 1 }) => {
+export const UploadSection = ({}) => {
+  const { userID } = useContext(AuthContext);
+  const { agentKnowledgeUpload } = useContext(ConvoContext);
+  const defaultAgent = agentKnowledgeUpload ? agentKnowledgeUpload : 1;
   const { buddies } = useContext(DataContext);
+  // console.log({ buddies });
   const [files, setFiles] = useState([]);
 
   const onDrop = useCallback(
@@ -186,104 +198,232 @@ export const UploadSection = ({ userID = "", defaultAgent = 1 }) => {
     // onClose();
   };
 
+  const [selectedAgentIndexInList, setSelectedAgentIndexInList] = useState(-1);
+
   return (
-    <Flex
-      flex={1}
-      padding={"20px"}
-      overflowY={"scroll"}
-      flexDirection={"column"}
-      width={"100%"}
-    >
-      <Flex flexDirection={"row"} gap={"25px"}>
-        <TabTitle
-          active={screen === screens.UPLOAD}
-          changeSection={() => {
-            setScreen(screens.UPLOAD);
-          }}
-          sectionTab={"Uploads"}
-        />
-        <TabTitle
-          active={screen === screens.LIST}
-          changeSection={() => {
-            setScreen(screens.LIST);
-          }}
-          sectionTab={"Content"}
-        />
-      </Flex>
+    <>
+      <div
+        style={{
+          flexDirection: "column",
+          minWidth: "80.5%",
+          width: "100%",
+          display: "flex",
+        }}
+      >
+        <Header />
+        <Flex
+          flex={1}
+          padding={"20px"}
+          overflowY={"scroll"}
+          flexDirection={"column"}
+          width={"100%"}
+        >
+          <Flex flexDirection={"row"} gap={"25px"}>
+            <TabTitle
+              active={screen === screens.UPLOAD}
+              changeSection={() => {
+                setScreen(screens.UPLOAD);
+              }}
+              sectionTab={"Uploads"}
+            />
+            <TabTitle
+              active={screen === screens.LIST}
+              changeSection={() => {
+                setScreen(screens.LIST);
+              }}
+              sectionTab={"Content"}
+            />
+          </Flex>
 
-      {screen === screens.UPLOAD && (
-        <>
-          {" "}
-          <Text>Files</Text>
-          <div
-            style={{
-              backgroundColor: "#f0fdfc",
-              textAlign: "center",
-              height: "20vh",
-              borderRadius: "5px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              flexDirection: "column",
-              border: "1px dashed #00847a",
-            }}
-            {...getRootProps({ className: "dropzone" })}
-          >
-            <input {...getInputProps()} />
-
-            {isDragActive ? (
-              <Text>Drop the files here ...</Text>
-            ) : (
-              <>
-                <UploadIcon sidebar={false} />
-                <Text>
-                  Drag and drop your files here or
-                  <Text></Text>
-                  click to browse
-                </Text>
-              </>
-            )}
-          </div>
-          <Flex height={"200px"} overflow={"scroll"} flexDirection={"column"}>
-            <TableContainer>
-              <Table variant={"simple"}>
-                <Thead>
-                  <Tr>
-                    <Th>Name</Th>
-                    <Th>File Type</Th>
-                    <Th></Th>
-                  </Tr>
-                </Thead>
-                <Tbody>
-                  {files.map((file, fileIndex) => {
+          {screen === screens.UPLOAD && (
+            <Flex flexDirection={"column"}>
+              {" "}
+              <Text>Choose a buddy to upload Data</Text>
+              <SimpleGrid
+                maxHeight={"300px"}
+                overflowY={"scroll"}
+                minChildWidth={"400px"}
+                spacing={"20px"}
+              >
+                {buddies
+                  .filter((agent) => agent.uploadable === true)
+                  .map((agent, i) => {
                     return (
-                      <Tr key={fileIndex}>
-                        <Td>{file.name}</Td>
-                        <Td>{file.name.split(".").pop()}</Td>
-                        <Td
-                          onClick={() => {
-                            setFiles(files.filter((_, i) => i !== fileIndex));
-                          }}
+                      <Flex
+                        // maxWidth={"700px"}
+                        onClick={() => {
+                          if (selectedAgentIndexInList === i) {
+                            setSelectedAgentIndexInList(-1);
+                            setIndex("");
+                          } else {
+                            setSelectedAgentIndexInList(i);
+                            setIndex(handleIndex(agent.index, userID));
+                          }
+                        }}
+                        backgroundColor={"#f9fafb"}
+                        padding={"20px"}
+                        flex={1}
+                        width={"100%"}
+                        flexDirection={{ base: "column", md: "row" }}
+                        alignItems={"center"}
+                        border={
+                          selectedAgentIndexInList === i
+                            ? "2px solid #0085ff"
+                            : "2px solid transparent"
+                        }
+                      >
+                        <Flex
+                          flex={1}
+                          flexDirection={"column"}
+                          alignItems={"center"}
                         >
-                          Delete
-                        </Td>
-                      </Tr>
+                          <AgentImage
+                            show={agent.image.urlFull}
+                            icon={agent.image.chatIcon}
+                            name={agent.name}
+                            url={agent.image.urlFull}
+                            defaultImage={agent.image.defaultFull}
+                          />
+                        </Flex>
+                        <Flex flex={1} flexDirection={"column"}>
+                          {" "}
+                          <Text
+                            color={"#101828"}
+                            fontWeight={600}
+                            fontSize={"14px"}
+                            textAlign={"center"}
+                          >
+                            <span
+                              style={{
+                                // marginLeft: "auto",
+                                color: "#107569",
+                                fontWeight: 500,
+                                fontSize: "12px",
+                                backgroundColor: "#F0FDF9",
+                                padding: "2px 8px",
+                                borderRadius: "16px",
+                              }}
+                            >
+                              @{agent.call}
+                            </span>
+                          </Text>
+                          <Box
+                            textAlign={"center"}
+                            fontWeight={600}
+                            flexDirection={"row"}
+                            display={"flex"}
+                            alignSelf={"center"}
+                            width={"250px"}
+                            justifyContent={"center"}
+                          >
+                            <Text
+                              overflow={"hidden"}
+                              textOverflow={"ellipsis"}
+                              whiteSpace={"nowrap"}
+                              maxWidth={"76%"}
+                            >
+                              {agent.name}
+                            </Text>
+                            <Text maxWidth={"fit-content"}>
+                              | {agent.company}
+                            </Text>
+                          </Box>
+                        </Flex>
+                      </Flex>
                     );
                   })}
-                </Tbody>
-              </Table>
-            </TableContainer>
-          </Flex>
-          <Text>Text / URL</Text>
-          <Input
-            value={source}
-            onChange={(e) => {
-              setSource(e.target.value);
-            }}
-            disabled={files.length > 0}
-            placeholder="Title description"
-          />
-          <Select
+              </SimpleGrid>
+              <Text>Files</Text>
+              <div
+                style={{
+                  backgroundColor: "#f0fdfc",
+                  textAlign: "center",
+                  height: "20vh",
+                  overflowY: "scroll",
+                  borderRadius: "5px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexDirection: "column",
+                  border: "1px dashed #00847a",
+                }}
+                {...getRootProps({ className: "dropzone" })}
+              >
+                <input {...getInputProps()} />
+
+                {isDragActive ? (
+                  <Text>Drop the files here ...</Text>
+                ) : (
+                  <>
+                    {files.length === 0 ? (
+                      <>
+                        <UploadIcon sidebar={false} />
+                        <Text>
+                          Drag and drop your files here or click to browse
+                        </Text>
+                      </>
+                    ) : (
+                      <Wrap justify="center" padding={"20px"} mt={"10px"}>
+                        {files.map((file, fileIndex) => {
+                          return (
+                            <WrapItem
+                              backgroundColor={"white"}
+                              padding={"10px"}
+                              alignItems={"center"}
+                            >
+                              {file.name.split(".").pop() === "txt" && (
+                                <BiSolidFileTxt size={"25px"} />
+                              )}
+                              <Text>{file.name}</Text>
+                              <FiX
+                                cursor={"pointer"}
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  setFiles(
+                                    files.filter((_, i) => i !== fileIndex)
+                                  );
+                                }}
+                              />
+                              {/* <Flex
+                            backgroundColor={"white"}
+                            flexDir={"row"}
+                            alignItems={"center"}
+                            padding={"10px"}
+                          >
+                            {file.name.split(".").pop() === "txt" && (
+                              <BiSolidFileTxt size={"25px"} />
+                            )}
+                            <Text color={"#344054"} fontWeight={600}>
+                              {file.name}
+                            </Text>
+                            <FiX
+                              cursor={"pointer"}
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                setFiles(
+                                  files.filter((_, i) => i !== fileIndex)
+                                );
+                              }}
+                            />
+                          </Flex> */}
+                            </WrapItem>
+                          );
+                        })}
+                      </Wrap>
+                    )}
+                  </>
+                )}
+              </div>
+              <Text>Text / URL</Text>
+              <Input
+                value={source}
+                onChange={(e) => {
+                  setSource(e.target.value);
+                }}
+                disabled={files.length > 0}
+                placeholder="Title description"
+              />
+              {/* <Select
             defaultValue={defaultAgent}
             disabled={defaultAgent !== ""}
             onChange={(e) => {
@@ -310,43 +450,43 @@ export const UploadSection = ({ userID = "", defaultAgent = 1 }) => {
                   </option>
                 );
               })}
-          </Select>
-          <Textarea
-            height={"200px"}
-            value={content}
-            onChange={(e) => {
-              setContent(e.target.value);
-            }}
-            disabled={files.length > 0}
-            placeholder="Type any text or paste URL"
-          />
-          <Button
-            isLoading={isUploading}
-            isDisabled={
-              index === "" ||
-              (files.length === 0 && (source === "" || content === ""))
-            }
-            onClick={handleSave}
-          >
-            Upload
-          </Button>
-        </>
-      )}
-      {screen === screens.LIST && (
-        <>
-          <InputGroup>
-            <InputLeftElement pointerEvents="none">
-              <SearchIcon />
-            </InputLeftElement>
-            <Input
-              value={filteredName}
-              placeholder="Search"
-              onChange={(e) => {
-                setFilteredName(e.target.value);
-              }}
-            />
-          </InputGroup>
-          {/* <Box
+          </Select> */}
+              <Textarea
+                height={"200px"}
+                value={content}
+                onChange={(e) => {
+                  setContent(e.target.value);
+                }}
+                disabled={files.length > 0}
+                placeholder="Type any text or paste URL"
+              />
+              <Button
+                isLoading={isUploading}
+                isDisabled={
+                  index === "" ||
+                  (files.length === 0 && (source === "" || content === ""))
+                }
+                onClick={handleSave}
+              >
+                Upload
+              </Button>
+            </Flex>
+          )}
+          {screen === screens.LIST && (
+            <>
+              <InputGroup>
+                <InputLeftElement pointerEvents="none">
+                  <SearchIcon />
+                </InputLeftElement>
+                <Input
+                  value={filteredName}
+                  placeholder="Search"
+                  onChange={(e) => {
+                    setFilteredName(e.target.value);
+                  }}
+                />
+              </InputGroup>
+              {/* <Box
             onClick={() => {
               getFiles();
             }}
@@ -354,40 +494,78 @@ export const UploadSection = ({ userID = "", defaultAgent = 1 }) => {
             <FiRefreshCcw />
           </Box> */}
 
-          <TableContainer>
-            <Table variant={"simple"}>
-              <Thead>
-                <Tr>
-                  <Th>Name</Th>
-                  <Th>File Type</Th>
-                  <Th>Date</Th>
-                  <Th>Token Size</Th>
-                  <Th></Th>
-                </Tr>
-              </Thead>
-              <Tbody>
-                {tableData
-                  .filter((tableRecord) =>
-                    tableRecord.cols[0]
-                      .toLowerCase()
-                      .includes(filteredName.toLowerCase())
-                  )
-                  .map((tableRecord, i) => {
-                    return (
-                      <Tr key={i}>
-                        <Td>{tableRecord.cols[0]}</Td>
-                        <Td>{tableRecord.cols[1].split(".").pop()}</Td>
-                        <Td>{new Date(tableRecord.cols[2]).toDateString()}</Td>
-                        <Td>{tableRecord.meta.totalTokens}</Td>
-                        <Td cursor={"not-allowed"}>Delete</Td>
-                      </Tr>
-                    );
-                  })}
-              </Tbody>
-            </Table>
-          </TableContainer>
-        </>
-      )}
-    </Flex>
+              <TableContainer>
+                <Table variant={"simple"}>
+                  <Thead>
+                    <Tr backgroundColor={"#eef1f5"}>
+                      <Th>Topic</Th>
+                      <Th>Description</Th>
+                      <Th>Name</Th>
+                      {/* <Th>File Type</Th> */}
+                      <Th>AI Buddy</Th>
+                      <Th>Category</Th>
+                      <Th>Date</Th>
+                      <Th>Token Size</Th>
+                      <Th></Th>
+                    </Tr>
+                  </Thead>
+                  <Tbody>
+                    {tableData
+                      .filter((tableRecord) =>
+                        tableRecord.cols[0]
+                          .toLowerCase()
+                          .includes(filteredName.toLowerCase())
+                      )
+                      .map((tableRecord, i) => {
+                        return (
+                          <Tr key={i}>
+                            <Td>-</Td>
+                            <Td>-</Td>
+
+                            <Td
+                              flexDirection={"row"}
+                              display={"flex"}
+                              alignItems={"center"}
+                            >
+                              {tableRecord.cols[1].split(".").pop() ===
+                                "txt" && <BiSolidFileTxt />}
+                              {tableRecord.cols[0]}
+                            </Td>
+                            {/* <Td>{tableRecord.cols[1].split(".").pop()}</Td> */}
+                            <Td>
+                              <span
+                                style={{
+                                  // marginLeft: "auto",
+                                  color: "#107569",
+                                  fontWeight: 500,
+                                  fontSize: "12px",
+                                  backgroundColor: "#F0FDF9",
+                                  padding: "2px 8px",
+                                  borderRadius: "16px",
+                                }}
+                              >
+                                @assistant
+                              </span>
+                            </Td>
+                            <Td>-</Td>
+
+                            <Td>
+                              {new Date(tableRecord.cols[2]).toDateString()}
+                            </Td>
+                            <Td>{tableRecord.meta.totalTokens}</Td>
+                            <Td color={"red"} cursor={"not-allowed"}>
+                              <RiDeleteBin6Line />
+                            </Td>
+                          </Tr>
+                        );
+                      })}
+                  </Tbody>
+                </Table>
+              </TableContainer>
+            </>
+          )}
+        </Flex>
+      </div>
+    </>
   );
 };

@@ -46,8 +46,9 @@ export async function POST(req) {
                 message: element.message.S,
                 time: parseInt(element.time.N),
                 speaker:
-                  element.speaker.S === "PriAI"
-                    ? "assistant"
+                  element.speaker.S === "PriAI" ||
+                  element.speaker.S === "assistant"
+                    ? "mybuddy"
                     : element.speaker.S,
                 bookmark: element.bookmark?.BOOL || false,
                 feedback: {

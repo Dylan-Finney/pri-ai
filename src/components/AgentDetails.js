@@ -12,12 +12,14 @@ import {
   useSlider,
 } from "@chakra-ui/react";
 import { useContext, useState } from "react";
-import { DataContext } from "./App";
+import { AuthContext, ConvoContext, DataContext, UIContext } from "./App";
 import Image from "next/image";
 import axios from "axios";
 import { useFileUpload } from "@/utils/useFileUpload";
 import AgentImage from "./AgentImage";
 import AgentEditIcon from "@/assets/AgentEditIcon";
+import { baseBookmarkThreadObj } from "@/utils/constants";
+import sections from "@/utils/sections";
 
 const AgentDetailsSection = ({ title, text }) => {
   return (
@@ -32,13 +34,21 @@ const AgentDetailsSection = ({ title, text }) => {
   );
 };
 
-export const AgentDetails = ({
-  speaker,
-  expanded = false,
-  addKnowledge,
-  loggedIn = false,
-  demo = true,
-}) => {
+export const AgentDetails = () => {
+  const { setAgentKnowledgeUpload, bookmarkedThread } =
+    useContext(ConvoContext);
+  const { loggedIn } = useContext(AuthContext);
+  const { isLargerThanMD, expandedAgent, expandSideTab, setSection } =
+    useContext(UIContext);
+
+  const addKnowledge = (id) => {
+    setAgentKnowledgeUpload(id);
+    setSection(sections.UPLOAD);
+  };
+  const speaker = expandedAgent;
+  const expanded = expandSideTab;
+  const demo =
+    bookmarkedThread === baseBookmarkThreadObj ? true : bookmarkedThread.demo;
   const {
     agents: baseAgents,
     setAgents,
@@ -181,7 +191,7 @@ export const AgentDetails = ({
         </Menu>
       )}
 
-      {expanded ? (
+      {expanded && isLargerThanMD ? (
         <Flex
           flex={1}
           width={"100%"}

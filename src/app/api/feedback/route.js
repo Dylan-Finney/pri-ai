@@ -20,7 +20,7 @@ export async function POST(req) {
     });
     if (user.userId) {
       const { threadID, time, remove, helpful, details } = await req.json();
-
+      console.log({ threadID, time, remove, helpful, details });
       //   const messageID = `${threadID}-${time}`;
 
       //   var baseObject = {

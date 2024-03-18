@@ -83,7 +83,14 @@ export async function POST(req) {
                 id: element.threadID.S,
                 lastMessage: parseInt(element.time.N),
                 title: element.title ? element.title.S : "New Thread",
-                speakers: element.speakers ? element.speakers.SS : [],
+                speakers: element.speakers
+                  ? element.speakers.SS.map((speaker) => {
+                      if (speaker === "assistant") {
+                        return "mybuddy";
+                      }
+                      return speaker;
+                    })
+                  : [],
                 buddies: element.buddies ? element.buddies.BOOL : true,
                 // helpful: element.feedback ? JSON. ,
               });

@@ -1,9 +1,11 @@
 // app/providers.tsx
 "use client";
 
+import { theme } from "@/components/theme";
 import { ChakraProvider } from "@chakra-ui/react";
 import { Amplify } from "aws-amplify";
-
+import { Inter } from "next/font/google";
+import "../styles/globals.css";
 Amplify.configure(
   {
     Auth: {
@@ -19,7 +21,15 @@ Amplify.configure(
     ssr: true,
   }
 );
+const inter = Inter({
+  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
+  subsets: ["latin"],
+});
 
 export function Providers({ children }) {
-  return <ChakraProvider>{children}</ChakraProvider>;
+  return (
+    <ChakraProvider>
+      <main className={inter.className}>{children}</main>
+    </ChakraProvider>
+  );
 }

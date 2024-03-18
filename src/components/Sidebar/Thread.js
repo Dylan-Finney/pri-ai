@@ -10,30 +10,32 @@ import {
   Tooltip,
 } from "@chakra-ui/react";
 import axios from "axios";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { FiMoreVertical } from "react-icons/fi";
+import { UIContext } from "../App";
 
 const Thread = ({
   active = false,
   title,
   onClick,
-  isLargerThanMD = true,
-  threadID,
-  deleteConvo,
+  // isLargerThanMD = true,
+  // threadID,
+  // deleteConvo,
 }) => {
+  const { isLargerThanMD } = useContext(UIContext);
   // let hovered = false;
-  const [hovered, setHovered] = useState(false);
+  // const [hovered, setHovered] = useState(false);
   return (
     <Flex
       backgroundColor={active ? "#F5F7F9" : "white"}
       flexDirection={"row"}
       alignItems={"center"}
-      onMouseOver={() => {
-        setHovered(true);
-      }}
-      onMouseOut={() => {
-        setHovered(false);
-      }}
+      // onMouseOver={() => {
+      //   setHovered(true);
+      // }}
+      // onMouseOut={() => {
+      //   setHovered(false);
+      // }}
     >
       <Box
         onClick={onClick}
@@ -61,7 +63,7 @@ const Thread = ({
       </Box>
 
       {/* <Spacer /> */}
-      {(hovered === true || active === true) && (
+      {/* {(hovered === true || active === true) && (
         <Menu>
           {({ isOpen }) => (
             <>
@@ -94,7 +96,7 @@ const Thread = ({
             </>
           )}
         </Menu>
-      )}
+      )} */}
     </Flex>
   );
 };

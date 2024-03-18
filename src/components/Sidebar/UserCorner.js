@@ -11,16 +11,19 @@ import { signOut } from "aws-amplify/auth";
 import SidebarItem from "./SidebarItem";
 import User from "./User";
 import sections from "@/utils/sections";
+import { useContext } from "react";
+import { AuthContext } from "../App";
 const about = "/assets/about.svg";
 const FAQ = "/assets/FAQ.svg";
 const logout = "/assets/logout.svg";
 
-const UserCorner = ({ name, changeSection, section, loggedIn }) => {
+const UserCorner = () => {
   const { onOpen, onClose, isOpen } = useDisclosure();
+  const { loggedIn } = useContext(AuthContext);
   return (
     <Popover
       // initialFocusRef={initialFocusRef}
-      placement="top"
+      placement="bottom"
       closeOnBlur={true}
       isOpen={isOpen}
       onOpen={onOpen}
@@ -28,17 +31,19 @@ const UserCorner = ({ name, changeSection, section, loggedIn }) => {
     >
       <PopoverTrigger>
         <Button
+          display={{ base: "none", md: "flex" }}
           paddingLeft={0}
           marginTop={"auto"}
           variant={"ghost"}
-          paddingTop={10}
-          paddingBottom={10}
-          justifySelf={"flex-start"}
+          // paddingTop={10}
+          // paddingBottom={10}
+          height={"100%"}
+          justifySelf={"center"}
         >
           <User name={name} />
         </Button>
       </PopoverTrigger>
-      <PopoverContent>
+      <PopoverContent zIndex={999}>
         <PopoverHeader fontWeight="bold" border="0">
           <SidebarItem
             text={"LED Slack"}
@@ -74,7 +79,7 @@ const UserCorner = ({ name, changeSection, section, loggedIn }) => {
             }}
             // active={props.section === "chat"}
           />
-          <SidebarItem
+          {/* <SidebarItem
             text={"About this demo"}
             altText={"about icon"}
             image={about}
@@ -83,7 +88,7 @@ const UserCorner = ({ name, changeSection, section, loggedIn }) => {
               onClose();
             }}
             active={section === sections.ABOUT}
-          />
+          /> */}
           {loggedIn && (
             <SidebarItem
               text={"Logout"}

@@ -33,11 +33,7 @@ function FeedbackInput({ control, name, errors, helpful }) {
         value={field.value} // input value
         name={field.name} // send down the input name
         inputRef={field.ref} // send input ref, so we can focus on input when error appear
-        placeholder={
-          helpful
-            ? "What did you like about this response?"
-            : "What did you not like about this response?"
-        }
+        placeholder={"(optional) Please add specific details"}
       />
       <Flex flexDir={"row"}>
         <Text

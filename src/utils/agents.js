@@ -3,10 +3,10 @@
 // import { AgentSkiCoachIcon } from "@/assets/AgentSkiCoachIcon";
 // import { AgentSleepCoachIcon } from "@/assets/AgentSleepCoachIcon";
 
-import { AgentBasketballCoachIcon } from "@/assets/AgentBasketballIcon";
-import { AgentNutritionistIcon } from "@/assets/AgentNutritionistIcon";
-import { AgentSkiCoachIcon } from "@/assets/AgentSkiCoachIcon";
-import { AgentSleepCoachIcon } from "@/assets/AgentSleepCoachIcon";
+import { AgentBasketballCoachIcon } from "@/assets/avatar/icons/AgentBasketballIcon";
+import { AgentNutritionistIcon } from "@/assets/avatar/icons/AgentNutritionistIcon";
+import { AgentSkiCoachIcon } from "@/assets/avatar/icons/AgentSkiCoachIcon";
+import { AgentSleepCoachIcon } from "@/assets/avatar/icons/AgentSleepCoachIcon";
 import { AgentTrainerIcon } from "@/assets/avatar/icons/AgentTrainerIcon";
 
 export const agentDemoPrompts = {
@@ -244,7 +244,7 @@ export const agentsProd2 = [
   {
     id: 1,
     name: "My Buddy",
-    call: "assistant",
+    call: "mybuddy",
     image: {
       urlCircle: "",
       urlFull: "",
@@ -408,7 +408,7 @@ export const agentsDemo2 = [
     image: {
       urlCircle: "AIAgentNutritionistAvatar.png",
       urlFull: "NourishWell.png",
-      chatIcon: "",
+      chatIcon: (scale = 2) => <AgentNutritionistIcon scale={scale} />,
     },
     company: "NourishWell",
     index: "",
@@ -421,7 +421,7 @@ export const agentsDemo2 = [
     image: {
       urlCircle: "AIAgentSleepCoachAvatar.png",
       urlFull: "SleepLab.png",
-      chatIcon: "",
+      chatIcon: (scale = 2) => <AgentSleepCoachIcon scale={scale} />,
     },
     company: "Sleep lab",
     index: "",
@@ -435,7 +435,7 @@ export const agentsDemo2 = [
     image: {
       urlCircle: "AIAgentBasketballCoachAvatar.png",
       urlFull: "Game6.png",
-      chatIcon: "",
+      chatIcon: (scale = 2) => <AgentBasketballCoachIcon scale={scale} />,
     },
     company: "Game 6",
     index: "",
@@ -449,7 +449,7 @@ export const agentsDemo2 = [
     image: {
       urlCircle: "AIAgentSkiCoachAvatar.png",
       urlFull: "Heierling.png",
-      chatIcon: "",
+      chatIcon: (scale = 2) => <AgentSkiCoachIcon scale={scale} />,
     },
     company: "Heierling",
     index: "",

@@ -1,6 +1,6 @@
 import sections from "@/utils/sections";
 import { Box, SkeletonText, Text } from "@chakra-ui/react";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import LogoHeader from "./Sidebar/LogoHeader";
 import NewChatButton from "./Sidebar/NewChatButton";
 import SearchThreadsInput from "./Sidebar/SearchThreadsInput";
@@ -9,15 +9,25 @@ import ThreadGroupDivider from "./Sidebar/ThreadGroupDivider";
 import ThreadGroupTitle from "./Sidebar/ThreadGroupTitle";
 import UserCorner from "./Sidebar/UserCorner";
 import axios from "axios";
+import { AuthContext, ConvoContext, UIContext } from "./App";
 
 const SkeletonThread = () => {
   return <SkeletonText skeletonHeight={"6"} noOfLines={1} mb={3} />;
 };
 
-export default function Sidebar(props) {
-  const [searchValue, setSearchValue] = useState("");
+export default function ThreadsSidebar({ display = undefined }) {
+  const { onboarding, initializing } = useContext(AuthContext);
+  const { setSection, isLargerThanMd } = useContext(UIContext);
+  const {
+    conversations,
+    changeConversation,
+    fetchingConversation,
+    loading,
+    conversationID,
+  } = useContext(ConvoContext);
 
-  const conversations = props.conversations || [];
+  const disabledClick = fetchingConversation || loading;
+  const [searchValue, setSearchValue] = useState("");
 
   const groupsEnum = {
     TODAY: 0,
@@ -34,12 +44,47 @@ export default function Sidebar(props) {
     [groupsEnum.THIS_MONTH]: "This Month",
     [groupsEnum.OLDER]: "Older",
   };
+
+  const grouping = (date) => {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const thisWeek = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate() - now.getDay()
+    );
+    const lastWeek = new Date(
+      thisWeek.getFullYear(),
+      thisWeek.getMonth(),
+      thisWeek.getDate() - 7
+    );
+    const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    if (date >= today) {
+      return groupsEnum.TODAY;
+    } else if (date >= thisWeek) {
+      return groupsEnum.THIS_WEEK;
+    } else if (date >= lastWeek) {
+      return groupsEnum.LAST_WEEK;
+    } else if (date >= thisMonth) {
+      return groupsEnum.THIS_MONTH;
+    } else {
+      return groupsEnum.OLDER;
+    }
+  };
+
+  const openThread = (conversation, active) => {
+    if (!disabledClick && !active) {
+      setSection(sections.CHAT);
+      changeConversation(conversation.id, conversation.title);
+    }
+  };
   return (
     <Box
       id="sidebar"
-      display={props.display ? props.display : "flex"}
+      display={display ? display : "flex"}
       width={{ base: "100%", md: "19.5%" }}
       maxWidth={{ base: "100%", md: "270px" }}
+      minWidth={{ base: "unset", md: "190px" }}
       flexDirection={"column"}
       minHeight={{ base: "100%", md: "100vh" }}
       maxHeight={{ base: "100%", md: "100vh" }}
@@ -60,7 +105,7 @@ export default function Sidebar(props) {
         scrollBehavior={"smooth"}
         // paddingRight={{ base: "0rem", md: "1rem" }}
       >
-        {!props.onboarding && (
+        {!onboarding && (
           <>
             <SearchThreadsInput
               searchValue={searchValue}
@@ -68,14 +113,14 @@ export default function Sidebar(props) {
             />
             <NewChatButton
               onClick={() => {
-                if (!props.disabledClick) {
-                  props.changeSection(sections.CHAT);
-                  props.changeConversation(-1);
+                if (!disabledClick) {
+                  setSection(sections.CHAT);
+                  changeConversation(-1);
                 }
               }}
             />
             <Box flex={1} overflowY={"scroll"}>
-              {props.initializing === true ? (
+              {initializing === true ? (
                 <>
                   {Array.from({ length: 30 }, (_, index) => (
                     <SkeletonThread key={index} />
@@ -93,40 +138,6 @@ export default function Sidebar(props) {
                     .map((conversation, index) => {
                       const start = index === 0;
 
-                      const grouping = (date) => {
-                        const now = new Date();
-                        const today = new Date(
-                          now.getFullYear(),
-                          now.getMonth(),
-                          now.getDate()
-                        );
-                        const thisWeek = new Date(
-                          now.getFullYear(),
-                          now.getMonth(),
-                          now.getDate() - now.getDay()
-                        );
-                        const lastWeek = new Date(
-                          thisWeek.getFullYear(),
-                          thisWeek.getMonth(),
-                          thisWeek.getDate() - 7
-                        );
-                        const thisMonth = new Date(
-                          now.getFullYear(),
-                          now.getMonth(),
-                          1
-                        );
-                        if (date >= today) {
-                          return groupsEnum.TODAY;
-                        } else if (date >= thisWeek) {
-                          return groupsEnum.THIS_WEEK;
-                        } else if (date >= lastWeek) {
-                          return groupsEnum.LAST_WEEK;
-                        } else if (date >= thisMonth) {
-                          return groupsEnum.THIS_MONTH;
-                        } else {
-                          return groupsEnum.OLDER;
-                        }
-                      };
                       const group = grouping(conversation.lastMessage);
                       const lastGroup =
                         !start &&
@@ -135,7 +146,7 @@ export default function Sidebar(props) {
                       const lastThread = index === conversations.length - 1;
                       const startOfNewGroup = !start && group !== lastGroup;
                       const displayGroupTitle = start || group !== lastGroup;
-                      const active = props.activeConvo === conversation.id;
+                      const active = conversationID === conversation.id;
 
                       return (
                         <Box key={index} paddingRight={"10px"}>
@@ -147,34 +158,11 @@ export default function Sidebar(props) {
                           )}
                           <Thread
                             threadID={conversation.id}
-                            isLargerThanMd={props.isLargerThanMd}
+                            isLargerThanMd={isLargerThanMd}
                             onClick={() => {
-                              if (!props.disabledClick && !active) {
-                                props.changeSection(sections.CHAT);
-                                props.changeConversation(
-                                  conversation.id,
-                                  conversation.title
-                                );
-                              }
+                              openThread(conversation, active);
                             }}
                             active={active}
-                            deleteConvo={async (threadID) => {
-                              if (props.loggedIn) {
-                                await axios({
-                                  method: "POST",
-                                  url: "/api/deleteThread",
-                                  data: {
-                                    threadID,
-                                  },
-                                });
-                              }
-
-                              props.deleteThread(threadID);
-                              if (active) {
-                                props.changeSection(sections.CHAT);
-                                props.changeConversation(-1);
-                              }
-                            }}
                             title={conversation.title}
                           />
                         </Box>
@@ -185,12 +173,6 @@ export default function Sidebar(props) {
             </Box>
           </>
         )}
-        <UserCorner
-          name={props.name}
-          changeSection={props.changeSection}
-          section={props.section}
-          loggedIn={props.loggedIn}
-        />
       </Box>
     </Box>
   );

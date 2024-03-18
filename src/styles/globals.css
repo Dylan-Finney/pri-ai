@@ -10,6 +10,7 @@ ul,
 li {
   line-height: normal;
   white-space: normal;
+  padding-left: 20px;
 }
 
 h1 {

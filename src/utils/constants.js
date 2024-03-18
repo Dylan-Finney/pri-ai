@@ -57,4 +57,19 @@ const avatars = [
   "Avatar12.svg",
 ];
 
-export { apps, avatars };
+const negativeFeedbackOptions = [
+  `Didn't like the style`,
+  "Not factually correct",
+  `Didn't follow instructions`,
+  "Too long",
+  `Too short`,
+  `Didn't like the answer`,
+  `More`,
+];
+
+const baseBookmarkThreadObj = {
+  id: "",
+  messages: [],
+};
+
+export { apps, avatars, negativeFeedbackOptions, baseBookmarkThreadObj };

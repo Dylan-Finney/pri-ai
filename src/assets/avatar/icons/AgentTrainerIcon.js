@@ -15,7 +15,7 @@ export function AgentTrainerIcon({ scale }) {
         height="21.667"
         x="1.167"
         y="1.167"
-        fill="url(#pattern1)"
+        fill="url(#patternTrainerIcon)"
         rx="10.833"
       ></rect>
       <rect
@@ -29,7 +29,7 @@ export function AgentTrainerIcon({ scale }) {
       ></rect>
       <defs>
         <pattern
-          id="pattern1"
+          id="patternTrainerIcon"
           width="1"
           height="1"
           patternContentUnits="objectBoundingBox"

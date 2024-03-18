@@ -17,17 +17,13 @@ import { useContext, useEffect, useState } from "react";
 import AgentsCard from "./AgentsCard";
 import ExampleBlock from "./ExampleBlock";
 import PromptingSection from "./PromptingSection";
-import { DataContext } from "../App";
+import { AuthContext, ConvoContext, DataContext, UIContext } from "../App";
+import sideTabScreens from "@/utils/sideTabScreens";
 
-const AgentsDrawer = ({
-  onClose,
-  isOpen,
-  demoMode = true,
-  scrollToAgent = undefined,
-  onLoginModal,
-  openUploadModal,
-  selectAgent,
-}) => {
+const AgentsDrawer = () => {
+  const { demoMode } = useContext(ConvoContext);
+  const { scrollToAgent, setExpandedAgent, setSideTabScreen } =
+    useContext(UIContext);
   const tabs = {
     AGENTS: 0,
     PROMPTS: 1,
@@ -36,6 +32,15 @@ const AgentsDrawer = ({
   // const [agents, setAgents] = useState(
   //   demoMode === true ? agentsDemo2 : agentsProd2
   // );
+
+  const selectAgent = (speaker) => {
+    event.stopPropagation();
+    // console.log("HEY");
+    setExpandedAgent(speaker);
+    //   changingScreen = true;
+    setSideTabScreen(sideTabScreens.AGENT_DETAILS);
+    // setShowSideTab(true);
+  };
 
   const [tab, setTab] = useState(tabs.AGENTS);
   const { agents, setAgents, buddies, setBuddies } = useContext(DataContext);
@@ -364,7 +369,7 @@ const AgentsDrawer = ({
                     <AgentsCard
                       selectAgent={selectAgent}
                       defaultImage={agent.image.defaultFull}
-                      onLoginModal={onLoginModal}
+                      // onLoginModal={onLoginModal}
                       key={i}
                       scrollTo={i === scrollToAgent}
                       index={i}
@@ -375,7 +380,7 @@ const AgentsDrawer = ({
                       url={agent.image.urlFull}
                       icon={agent.image.chatIcon}
                       uploadable={agent.uploadable}
-                      openUploadModal={openUploadModal}
+                      // openUploadModal={openUploadModal}
                       awsIndex={agent.index}
                       demoMode={demoMode}
                       changeDetails={({ newTitle, newURL }) => {
