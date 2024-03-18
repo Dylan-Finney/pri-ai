@@ -1,5 +1,5 @@
 import { Box, Flex, Text } from "@chakra-ui/react";
-import { FiChevronRight } from "react-icons/fi";
+import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import ThreadTitle from "./ThreadTitle";
 import ChatResponse from "./ChatResponse";
 import { AgentDetails } from "./AgentDetails";
@@ -186,7 +186,8 @@ const ExpandSideTabButton = () => {
     <Box backgroundColor={"#f5f7f9"} padding={"10px"}>
       {expandSideTab ? (
         <FiChevronRight
-          onClick={() => {
+          onClick={(event) => {
+            event.stopPropagation();
             if (isLargerThanMD) {
               inverseExpandSideTab();
             } else {
@@ -195,8 +196,9 @@ const ExpandSideTabButton = () => {
           }}
         />
       ) : (
-        <FiChevronRight
-          onClick={() => {
+        <FiChevronLeft
+          onClick={(event) => {
+            event.stopPropagation();
             inverseExpandSideTab();
           }}
         />

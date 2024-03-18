@@ -34,6 +34,41 @@ const AgentDetailsSection = ({ title, text }) => {
   );
 };
 
+const AgentDetailsStorageUsed = () => {
+  const {
+    state,
+    actions,
+    getInnerTrackProps,
+    getInputProps,
+    getMarkerProps,
+    getRootProps,
+    getThumbProps,
+    getTrackProps,
+  } = useSlider({ min: 0, max: 100, value: 0 });
+  return (
+    <>
+      <chakra.div
+        mt={2}
+        // cursor="pointer"
+        w={{ base: "96%", lg: "98%" }}
+        ml={{ base: "2%", lg: "1%" }}
+        {...getRootProps()}
+      >
+        <input {...getInputProps()} hidden />
+        <Box h="7px" bgColor="#94c0bc" borderRadius="full" {...getTrackProps()}>
+          <Box
+            h="7px"
+            bgColor="teal.500"
+            borderRadius="full"
+            {...getInnerTrackProps()}
+          />
+        </Box>
+      </chakra.div>
+      <Text textAlign={"start"}>0 GB out of 15 GB used</Text>
+    </>
+  );
+};
+
 export const AgentDetails = () => {
   const { setAgentKnowledgeUpload, bookmarkedThread } =
     useContext(ConvoContext);
@@ -55,7 +90,7 @@ export const AgentDetails = () => {
     buddies,
     setBuddies,
   } = useContext(DataContext);
-  const agentsToSearch = demo ? agentsDemo2 : buddies;
+  const agentsToSearch = [...buddies, ...agentsDemo2];
   // const setAgentsToSearch = demo ? agentsDemo2 : buddies;
   var indexInAgents = agentsToSearch.findIndex(
     (agent) => agent.call === speaker
@@ -66,16 +101,79 @@ export const AgentDetails = () => {
   const agent = agentsToSearch[indexInAgents];
   const [imageError, setImageError] = useState(false);
   const [files, setSelectedFiles] = useFileUpload();
-  const {
-    state,
-    actions,
-    getInnerTrackProps,
-    getInputProps,
-    getMarkerProps,
-    getRootProps,
-    getThumbProps,
-    getTrackProps,
-  } = useSlider({ min: 0, max: 100, value: 0 });
+
+  const changeName = async () => {
+    const newTitle = window.prompt(
+      `What do you want to rename "${agent.name}" to`,
+      agent.name
+    );
+    if (agent.name !== newTitle) {
+      // setTitleButtonLoading(true);
+      await axios({
+        method: "POST",
+        url: "/api/changeAgentDetails",
+        data: {
+          agentID: agent.id,
+          name: newTitle,
+        },
+      });
+      const agentsCopy = [...buddies];
+      agentsCopy[indexInAgents] = {
+        ...agent,
+        name: newTitle,
+      };
+      setBuddies(agentsCopy);
+      // changeDetails({ newTitle, newURL: url });
+      // setTitleButtonLoading(false);
+    }
+  };
+
+  const changeImage = () => {
+    setSelectedFiles(
+      { multiple: false, accept: [".png", ".jpeg", ".jpg"] },
+      (files) => {
+        // setImageButtonLoading(true);
+        files.map(async ({ source, name, size, file }) => {
+          // console.log({ source, name, size, file });
+
+          const reader = new FileReader();
+          reader.readAsDataURL(file);
+
+          reader.onload = async () => {
+            try {
+              const splitName = name.split(".");
+              const response = await axios({
+                method: "POST",
+                url: "/api/changeAgentDetails",
+                data: {
+                  agentID: agent.id,
+                  imageEncoded: reader.result,
+                  type: splitName[splitName.length - 1],
+                  contentType: file.type,
+                },
+              });
+              const agentsCopy = [...buddies];
+              agentsCopy[indexInAgents] = {
+                ...agent,
+                image: {
+                  ...agent.image,
+                  urlFull: response.data.signedUrl,
+                },
+              };
+              setBuddies(buddies);
+              // setImageButtonLoading(false);
+            } catch (error) {
+              console.error("Error uploading file:", error);
+            }
+          };
+          reader.onerror = (error) => {
+            console.error("Error reading file:", error);
+          };
+        });
+      }
+    );
+  };
+
   return (
     <Flex
       height={"100%"}
@@ -107,179 +205,31 @@ export const AgentDetails = () => {
                 <AgentEditIcon />
               </MenuButton>
               <MenuList>
-                <MenuItem
-                  onClick={async () => {
-                    const newTitle = window.prompt(
-                      `What do you want to rename "${agent.name}" to`,
-                      agent.name
-                    );
-                    if (agent.name !== newTitle) {
-                      // setTitleButtonLoading(true);
-                      await axios({
-                        method: "POST",
-                        url: "/api/changeAgentDetails",
-                        data: {
-                          agentID: agent.id,
-                          name: newTitle,
-                        },
-                      });
-                      const agentsCopy = [...buddies];
-                      agentsCopy[indexInAgents] = {
-                        ...agent,
-                        name: newTitle,
-                      };
-                      setBuddies(agentsCopy);
-                      // changeDetails({ newTitle, newURL: url });
-                      // setTitleButtonLoading(false);
-                    }
-                  }}
-                >
-                  Change Name
-                </MenuItem>
-                <MenuItem
-                  onClick={() => {
-                    setSelectedFiles(
-                      { multiple: false, accept: [".png", ".jpeg", ".jpg"] },
-                      (files) => {
-                        // setImageButtonLoading(true);
-                        files.map(async ({ source, name, size, file }) => {
-                          // console.log({ source, name, size, file });
-
-                          const reader = new FileReader();
-                          reader.readAsDataURL(file);
-
-                          reader.onload = async () => {
-                            try {
-                              const splitName = name.split(".");
-                              const response = await axios({
-                                method: "POST",
-                                url: "/api/changeAgentDetails",
-                                data: {
-                                  agentID: agent.id,
-                                  imageEncoded: reader.result,
-                                  type: splitName[splitName.length - 1],
-                                  contentType: file.type,
-                                },
-                              });
-                              const agentsCopy = [...buddies];
-                              agentsCopy[indexInAgents] = {
-                                ...agent,
-                                image: {
-                                  ...agent.image,
-                                  urlFull: response.data.signedUrl,
-                                },
-                              };
-                              setBuddies(buddies);
-                              // setImageButtonLoading(false);
-                            } catch (error) {
-                              console.error("Error uploading file:", error);
-                            }
-                          };
-                          reader.onerror = (error) => {
-                            console.error("Error reading file:", error);
-                          };
-                        });
-                      }
-                    );
-                  }}
-                >
-                  Change Image
-                </MenuItem>
+                <MenuItem onClick={changeName}>Change Name</MenuItem>
+                <MenuItem onClick={changeImage}>Change Image</MenuItem>
               </MenuList>
             </>
           )}
         </Menu>
       )}
 
-      {expanded && isLargerThanMD ? (
-        <Flex
-          flex={1}
-          width={"100%"}
-          flexDirection={"row"}
-          alignItems={"unset"}
-        >
-          <Flex flex={1} flexDirection={"column"} alignItems={"center"}>
-            <AgentImage
-              show={agent.image.urlFull && !imageError}
-              icon={agent.image.chatIcon}
-              name={agent.name}
-              url={agent.image.urlFull}
-              defaultImage={agent.image.defaultFull}
-              onError={() => {
-                setImageError(true);
-              }}
-            />
-            <Text
-              color={"#101828"}
-              fontWeight={600}
-              fontSize={"14px"}
-              textAlign={"center"}
-            >
-              <span
-                style={{
-                  // marginLeft: "auto",
-                  color: "#107569",
-                  fontWeight: 500,
-                  fontSize: "12px",
-                  backgroundColor: "#F0FDF9",
-                  padding: "2px 8px",
-                  borderRadius: "16px",
-                }}
-              >
-                @{agent.call}
-              </span>
-            </Text>
-            <Text fontWeight={600}>
-              {agent.name} | {agent.company}
-            </Text>
-            <Text>{agent.description}</Text>
-            {agent.uploadable === true && loggedIn && (
-              <Button
-                padding={"10px"}
-                color={"white"}
-                marginTop={"10px"}
-                backgroundColor={"#0e9384"}
-                onClick={() => {
-                  addKnowledge(agent.id);
-                }}
-              >
-                Add Knowledge
-              </Button>
-            )}
-          </Flex>
-          <Flex flex={1} flexDirection={"column"}>
-            <AgentDetailsSection
-              title={"Role Description"}
-              text={agent.info?.description}
-            />
-            <AgentDetailsSection
-              title={"Personality"}
-              text={agent.info?.personality}
-            />
-            <AgentDetailsSection
-              title={"What you shared about you"}
-              text={agent.info?.shared}
-            />
-            <AgentDetailsSection
-              title={"Knowledge"}
-              text={agent.info?.knowledge}
-            />
-          </Flex>
-        </Flex>
-      ) : (
-        <>
-          <Box alignSelf={"center"}>
-            <AgentImage
-              show={agent.image.urlFull && !imageError}
-              icon={agent.image.chatIcon}
-              name={agent.name}
-              url={agent.image.urlFull}
-              defaultImage={agent.image.defaultFull}
-              onError={() => {
-                setImageError(true);
-              }}
-            />
-          </Box>
+      <Flex
+        flex={1}
+        width={"100%"}
+        flexDirection={expanded && isLargerThanMD ? "row" : "column"}
+        alignItems={"unset"}
+      >
+        <Flex flex={1} flexDirection={"column"} alignItems={"center"}>
+          <AgentImage
+            show={agent.image.urlFull && !imageError}
+            icon={agent.image.chatIcon}
+            name={agent.name}
+            url={agent.image.urlFull}
+            defaultImage={agent.image.defaultFull}
+            onError={() => {
+              setImageError(true);
+            }}
+          />
           <Text
             color={"#101828"}
             fontWeight={600}
@@ -304,14 +254,11 @@ export const AgentDetails = () => {
             {agent.name} | {agent.company}
           </Text>
           <Text>{agent.description}</Text>
-          {agent.uploadable === true && (
+          {agent.uploadable === true && loggedIn && (
             <Button
               padding={"10px"}
               color={"white"}
               marginTop={"10px"}
-              marginBottom={"10px"}
-              alignSelf={"center"}
-              width={"fit-content"}
               backgroundColor={"#0e9384"}
               onClick={() => {
                 addKnowledge(agent.id);
@@ -320,26 +267,27 @@ export const AgentDetails = () => {
               Add Knowledge
             </Button>
           )}
-          <Flex flexDir={"column"} gap={"10px"}>
-            <AgentDetailsSection
-              title={"Role Description"}
-              text={agent.info?.description}
-            />
-            <AgentDetailsSection
-              title={"Personality"}
-              text={agent.info?.personality}
-            />
-            <AgentDetailsSection
-              title={"What you shared about you"}
-              text={agent.info?.shared}
-            />
-            <AgentDetailsSection
-              title={"Knowledge"}
-              text={agent.info?.knowledge}
-            />
-          </Flex>
-        </>
-      )}
+        </Flex>
+        <Flex flex={1} flexDirection={"column"}>
+          <AgentDetailsSection
+            title={"Role Description"}
+            text={agent.info?.description}
+          />
+          <AgentDetailsSection
+            title={"Personality"}
+            text={agent.info?.personality}
+          />
+          <AgentDetailsSection
+            title={"What you shared about you"}
+            text={agent.info?.shared}
+          />
+          <AgentDetailsSection
+            title={"Knowledge"}
+            text={agent.info?.knowledge}
+          />
+        </Flex>
+      </Flex>
+
       <Text
         fontWeight={600}
         marginTop={"10px"}
@@ -348,33 +296,7 @@ export const AgentDetails = () => {
       >
         Advanced
       </Text>
-      {agent.uploadable && (
-        <>
-          <chakra.div
-            mt={2}
-            // cursor="pointer"
-            w={{ base: "96%", lg: "98%" }}
-            ml={{ base: "2%", lg: "1%" }}
-            {...getRootProps()}
-          >
-            <input {...getInputProps()} hidden />
-            <Box
-              h="7px"
-              bgColor="#94c0bc"
-              borderRadius="full"
-              {...getTrackProps()}
-            >
-              <Box
-                h="7px"
-                bgColor="teal.500"
-                borderRadius="full"
-                {...getInnerTrackProps()}
-              />
-            </Box>
-          </chakra.div>
-          <Text textAlign={"start"}>0 GB out of 15 GB used</Text>
-        </>
-      )}
+      {agent.uploadable && <AgentDetailsStorageUsed />}
     </Flex>
   );
 };

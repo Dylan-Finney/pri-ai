@@ -14,7 +14,6 @@ const ExamplePrompt = ({
   index,
   agentObj,
 }) => {
-  console.log({ agentObj });
   return (
     <Flex
       height="85px"
@@ -118,7 +117,7 @@ const ExamplePrompts = ({ demoMode = true, sendPrompt }) => {
   const { buddies } = useContext(DataContext);
   const agents = demoMode ? agentsDemo2 : buddies;
 
-  console.log({ agents });
+  // console.log({ agents });
   return (
     <SimpleGrid
       columns={{

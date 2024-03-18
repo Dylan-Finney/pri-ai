@@ -367,7 +367,7 @@ function App() {
 
   const getAgent = (entry) => {
     var regexAgent = entry.match(/@\[(\w+)\]\((\d+)\)/);
-    // const agents = demoMode ? agentsDemo2 : buddies;
+    const agents = demoMode ? agentsDemo2 : buddies;
     if (regexAgent === null) {
       const regexAllPossAgents = entry.match(/@(\w+)/g);
       console.log(regexAllPossAgents);
@@ -393,10 +393,8 @@ function App() {
       call: "",
     };
     const regexAgent = getAgent(entry);
-    if (
-      regexAgent !== null &&
-      agentsProd2[regexAgent[2]].call === regexAgent[1]
-    ) {
+    console.log({ regexAgent });
+    if (regexAgent !== null && buddies[regexAgent[2]].call === regexAgent[1]) {
       usedAgent = {
         index: regexAgent[2],
         call: regexAgent[1],
@@ -1119,6 +1117,7 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
 
   const changeConversation = async (newID, title = "New Thread") => {
     if (newID === -1) {
+      //Resets conversation state when there is no previous ID (newID is -1)
       setChatlog([]);
       setConversationIndex(newID);
       setConversationID(newID);
@@ -1130,6 +1129,7 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
     } else {
       const newIndex = conversations.findIndex((convo) => convo.id === newID);
       if (loggedIn) {
+        //Fetch conversation data when user is logged in
         setChatlog([]);
         setShowWelcomeMessage(false);
         setFetchingConversation(true);
@@ -1138,11 +1138,11 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
           url: "/api/getThread",
           data: { threadID: newID },
         });
-        // console.log(response);
         setConversationID(newID);
         setChatlog(response.data.allMessages);
         setFetchingConversation(false);
-        // console.log(response.data.allMessages);
+
+        //Finds last user and AI messages indices for reference
         var userMessageIndex = -1;
         var aiMessageIndex = -1;
         for (
@@ -1156,6 +1156,8 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
             aiMessageIndex = index;
           }
         }
+
+        //Resets lastGoodAnswer to have the last user message (statement) and ass
         lastGoodAnswer.current = {
           answer:
             aiMessageIndex >= 0
@@ -1173,6 +1175,7 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
         setDemoMode(!conversations[newIndex].buddies);
       } else {
         if (newIndex > -1) {
+          //Fetch conversation data when user is NOT logged in
           setChatlog(conversations[newIndex].chatlog);
           setConversationIndex(newID);
           setConversationID(newID);
@@ -1191,6 +1194,7 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
               aiMessageIndex = index;
             }
           }
+          //Resets last good answer
           lastGoodAnswer.current = {
             answer: "",
             aggregate: false,
@@ -1208,6 +1212,7 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
     setShowSideTab(false);
   };
 
+  //When the chatlog changes, scroll to the bottom
   useLayoutEffect(() => {
     var element = document.getElementById("chatlog");
     if (element) {
@@ -1239,8 +1244,6 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
   const [sidebarScreen, setSidebarScreen] = useState(sidebarScreens.MENU);
 
   const bookmarkMessage = ({ index, add, time }) => {
-    // message.bookmark =
-    //   !message.bookmark;
     setChatlog(
       chatlog.map((c, i) => {
         if (i == index) {
@@ -1253,21 +1256,6 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
       })
     );
     if (add) {
-      // console.log(bookmarks);
-      // console.log({
-      //   ...bookmarks,
-      //   conversationID:
-      //     bookmarks[
-      //       conversationID
-      //     ]
-      //       ? [
-      //           ...bookmarks[
-      //             conversationID
-      //           ],
-      //           message.time,
-      //         ]
-      //       : [message.time],
-      // });
       setBookmarks({
         ...bookmarks,
         [conversationID]: bookmarks[conversationID]
@@ -1275,13 +1263,6 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
           : [time],
       });
     } else {
-      // console.log(bookmarks);
-      // console.log(
-      //   bookmarks[
-      //     conversationID
-      //   ]
-      // );
-
       if (bookmarks[conversationID].length > 1) {
         const index = bookmarks[conversationID].indexOf(time);
         if (index > -1) {
@@ -1300,14 +1281,11 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
   };
 
   const sendPrompt = async (prompt) => {
-    // console.log(demoMode);
     if (demoMode === true) {
       await getResponse(prompt);
     } else {
       await getChunks(prompt.trim());
     }
-
-    //
   };
 
   return (
