@@ -111,6 +111,7 @@ export default function ChatResponse(props) {
             {negativeFeedbackOptions.map((feedbackText, index) => {
               return (
                 <WrapItem
+                  key={index}
                   backgroundColor={
                     selectedNegFeedbackIndex === index ? "black" : "transparent"
                   }

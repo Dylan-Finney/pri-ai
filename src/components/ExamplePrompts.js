@@ -136,6 +136,7 @@ const ExamplePrompts = ({ demoMode = true, sendPrompt }) => {
         );
         return (
           <ExamplePrompt
+            key={index}
             mainText={currentExamplePrompt.mainText}
             subText={currentExamplePrompt.subText}
             agent={currentExamplePrompt.agent}

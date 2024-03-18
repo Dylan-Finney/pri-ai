@@ -250,6 +250,7 @@ export const UploadSection = ({}) => {
                   .map((agent, i) => {
                     return (
                       <Flex
+                        key={i}
                         // maxWidth={"700px"}
                         onClick={() => {
                           if (selectedAgentIndexInList === i) {
@@ -367,6 +368,7 @@ export const UploadSection = ({}) => {
                         {files.map((file, fileIndex) => {
                           return (
                             <WrapItem
+                              key={fileIndex}
                               backgroundColor={"white"}
                               padding={"10px"}
                               alignItems={"center"}
@@ -544,7 +546,7 @@ export const UploadSection = ({}) => {
                                   borderRadius: "16px",
                                 }}
                               >
-                                @assistant
+                                @mybuddy
                               </span>
                             </Td>
                             <Td>-</Td>

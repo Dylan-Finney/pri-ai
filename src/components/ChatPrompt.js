@@ -22,11 +22,15 @@ export default function ChatPrompt(props) {
         paddingLeft={{ base: "9.5vw", sm: "50px", lg: "55px" }}
         paddingRight={"1vw"}
       >
-        {splitTextOnPossibleAgent.map((textSnippet) => {
+        {splitTextOnPossibleAgent.map((textSnippet, textSnippetIndex) => {
           const isPossibleAgent =
             textSnippet[0] === "@" && !textSnippet.includes(" ");
           if (isPossibleAgent === true) {
-            return <span style={{ fontWeight: 600 }}>{textSnippet}</span>;
+            return (
+              <span key={textSnippetIndex} style={{ fontWeight: 600 }}>
+                {textSnippet}
+              </span>
+            );
           } else {
             return textSnippet;
           }

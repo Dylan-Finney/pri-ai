@@ -121,6 +121,7 @@ const ThreadTitle = ({
         );
         return (
           <Box
+            key={agentIndex}
             width={"32px"}
             height={"32px"}
             backgroundColor={"white"}

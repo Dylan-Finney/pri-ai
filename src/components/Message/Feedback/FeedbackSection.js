@@ -187,6 +187,7 @@ const FeedbackSection = ({
                 ].map((feedbackText, index) => {
                   return (
                     <WrapItem
+                      key={index}
                       backgroundColor={
                         selectedNegFeedbackIndex === index
                           ? "black"
