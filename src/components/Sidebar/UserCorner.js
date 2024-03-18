@@ -40,7 +40,7 @@ const UserCorner = () => {
           height={"100%"}
           justifySelf={"center"}
         >
-          <User name={name} />
+          <User />
         </Button>
       </PopoverTrigger>
       <PopoverContent zIndex={999}>

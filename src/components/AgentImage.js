@@ -6,7 +6,7 @@ const AgentImage = ({
   show = true,
   url,
   icon,
-  name,
+  name = "Unknown",
   onError,
   size,
   defaultImage,
