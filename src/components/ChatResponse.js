@@ -170,6 +170,7 @@ export default function ChatResponse(props) {
         asThread={props.asThread}
         bookmarked={props.bookmarked}
         prompt={false}
+        onClick={props.onClick}
       >
         <MessageHeader
           // avatar={props.selectedAvatar}

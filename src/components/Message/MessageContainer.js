@@ -3,6 +3,7 @@ const MessageContainer = ({
   prompt,
   bookmarked = false,
   asThread = true,
+  onClick,
 }) => {
   return (
     <div
@@ -14,6 +15,7 @@ const MessageContainer = ({
         paddingBottom: "2vh",
         paddingTop: "1vh",
       }}
+      onClick={onClick}
     >
       {children}
     </div>

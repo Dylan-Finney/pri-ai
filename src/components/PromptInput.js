@@ -73,6 +73,9 @@ function PromptInput({}) {
     fetchingConversation,
     saving,
     voiceInputEnabled,
+    agentToAddToPrompt,
+    setAgentToAddToPrompt,
+    conversationID,
   } = useContext(ConvoContext);
   const { setScrollToAgent, setSideTabScreen, setShowSideTab, isLargerThanMD } =
     useContext(UIContext);
@@ -147,6 +150,16 @@ function PromptInput({}) {
     setShowSideTab(true);
     // onDrawerOpen();
   };
+
+  useEffect(() => {
+    if (agentToAddToPrompt !== "") {
+      setPrompt(`@${agentToAddToPrompt} ${prompt}`);
+      setAgentToAddToPrompt("");
+    }
+  }, [agentToAddToPrompt]);
+  useEffect(() => {
+    setPrompt("");
+  }, [conversationID]);
   return (
     <Flex
       padding={"10px"}

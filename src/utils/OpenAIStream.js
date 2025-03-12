@@ -99,7 +99,7 @@ export async function OpenAIStreamChat(payload) {
     // })
     return stream;
   } catch (e) {
-    console.error(e);
+    console.error("OPENAI ERROR", e);
     return e;
   }
 }

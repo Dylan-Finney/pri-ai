@@ -163,6 +163,8 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
   const [conversationIndex, setConversationIndex] = useState(-1);
   const [conversationID, setConversationID] = useState(-1);
 
+  const [agentToAddToPrompt, setAgentToAddToPrompt] = useState("");
+
   const boxRef = useRef();
   let isFirstClick = true;
   let changingScreen = false;
@@ -1349,6 +1351,8 @@ The full details on the abilities of Pri-AI can be found here in the help sheet.
               isUploadOpen,
               indexToUpload,
               onUploadClose,
+              agentToAddToPrompt,
+              setAgentToAddToPrompt,
             }}
           >
             <div style={{ margin: "" }}>

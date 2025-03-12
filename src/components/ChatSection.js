@@ -79,6 +79,7 @@ const ChatSection = ({}) => {
     language,
     sendPrompt,
     saving,
+    setAgentToAddToPrompt,
   } = useContext(ConvoContext);
   const { loggedIn, details, onboarding } = useContext(AuthContext);
   return (
@@ -197,6 +198,20 @@ const ChatSection = ({}) => {
                                     generating={
                                       loading && index === chatlog.length - 1
                                     }
+                                    onClick={(event) => {
+                                      console.log(event.detail);
+                                      switch (event.detail) {
+                                        case 2: {
+                                          setAgentToAddToPrompt(
+                                            message.speaker
+                                          );
+                                          break;
+                                        }
+                                        default: {
+                                          break;
+                                        }
+                                      }
+                                    }}
                                   />
                                 )}
                               </Box>
