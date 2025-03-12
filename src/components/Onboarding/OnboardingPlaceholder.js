@@ -28,6 +28,7 @@ const OnboardingPlaceholder = ({ logIn, openDemo }) => {
           backgroundColor={"#FFFFFF"}
           border={"1px solid #D0D5DD"}
           marginRight={"8px"}
+          isDisabled
           onClick={() => {
             logIn();
           }}
